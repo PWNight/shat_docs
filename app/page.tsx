@@ -6,106 +6,91 @@ import { Upload, FileSpreadsheet, AlertCircle } from 'lucide-react';
 interface Student {
     number: string;
     fullName: string;
-    fullDaysTotal: string;
-    fullDaysSick: string;
-    lessonsTotal: string;
-    lessonsSick: string;
-    late: string;
+    fullDaysTotal: number;
+    fullDaysSick: number;
+    lessonsTotal: number;
+    lessonsSick: number;
+    late: number;
 }
 
-export default function Attendance() {
-    // Создаём переменные
+export default function DnevnikAttendanceParser() {
     const [students, setStudents] = useState<Student[]>([]);
-    const [total, setTotal] = useState<Student | null>(null);
+    const [totalFromFile, setTotalFromFile] = useState<Student | null>(null);
     const [fileName, setFileName] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
 
-    // Функция загрузки файла
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        // Получаем файл. Если нет - возвращаем обратно.
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // Задаём значения переменным
         setError('');
         setFileName(file.name);
         setLoading(true);
         setStudents([]);
-        setTotal(null);
+        setTotalFromFile(null);
 
-        // Запускаем чтение
         const reader = new FileReader();
         reader.onload = (event) => {
-            // Получаем текст из файла
             const text = event.target?.result as string;
+
             try {
-                // Создаём временный DOM-парсер
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(text, 'text/html');
-
-                // Ищем таблицу с классом "marks"
                 const table = doc.querySelector('table.marks');
-                if (!table) {
-                    throw new Error('Не найдена таблица с посещаемостью');
-                }
+                if (!table) throw new Error('Таблица посещаемости не найдена');
 
-                // Получаем ряды данных
                 const rows = Array.from(table.querySelectorAll('tr'));
                 const data: Student[] = [];
-                let totalRow: Student | null = null;
 
-                // Запускаем цикл по рядам
                 rows.forEach((row) => {
-                    // Получаем заголовки
-                    const cells = row.querySelectorAll('td');
+                    const cells = Array.from(row.cells);
 
-                    // Пропускаем строки-заголовки (с rowspan/colspan)
-                    if (cells.length < 5) return;
+                    // Пропускаем пустые и заголовочные строки
+                    if (cells.length === 0) return;
+                    if (cells[0]?.rowSpan > 1) return;
+                    if (cells.length === 4) return;
 
-                    // Получаем ряд с итогом
-                    const isTotalRow = row.classList.contains('strong') ||
-                        cells[0]?.getAttribute('colspan') === '2' ||
-                        cells[1]?.textContent?.trim() === 'Итого';
+                    if (cells.length === 5 || cells[0]?.colSpan === 2) {
+                        const total: Student = {
+                            number: '',
+                            fullName: 'Итого',
+                            fullDaysTotal: Number(cells[1]?.textContent?.trim() || 0), // 16
+                            fullDaysSick:    Number(cells[2]?.textContent?.trim() || 0), // 0
+                            lessonsTotal:    Number(cells[3]?.textContent?.trim() || 0), // 115
+                            lessonsSick:     Number(cells[4]?.textContent?.trim() || 0), // 0
+                            late:            Number(cells[5]?.textContent?.trim() || 0), // 22
+                        };
+                        setTotalFromFile(total);
+                        return;
+                    }
 
-                    // Заполняем объект студента данными
-                    const student: Student = {
-                        number: cells[0]?.textContent?.trim() || '',
-                        fullName: cells[1]?.textContent?.trim() || '',
-                        fullDaysTotal: cells[2]?.textContent?.trim() || '0',
-                        fullDaysSick: cells[3]?.textContent?.trim() || '0',
-                        lessonsTotal: cells[4]?.textContent?.trim() || '0',
-                        lessonsSick: cells[5]?.textContent?.trim() || '0',
-                        late: cells[6]?.textContent?.trim() || '0',
-                    };
+                    if (cells.length >= 7) {
+                        const numText = cells[0]?.textContent?.trim();
+                        if (!numText || !/^\d+$/.test(numText)) return;
 
-                    // Если дошли до конца - выводим, иначе добавляем в массив
-                    if (isTotalRow) {
-                        totalRow = { ...student, fullName: 'Итого' };
-                    } else if (student.number && student.fullName && !isNaN(parseInt(student.number))) {
+                        const student: Student = {
+                            number: numText,
+                            fullName: cells[1]?.textContent?.trim() || '',
+                            fullDaysTotal: Number(cells[2]?.textContent?.trim() || 0),
+                            fullDaysSick:    Number(cells[3]?.textContent?.trim() || 0),
+                            lessonsTotal:    Number(cells[4]?.textContent?.trim() || 0),
+                            lessonsSick:     Number(cells[5]?.textContent?.trim() || 0),
+                            late:            Number(cells[6]?.textContent?.trim() || 0),
+                        };
+
                         data.push(student);
                     }
                 });
-                setStudents(data);
-                setTotal(totalRow);
 
-            // Ловим ошибки
-            } catch (err: never) {
-                console.error(err);
-                setError(err.message || 'Не удалось распознать файл. Возможно, это не отчёт о посещаемости из Дневник.ру');
-            // При завершении завершаем загрузку
+                setStudents(data);
+            } catch (err: any) {
+                setError('Ошибка парсинга: ' + (err.message || 'Неизвестная ошибка'));
             } finally {
                 setLoading(false);
             }
         };
 
-        // При ошибке останавливаем загрузку
-        reader.onerror = () => {
-            setError('Ошибка чтения файла');
-            setLoading(false);
-        };
-
-        // Запускаем чтение файла
         reader.readAsText(file, 'utf-8');
     };
 
@@ -156,7 +141,7 @@ export default function Attendance() {
                         <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-800 text-white">
-                                <tr className={'text-left text-xs font-medium'}>
+                                <tr className="text-left text-xs font-medium">
                                     <th className="px-4 py-3">№</th>
                                     <th className="px-4 py-3">ФИО</th>
                                     <th colSpan={2} className="px-4 py-3">Полных дней</th>
@@ -185,14 +170,15 @@ export default function Attendance() {
                                         <td className="px-4 py-3 text-center font-semibold text-red-600">{s.late}</td>
                                     </tr>
                                 ))}
-                                {total && (
-                                    <tr className="bg-gray-100 font-bold text-center text-sm">
+
+                                {totalFromFile && (
+                                    <tr className="bg-gray-100 font-bold text-sm">
                                         <td colSpan={2} className="px-4 py-4 text-left">Итого</td>
-                                        <td className="px-4 py-4">{total.fullDaysTotal}</td>
-                                        <td className="px-4 py-4">{total.fullDaysSick}</td>
-                                        <td className="px-4 py-4">{total.lessonsTotal}</td>
-                                        <td className="px-4 py-4">{total.lessonsSick}</td>
-                                        <td className="px-4 py-4 text-red-600">{total.late}</td>
+                                        <td className="px-4 py-4 text-center">{totalFromFile.fullDaysTotal}</td>
+                                        <td className="px-4 py-4 text-center">{totalFromFile.fullDaysSick}</td>
+                                        <td className="px-4 py-4 text-center">{totalFromFile.lessonsTotal}</td>
+                                        <td className="px-4 py-4 text-center">{totalFromFile.lessonsSick}</td>
+                                        <td className="px-4 py-4 text-center text-red-600">{totalFromFile.late}</td>
                                     </tr>
                                 )}
                                 </tbody>
