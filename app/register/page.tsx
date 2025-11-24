@@ -47,7 +47,7 @@ export default function RegisterPage() {
                         <p className="text-red-400 text-sm mt-2">{state.errors.username}</p>
                     )}
                 </div>
-                <div className="mb-4">
+                <div className="mb-8">
                     <label htmlFor="password" className="block mb-1 font-medium text-sm">
                         Пароль
                     </label>
@@ -112,7 +112,7 @@ export default function RegisterPage() {
                         "Зарегистрироваться"
                     )}
                 </button>
-                <div className="mt-6 text-sm">
+                <div className="mt-4 text-sm">
                     <p className="text-gray-600  flex items-center gap-2">
                         Уже есть аккаунт?
                         <Link

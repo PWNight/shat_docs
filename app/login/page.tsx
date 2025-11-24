@@ -31,7 +31,7 @@ export default function LoginPage() {
                 action={action}
             >
                 <h1 className="text-3xl font-bold mb-4 select-none">Вход в систему</h1>
-                <div className="mb-4">
+                <div className="mb-2">
                     <label htmlFor="username" className="block mb-1 font-medium text-sm">
                         Почта
                     </label>
@@ -47,7 +47,7 @@ export default function LoginPage() {
                         <p className="text-red-400 text-sm mt-2">{state.errors.username}</p>
                     )}
                 </div>
-                <div className="mb-6">
+                <div className="mb-2">
                     <label htmlFor="password" className="block mb-1 font-medium text-sm">
                         Пароль
                     </label>
