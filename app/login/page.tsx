@@ -22,7 +22,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="flex items-center justify-center h-screen bg-gray-300">
+        <div className="flex items-center justify-center h-screen bg-gray-200">
             <form
                 className="w-full max-w-md mx-auto bg-white rounded-2xl p-8 shadow-lg text-gray-900"
                 action={action}
