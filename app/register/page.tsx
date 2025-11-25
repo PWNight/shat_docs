@@ -71,8 +71,8 @@ export default function RegisterPage() {
                         <input
                             type={showPassword ? "text" : "password"}
                             autoComplete="current-password"
-                            id="password"
-                            name="password"
+                            id="repeat-password"
+                            name="repeat-password"
                             className="shadow-lg w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
                             placeholder="********"
                         />
