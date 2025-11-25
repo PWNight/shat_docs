@@ -13,36 +13,44 @@ interface Student {
     late: number;
 }
 
-export default function DnevnikAttendanceParser() {
+export default function Attendance() {
+    // Объявляем переменные
     const [students, setStudents] = useState<Student[]>([]);
     const [totalFromFile, setTotalFromFile] = useState<Student | null>(null);
     const [fileName, setFileName] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
 
+    // Создаём функцию загрузки файла
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        // Получаем файл
         const file = e.target.files?.[0];
         if (!file) return;
 
+        // Чистим переменные
         setError('');
         setFileName(file.name);
         setLoading(true);
         setStudents([]);
         setTotalFromFile(null);
 
+        // Объявляем ридер
         const reader = new FileReader();
         reader.onload = (event) => {
+            // Получаем текст данных из файла
             const text = event.target?.result as string;
-
             try {
+                // Парсим документ, получая HTML
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(text, 'text/html');
                 const table = doc.querySelector('table.marks');
                 if (!table) throw new Error('Таблица посещаемости не найдена');
 
+                // Получаем строки
                 const rows = Array.from(table.querySelectorAll('tr'));
                 const data: Student[] = [];
 
+                // Проходимся по строкам
                 rows.forEach((row) => {
                     const cells = Array.from(row.cells);
 
@@ -51,24 +59,27 @@ export default function DnevnikAttendanceParser() {
                     if (cells[0]?.rowSpan > 1) return;
                     if (cells.length === 4) return;
 
+                    // Находим итог таблицы
                     if (cells.length === 5 || cells[0]?.colSpan === 2) {
                         const total: Student = {
                             number: '',
                             fullName: 'Итого',
-                            fullDaysTotal: Number(cells[1]?.textContent?.trim() || 0), // 16
-                            fullDaysSick:    Number(cells[2]?.textContent?.trim() || 0), // 0
-                            lessonsTotal:    Number(cells[3]?.textContent?.trim() || 0), // 115
-                            lessonsSick:     Number(cells[4]?.textContent?.trim() || 0), // 0
-                            late:            Number(cells[5]?.textContent?.trim() || 0), // 22
+                            fullDaysTotal: Number(cells[1]?.textContent?.trim() || 0),
+                            fullDaysSick:    Number(cells[2]?.textContent?.trim() || 0),
+                            lessonsTotal:    Number(cells[3]?.textContent?.trim() || 0),
+                            lessonsSick:     Number(cells[4]?.textContent?.trim() || 0),
+                            late:            Number(cells[5]?.textContent?.trim() || 0),
                         };
                         setTotalFromFile(total);
                         return;
                     }
 
+                    // Находим студентов таблицы
                     if (cells.length >= 7) {
                         const numText = cells[0]?.textContent?.trim();
                         if (!numText || !/^\d+$/.test(numText)) return;
 
+                        // Заносим данные в объект студента
                         const student: Student = {
                             number: numText,
                             fullName: cells[1]?.textContent?.trim() || '',
