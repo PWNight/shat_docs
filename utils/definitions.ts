@@ -10,6 +10,14 @@ export const LoginFormSchema = z.object({
     .trim(),
 })
 
+export const SessionFormSchema = z.object({
+    uid: z
+        .int(),
+    email: z
+        .email()
+        .trim(),
+})
+
 export type LoginFormState =
   | {
       errors?: {

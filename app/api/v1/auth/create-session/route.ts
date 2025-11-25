@@ -1,12 +1,18 @@
 import { createSession, encrypt } from "@/utils/session";
 import { NextRequest, NextResponse } from "next/server";
+import { SessionFormSchema } from "@/utils/definitions";
 
 export async function POST(request: NextRequest) {
     const data = await request.json();
-    const uid = data.id;
-    const email = data.email
 
-    //TODO: Добавить валидацию
+    // Проверяем полученные поля
+    const validatedFields = SessionFormSchema.safeParse(Object.fromEntries(data));
+    if (!validatedFields.success) {
+        return NextResponse.json({ success: false, message: "Отсутствуют некоторые параметры", errors: validatedFields.error.flatten().fieldErrors }, { status: 401 });
+    }
+
+    // Получаем данные из формы
+    const { uid, email } = validatedFields.data;
 
     try {
         // Заносим UID и Почту в сессию
