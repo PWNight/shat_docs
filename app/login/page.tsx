@@ -4,13 +4,10 @@ import {Loader2, UserPlusIcon} from "lucide-react";
 import Link from "next/link";
 import {useRouter} from "next/navigation";
 import {useSearchParams} from "next/navigation";
-
-function signup() {
-
-}
+import {Login} from "@/utils/functions";
 
 export default function LoginPage() {
-    const [state, action, pending] = useActionState(signup, undefined);
+    const [state, action, pending] = useActionState(Login, undefined);
     const [showPassword, setShowPassword] = useState(false);
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -25,7 +22,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="flex items-center justify-center h-screen">
+        <div className="flex items-center justify-center h-screen bg-gray-300">
             <form
                 className="w-full max-w-md mx-auto bg-white rounded-2xl p-8 shadow-lg text-gray-900"
                 action={action}
@@ -43,8 +40,8 @@ export default function LoginPage() {
                         className="shadow-lg w-full px-4 py-3 bg-gray-50  border border-gray-200  rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
                         placeholder="test@test.com"
                     />
-                    {state?.errors?.username && (
-                        <p className="text-red-400 text-sm mt-2">{state.errors.username}</p>
+                    {state?.errors?.email && (
+                        <p className="text-red-400 text-sm mt-2">{state.errors.email}</p>
                     )}
                 </div>
                 <div className="mb-2">
