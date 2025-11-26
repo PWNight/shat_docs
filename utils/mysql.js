@@ -2,7 +2,7 @@ import mysql from 'mysql2/promise';
 
 export const query = async (sql, params) => {
   const pool = mysql.createPool({
-    host: 'http://172.25.222.220/',
+    host: '127.0.0.1',
     port: 3306,
     user: 'rodion',
     password: 'rodion',
