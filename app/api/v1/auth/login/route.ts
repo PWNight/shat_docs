@@ -4,24 +4,32 @@ import { NextRequest, NextResponse } from "next/server";
 import { LoginFormSchema } from "@/utils/definitions";
 
 export async function POST(request: NextRequest) {
+    // Получаем JSON объект из формы
     const data = await request.json();
 
     // Проверяем полученные поля
-    const validatedFields = LoginFormSchema.safeParse(Object.fromEntries(data));
+    const validatedFields = LoginFormSchema.safeParse(data);
     if (!validatedFields.success) {
-        return NextResponse.json({ success: false, message: "Отсутствуют некоторые параметры", errors: validatedFields.error.flatten().fieldErrors }, { status: 401 });
+        return NextResponse.json(
+            {
+                success: false,
+                message: "Неверные данные",
+                errors: validatedFields.error.flatten().fieldErrors,
+            },
+            { status: 400 }
+        );
     }
 
     // Получаем данные из формы
     const { email, password } = validatedFields.data;
     try {
-        // Получение пользователя из базы данных
+        // Получаем пользователя из базы данных
         const [user]: any = await query('SELECT * FROM users WHERE email = ?', [email]);
         if (!user) {
             return NextResponse.json({ success: false, message: 'Пользователь с такой почтой не найден' }, { status: 401 });
         }
 
-        // Сравнение паролей пользователя
+        // Сравниваем пароли
         const passwordMatch = await bcrypt.compare(password, user.password_hash);
         if ( !passwordMatch ) {
             return NextResponse.json({ success: false, message: "Неправильный пароль" }, { status: 401 });
