@@ -1,39 +1,62 @@
-"use server"
-import { SignJWT, jwtVerify } from 'jose' 
-import { cookies } from 'next/headers'
-const secretKey = process.env.SESSION_SECRET
-const encodedKey = new TextEncoder().encode(secretKey)
+"use server";
 
+import { SignJWT, jwtVerify } from "jose";
+import { cookies } from "next/headers";
 
-export async function encrypt(payload: any) {
-  return await new SignJWT(payload)
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setExpirationTime('7d')
-    .sign(encodedKey)
+const secretKey = process.env.SESSION_SECRET;
+if (!secretKey) throw new Error("SESSION_SECRET is not set");
+
+const encodedKey = new TextEncoder().encode(secretKey);
+
+// Шифруем payload
+export async function encryptSession(payload: any) {
+    return await new SignJWT(payload)
+        .setProtectedHeader({ alg: "HS256" })
+        .setIssuedAt()
+        .setExpirationTime("7d")
+        .sign(encodedKey);
 }
- 
-export async function decrypt(session: string | undefined = '') {
-  try {
-    const { payload } = await jwtVerify(session, encodedKey, {
-      algorithms: ['HS256'],
-    })
-    return payload
-  } catch (error) {
-    return null
-  }
+
+// Расшифровываем
+export async function decryptSession(session: string | undefined): Promise<any | null> {
+    if (!session) return null;
+    try {
+        const { payload } = await jwtVerify(session, encodedKey, {
+            algorithms: ["HS256"],
+        });
+        return payload;
+    } catch {
+        return null;
+    }
 }
-export async function createSession(token: any, expiresAt: any) {
-    const cookiesStore = await cookies()
-    return cookiesStore.set('s_token', token, {
+
+// Создаём сессию — только httpOnly cookie, без передачи токена клиенту!
+export async function createSession(userData: { uid: number; email: string }) {
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const session = await encryptSession({
+        uid: userData.uid,
+        email: userData.email,
+        expiresAt: expiresAt.getTime(),
+    });
+
+    (await cookies()).set({
+        name: "session",
+        value: session,
         httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
         expires: expiresAt,
-        sameSite: 'lax',
-        path: '/',
-    })
+    });
 }
 
 export async function deleteSession() {
-    const cookiesStore = await cookies()
-    cookiesStore.delete('s_token')
+    (await cookies()).delete("session");
+}
+
+// Вспомогательная функция для получения текущей сессии
+export async function getSession() {
+    const sessionCookie = (await cookies()).get("session")?.value;
+    if (!sessionCookie) return null;
+    return await decryptSession(sessionCookie);
 }
