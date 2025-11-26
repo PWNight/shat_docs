@@ -12,7 +12,7 @@ export async function Login(state: LoginFormState, formData: FormData) {
 
         // Получаем данные из формы
         const { email, password } = validatedFields.data;
-        const redirectTo = formData.get("redirectTo")?.toString() || "/me";
+        const redirectTo = formData.get("redirectTo")?.toString() || "/profile";
 
         // Отправляем POST запрос в авторизацию
         const loginResponse = await fetch('/api/v1/auth/login', {
@@ -49,7 +49,7 @@ export async function Register(state: LoginFormState, formData: FormData) {
 
         // Получаем данные из формы
         const { email, password } = validatedFields.data;
-        const redirectTo = formData.get("redirectTo")?.toString() || "/me";
+        const redirectTo = formData.get("redirectTo")?.toString() || "/profile";
 
         // Отправляем POST запрос в авторизацию
         const loginResponse = await fetch('/api/v1/auth/register', {
