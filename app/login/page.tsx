@@ -1,10 +1,10 @@
 "use client"
-import {useActionState, useEffect, useState} from "react";
+import { useActionState, useEffect, useState } from "react";
 import {Loader2, UserPlusIcon} from "lucide-react";
 import Link from "next/link";
-import {useRouter} from "next/navigation";
-import {useSearchParams} from "next/navigation";
-import {Login} from "@/utils/functions";
+import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { Login } from "@/utils/handlers";
 
 export default function LoginPage() {
     const [state, action, pending] = useActionState(Login, undefined);
@@ -14,7 +14,10 @@ export default function LoginPage() {
     const redirectTo = searchParams.get("to") || "/profile";
 
     useEffect(() => {
-
+        if (state?.success) {
+            const target = state.redirectTo || redirectTo;
+            router.push(target);
+        }
     }, [state, router, redirectTo]);
 
     const togglePasswordVisibility = () => {

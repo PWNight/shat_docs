@@ -1,23 +1,23 @@
 "use client"
-import {useActionState, useEffect, useState} from "react";
-import {Loader2, User, UserPlusIcon} from "lucide-react";
+import { useActionState, useEffect, useState } from "react";
+import { Loader2, User } from "lucide-react";
 import Link from "next/link";
-import {useRouter} from "next/navigation";
-import {useSearchParams} from "next/navigation";
-
-function signup() {
-
-}
+import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { Register } from "@/utils/handlers";
 
 export default function RegisterPage() {
-    const [state, action, pending] = useActionState(signup, undefined);
+    const [state, action, pending] = useActionState(Register, undefined);
     const [showPassword, setShowPassword] = useState(false);
     const router = useRouter();
     const searchParams = useSearchParams();
     const redirectTo = searchParams.get("to") || "/profile";
 
     useEffect(() => {
-
+        if (state?.success) {
+            const target = state.redirectTo || redirectTo;
+            router.push(target);
+        }
     }, [state, router, redirectTo]);
 
     const togglePasswordVisibility = () => {
@@ -43,8 +43,8 @@ export default function RegisterPage() {
                         className="shadow-lg w-full px-4 py-3 bg-gray-50  border border-gray-200  rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
                         placeholder="test@test.com"
                     />
-                    {state?.errors?.username && (
-                        <p className="text-red-400 text-sm mt-2">{state.errors.username}</p>
+                    {state?.errors?.email && (
+                        <p className="text-red-400 text-sm mt-2">{state.errors.email}</p>
                     )}
                 </div>
                 <div className="mb-8">
@@ -64,22 +64,6 @@ export default function RegisterPage() {
                             <p className="text-red-400 text-sm">{state.errors.password}</p>
                         )}
                     </div>
-                    <label htmlFor="password" className="block mt-4 mb-1 font-medium text-sm">
-                        Повтор пароля
-                    </label>
-                    <div className="relative">
-                        <input
-                            type={showPassword ? "text" : "password"}
-                            autoComplete="current-password"
-                            id="repeat-password"
-                            name="repeat-password"
-                            className="shadow-lg w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
-                            placeholder="********"
-                        />
-                        {state?.errors?.password && (
-                            <p className="text-red-400 text-sm mt-2">{state.errors.password}</p>
-                        )}
-                    </div>
                 </div>
                 <div className="flex justify-between items-center mb-2 text-sm">
                     <label className="flex items-center gap-2 select-none">
@@ -91,12 +75,6 @@ export default function RegisterPage() {
                         />
                         Показать пароль
                     </label>
-                    <Link
-                        href="https://t.me/pwnight"
-                        className="text-blue-400 hover:text-blue-500 transition-colors"
-                    >
-                        Забыли пароль?
-                    </Link>
                 </div>
                 {state?.message && (
                     <p className="text-red-400 text-sm mb-2">{state.message}</p>
