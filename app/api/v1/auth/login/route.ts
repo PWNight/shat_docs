@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, message: "Неправильный пароль" }, { status: 401 });
         }
 
-        return NextResponse.json({ success: true, data: { id: user.id, email } }, { status: 200 });
+        return NextResponse.json({ success: true, data: { uid: user.id, email } }, { status: 200 });
     } catch (error: any) {
         return NextResponse.json({
             success: false,

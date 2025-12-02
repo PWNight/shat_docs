@@ -22,12 +22,12 @@ export async function Login(state: LoginFormState, formData: FormData) {
         });
 
         // Получаем данные из ответа
-        const { data: id } = await handleApiResponse(loginResponse);
+        const { data } = await handleApiResponse(loginResponse);
 
         // Создаём сессию
         await fetch('/api/v1/auth/create-session', {
             method: 'POST',
-            body: JSON.stringify({ id, email }),
+            body: JSON.stringify({ uid: data.uid, email }),
             headers: { 'Content-Type': 'application/json' }
         });
 

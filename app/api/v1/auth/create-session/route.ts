@@ -34,7 +34,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             success: false,
             message: 'Серверная ошибка',
-            error: error
-        }, { status: 500 });
+            error: {
+                message: error.message,
+                code: error.code || 'UNKNOWN_ERROR'
+            },
+            }, { status: 500 });
     }
 }
