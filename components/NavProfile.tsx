@@ -21,10 +21,10 @@ export function NavProfile() {
                             key={href}
                             href={href}
                             absolute
-                            className="group flex items-center gap-3 w-full px-4 py-3 rounded-lg text-neutral-700 dark:text-neutral-300 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-neutral-700 dark:hover:text-blue-400 transition-all duration-200 font-medium text-base"
+                            className="group flex items-center gap-3 w-full px-4 py-3 rounded-lg text-neutral-700 hover:bg-blue-500 hover:text-white transition-all duration-200 font-medium text-base"
                             activeClassName="bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md hover:from-blue-600 hover:to-blue-700"
                         >
-                            <Icon className="w-5 h-5 shrink-0 transition-colors duration-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-[.active]:text-white" />
+                            <Icon className="w-5 h-5 shrink-0 transition-colors duration-200 group-hover:text-white" />
                             <span className="transition-colors duration-200">{label}</span>
                         </Anchor>
                     ))}
