@@ -1,6 +1,7 @@
 import { createSession } from "@/utils/session";
 import { SessionFormSchema } from "@/utils/definitions";
 import { NextRequest, NextResponse } from "next/server";
+import {z} from "zod";
 
 export async function POST(request: NextRequest) {
     try {
@@ -8,20 +9,21 @@ export async function POST(request: NextRequest) {
         const data = await request.json();
 
         // Проверяем данные формы
-        const validatedFields = SessionFormSchema.safeParse(data);
-        if (!validatedFields.success) {
+        const parsed = SessionFormSchema.safeParse(data);
+        if (!parsed.success) {
+            const tree = z.treeifyError(parsed.error);
             return NextResponse.json(
                 {
                     success: false,
                     message: "Неверные данные",
-                    errors: validatedFields.error.flatten().fieldErrors,
+                    errors: tree,
                 },
                 { status: 400 }
             );
         }
 
         // Получаем данные
-        const { uid, email } = validatedFields.data;
+        const { uid, email } = parsed.data;
 
         // Создаём безопасную сессию
         await createSession({ uid, email });
@@ -30,14 +32,21 @@ export async function POST(request: NextRequest) {
             { success: true, message: "Сессия создана" },
             { status: 200 }
         );
-    } catch (error: any) {
-        return NextResponse.json({
-            success: false,
-            message: 'Серверная ошибка',
-            error: {
-                message: error.message,
-                code: error.code || 'UNKNOWN_ERROR'
+    } catch (error) {
+        console.error("Ошибка работы API", error);
+        const errorMessage =
+            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
+
+        return NextResponse.json(
+            {
+                success: false,
+                message: "Внутренняя ошибка сервера",
+                error: {
+                    message: errorMessage,
+                    code: "SERVER_ERROR",
+                },
             },
-            }, { status: 500 });
+            { status: 500 }
+        );
     }
 }
