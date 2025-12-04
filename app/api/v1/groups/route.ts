@@ -2,10 +2,16 @@ import {NextRequest, NextResponse} from "next/server";
 import {execute, query, queryOne} from "@/utils/mysql";
 import {GroupFormSchema} from "@/utils/definitions";
 import {z} from "zod";
+import {getSession} from "@/utils/session";
 
-//GET ALL GROUPS
+// GET ALL GROUPS
 export async function GET(request: NextRequest) {
     try{
+        const userData = await getSession();
+        if (!userData){
+            return NextResponse.json({ success: true, message: "Для доступа требуется авторизоваться" }, {status:401})
+        }
+
         const groups = await query(
             'SELECT * FROM groups',
         );
@@ -31,26 +37,32 @@ export async function GET(request: NextRequest) {
 
 // CREATE NEW GROUP
 export async function POST(request: NextRequest) {
-    // Получаем JSON объект из формы
-    const data = await request.json();
-
-    // Проверяем полученные поля
-    const parsed = GroupFormSchema.safeParse(data);
-    if (!parsed.success) {
-        const tree = z.treeifyError(parsed.error);
-        return NextResponse.json(
-            {
-                success: false,
-                message: "Неверные данные",
-                errors: tree,
-            },
-            { status: 400 }
-        );
-    }
-
-    // Получаем данные из формы
-    const { name, fk_user } = parsed.data;
     try {
+        const userData = await getSession();
+        if (!userData){
+            return NextResponse.json({ success: true, message: "Для доступа требуется авторизоваться" }, {status:401})
+        }
+
+        // Получаем JSON объект из формы
+        const data = await request.json();
+
+        // Проверяем полученные поля
+        const parsed = GroupFormSchema.safeParse(data);
+        if (!parsed.success) {
+            const tree = z.treeifyError(parsed.error);
+            return NextResponse.json(
+                {
+                    success: false,
+                    message: "Неверные данные",
+                    errors: tree,
+                },
+                { status: 400 }
+            );
+        }
+
+        // Получаем данные из формы
+        const { name, fk_user } = parsed.data;
+
         // Получаем пользователя из базы данных
         const user = await queryOne(
             'SELECT email FROM users WHERE id = ? LIMIT 1',
