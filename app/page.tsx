@@ -1,7 +1,8 @@
 'use client';
-
 import React, { useState } from 'react';
-import { Upload, FileSpreadsheet, AlertCircle } from 'lucide-react';
+import { Upload, FileSpreadsheet, AlertCircle, FileText } from 'lucide-react';
+import { Packer, Document, Table, TableRow, TableCell, Paragraph, WidthType, BorderStyle } from 'docx';
+import { saveAs } from 'file-saver';
 
 interface Student {
     number: string;
@@ -95,8 +96,11 @@ export default function Attendance() {
                 });
 
                 setStudents(data);
-            } catch (err: any) {
-                setError('Ошибка парсинга: ' + (err.message || 'Неизвестная ошибка'));
+            } catch (err) {
+                console.error("Ошибка работы парсера", error);
+                const errorMessage = err instanceof Error ? err.message : "Неизвестная ошибка парсера";
+
+                setError('Ошибка парсинга: ' + errorMessage);
             } finally {
                 setLoading(false);
             }
@@ -105,14 +109,101 @@ export default function Attendance() {
         reader.readAsText(file, 'utf-8');
     };
 
+    async function exportToWord(){
+        const doc = new Document({
+            sections: [{
+                properties: {},
+                children: [
+                    new Paragraph({
+                        text: 'Ведомость посещаемости',
+                        heading: 'Heading1',
+                        alignment: 'center',
+                    }),
+                    new Paragraph({
+                        text: `Дата формирования: ${new Date().toLocaleDateString('ru-RU')}`,
+                        spacing: { after: 400 },
+                    }),
+
+                    // Таблица
+                    new Table({
+                        width: { size: 100, type: WidthType.PERCENTAGE },
+                        borders: {
+                            top: { style: BorderStyle.SINGLE, size: 1 },
+                            bottom: { style: BorderStyle.SINGLE, size: 1 },
+                            left: { style: BorderStyle.SINGLE, size: 1 },
+                            right: { style: BorderStyle.SINGLE, size: 1 },
+                            insideHorizontal: { style: BorderStyle.SINGLE, size: 1 },
+                            insideVertical: { style: BorderStyle.SINGLE, size: 1 },
+                        },
+                        rows: [
+                            // Заголовок
+                            new TableRow({
+                                children: [
+                                    new TableCell({ children: [new Paragraph('№')], columnSpan: 1 }),
+                                    new TableCell({ children: [new Paragraph('ФИО')], columnSpan: 1 }),
+                                    new TableCell({ children: [new Paragraph('Полных дней')], columnSpan: 2 }),
+                                    new TableCell({ children: [new Paragraph('Занятий')], columnSpan: 2 }),
+                                    new TableCell({ children: [new Paragraph('Опоздания')], columnSpan: 1 }),
+                                ]
+                            }),
+                            // Подзаголовок
+                            new TableRow({
+                                children: [
+                                    new TableCell({ children: [new Paragraph('')] }),
+                                    new TableCell({ children: [new Paragraph('')] }),
+                                    new TableCell({ children: [new Paragraph('Всего')] }),
+                                    new TableCell({ children: [new Paragraph('По болезни')] }),
+                                    new TableCell({ children: [new Paragraph('Всего')] }),
+                                    new TableCell({ children: [new Paragraph('По болезни')] }),
+                                    new TableCell({ children: [new Paragraph('')] }),
+                                ]
+                            }),
+
+                            // Данные студентов
+                            ...students.map(s => new TableRow({
+                                children: [
+                                    new TableCell({ children: [new Paragraph(s.number)] }),
+                                    new TableCell({ children: [new Paragraph(s.fullName)] }),
+                                    new TableCell({ children: [new Paragraph(s.fullDaysTotal.toString())] }),
+                                    new TableCell({ children: [new Paragraph({ text: s.fullDaysSick.toString(), style: 'Strong' })] }),
+                                    new TableCell({ children: [new Paragraph(s.lessonsTotal.toString())] }),
+                                    new TableCell({ children: [new Paragraph({ text: s.lessonsSick.toString(), style: 'Strong' })] }),
+                                    new TableCell({ children: [new Paragraph({ text: s.late.toString() })] }),
+                                ]
+                            })),
+
+                            // Итоговая строка
+                            ...(totalFromFile ? [
+                                new TableRow({
+                                    children: [
+                                        new TableCell({ children: [new Paragraph('')], columnSpan: 1 }),
+                                        new TableCell({ children: [new Paragraph({ text: 'Итого' })], columnSpan: 1 }),
+                                        new TableCell({ children: [new Paragraph({ text: totalFromFile.fullDaysTotal.toString() })] }),
+                                        new TableCell({ children: [new Paragraph({ text: totalFromFile.fullDaysSick.toString() })] }),
+                                        new TableCell({ children: [new Paragraph({ text: totalFromFile.lessonsTotal.toString() })] }),
+                                        new TableCell({ children: [new Paragraph({ text: totalFromFile.lessonsSick.toString() })] }),
+                                        new TableCell({ children: [new Paragraph({ text: totalFromFile.late.toString() })] }),
+                                    ]
+                                })
+                            ] : [])
+                        ]
+                    })
+                ]
+            }]
+        });
+
+        const blob = await Packer.toBlob(doc);
+        saveAs(blob, 'посещаемость.docx');
+    }
+
     return (
-        <div className="min-h-screen py-12 px-4">
-            <div className="max-w-2xl mx-auto">
-                <h1 className="text-4xl font-bold text-gray-900 mb-8 text-center">
-                    Парсер посещаемости из .xls
-                </h1>
+        <div className="min-h-screen py-12 px-4 flex">
+            <div className="mx-auto h-fit flex gap-4">
                 <div className="bg-white rounded-lg shadow-md p-8 mb-8">
-                    <label className="flex flex-col items-center justify-center w-full h-64 border-4 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
+                    <h1 className="text-4xl font-bold text-gray-900 mb-8 text-center">
+                        Парсер посещаемости из .xls
+                    </h1>
+                    <label className="flex flex-col items-center justify-center w-full h-52 border-4 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
                             {loading ? (
                                 <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600"></div>
@@ -132,12 +223,24 @@ export default function Attendance() {
                         />
                     </label>
 
-                    {fileName && (
-                        <div className="mt-4 flex items-center text-green-600">
-                            <FileSpreadsheet className="w-5 h-5 mr-2" />
-                            <span className="font-medium">Загружен: {fileName}</span>
-                        </div>
-                    )}
+                    <div className={'flex justify-between items-center mt-4'}>
+                        {fileName && (
+                            <div className="flex items-center text-green-600">
+                                <FileSpreadsheet className="w-5 h-5 mr-2" />
+                                <span className="font-medium">Загружен: {fileName}</span>
+                            </div>
+                        )}
+
+                        {students.length > 0 && (
+                            <button
+                                onClick={exportToWord}
+                                className="flex items-center px-2 py-1 gap-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-md"
+                            >
+                                <FileText className="w-5 h-5" />
+                                Скачать Word
+                            </button>
+                        )}
+                    </div>
 
                     {error && (
                         <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start text-red-700">
@@ -148,7 +251,7 @@ export default function Attendance() {
                 </div>
 
                 {students.length > 0 && (
-                    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div className="bg-white rounded-lg shadow-md overflow-hidden h-fit">
                         <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-800 text-white">
