@@ -18,6 +18,14 @@ export const SessionFormSchema = z.object({
         .trim(),
 })
 
+export const GroupFormSchema = z.object({
+    name: z
+        .string()
+        .trim(),
+    fk_user: z
+        .int(),
+})
+
 export type LoginFormState =
   | {
       errors?: {
