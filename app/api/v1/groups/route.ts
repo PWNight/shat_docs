@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     try{
         const userData = await getSession();
         if (!userData){
-            return NextResponse.json({ success: true, message: "Для доступа требуется авторизоваться" }, {status:401})
+            return NextResponse.json({ success: false, message: "Для доступа требуется авторизоваться" }, {status:401})
         }
 
         const groups = await query(
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     try {
         const userData = await getSession();
         if (!userData){
-            return NextResponse.json({ success: true, message: "Для доступа требуется авторизоваться" }, {status:401})
+            return NextResponse.json({ success: false, message: "Для доступа требуется авторизоваться" }, {status:401})
         }
 
         // Получаем JSON объект из формы
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
             [fk_user]
         );
         if (!user) {
-            return NextResponse.json({ success: false, message: 'Пользователь с таким айди не найден' }, { status: 401 });
+            return NextResponse.json({ success: false, message: `Пользователь с айди ${fk_user} не найден` }, { status: 404 });
         }
 
         // Получаем группу из базы данных
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
             [name]
         );
         if (group) {
-            return NextResponse.json({ success: false, message: 'Группа с таким названием уже существует' }, { status: 401 });
+            return NextResponse.json({ success: false, message: `Группа с названием ${name} уже существует` }, { status: 400 });
         }
 
         await execute(
