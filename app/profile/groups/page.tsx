@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import {getSession} from "@/utils/session";
 import {getAllGroups} from "@/utils/functions";
 import ErrorMessage from "@/components/notify-alert";
-import Link from "next/link";
 import {SearchX} from "lucide-react";
 
 export default function MeGuilds() {
@@ -49,11 +48,10 @@ export default function MeGuilds() {
             {notifyMessage && <ErrorMessage message={notifyMessage} onClose={handleClose} type={notifyType} />}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Группы</h1>
-                <Link
-                    href="/guilds/create"
+                <button
                 >
                     Создать группу
-                </Link>
+                </button>
             </div>
 
             {groups.length > 0 ? (
