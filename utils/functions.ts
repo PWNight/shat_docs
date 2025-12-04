@@ -1,5 +1,6 @@
 import {twMerge} from "tailwind-merge";
 import clsx, {ClassValue} from "clsx";
+import {NextResponse} from "next/server";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -33,4 +34,24 @@ export async function makeAuthorizedRequest(url: string, token: string, data: ob
         },
         body: JSON.stringify(data),
     });
+}
+
+export async function getAllGroups(){
+    try {
+        const response = await fetch("/api/v1/groups/",{
+            method: "GET",
+        })
+        if (!response.ok) {
+            return { success: false, message: `Ошибка ${response.status}, сервер вернул неожиданный ответ: ` + response.statusText };
+        }
+        const json = await response.json();
+
+        return { success: true, message: "Успешно", data: json.data }
+    } catch (error) {
+        console.error("Ошибка работы API", error);
+        const errorMessage =
+            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
+
+        return { success: false, message: errorMessage };
+    }
 }
