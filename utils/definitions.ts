@@ -12,7 +12,7 @@ export const LoginFormSchema = z.object({
 
 export const SessionFormSchema = z.object({
     uid: z
-        .int(),
+        .number(),
     email: z
         .email()
         .trim(),
@@ -23,7 +23,7 @@ export const GroupFormSchema = z.object({
         .string()
         .trim(),
     fk_user: z
-        .int(),
+        .number(),
 })
 
 export type LoginFormState =
