@@ -44,7 +44,7 @@ export default function MeGuilds() {
     }
 
     return (
-        <div className="w-full px-2">
+        <div className="w-full px-2 mt-4">
             {notifyMessage && <ErrorMessage message={notifyMessage} onClose={handleClose} type={notifyType} />}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Группы</h1>
