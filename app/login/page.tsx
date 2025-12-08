@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { Login } from "@/utils/handlers";
+import {getSession} from "@/utils/session";
 
 export default function LoginPage() {
     const [state, action, pending] = useActionState(Login, undefined);
@@ -14,6 +15,13 @@ export default function LoginPage() {
     const redirectTo = searchParams.get("to") || "/profile";
 
     useEffect(() => {
+        async function getInfo(){
+            const data = await getSession();
+            if ( data ){
+                router.push("/profile");
+            }
+        }
+        getInfo()
         if (state?.success) {
             const target = state.redirectTo || redirectTo;
             router.push(target);
