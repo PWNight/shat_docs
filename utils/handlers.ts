@@ -1,4 +1,4 @@
-import { LoginFormSchema, LoginFormState } from "@/utils/definitions";
+import {GroupFormSchema, GroupFormState, LoginFormSchema, LoginFormState} from "@/utils/definitions";
 import { handleApiResponse } from "@/utils/functions";
 
 // Код авторизации
@@ -70,6 +70,34 @@ export async function Register(state: LoginFormState, formData: FormData) {
 
         // Возвращаем успех и redirectTo
         return { success: true, redirectTo };
+    } catch (error) {
+        console.log( error )
+        return { message: error instanceof Error ? error.message : 'Произошла ошибка' };
+    }
+}
+
+// Код создания группы
+export async function CreateGroup(state: GroupFormState, formData: FormData) {
+    try {
+        // Проверяем полученные поля
+        const validatedFields = GroupFormSchema.safeParse(Object.fromEntries(formData));
+        if (!validatedFields.success) {
+            console.log(validatedFields.error.flatten().fieldErrors)
+            return { errors: validatedFields.error.flatten().fieldErrors };
+        }
+
+        // Получаем данные из формы
+        const { name, fk_user } = validatedFields.data;
+
+        // Отправляем POST запрос в авторизацию
+        await fetch('/api/v1/groups', {
+            method: 'POST',
+            body: JSON.stringify({ name, fk_user }),
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        // Возвращаем успех и redirectTo
+        return { success: true };
     } catch (error) {
         console.log( error )
         return { message: error instanceof Error ? error.message : 'Произошла ошибка' };
