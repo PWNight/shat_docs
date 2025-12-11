@@ -1,18 +1,15 @@
 "use client"
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {getSession} from "@/utils/session";
 
-export default function Me() {
-    const [userData, setUserData] = useState(Object)
+export default function Profile() {
     const router = useRouter()
 
     useEffect(()=>{
         async function getInfo(){
             const data = await getSession();
-            if ( data ){
-                setUserData({email: data.email, uid: data.uid});
-            }else{
+            if ( !data ){
                 router.push("/login");
             }
         }
