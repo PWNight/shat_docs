@@ -13,6 +13,7 @@ import {
     DialogTrigger
 } from "@/components/ui/dialog";
 import {CreateGroup} from "@/utils/handlers";
+import Link from "next/link";
 
 export default function ProfileGroups() {
     const [userData, setUserData] = useState(Object)
@@ -24,24 +25,22 @@ export default function ProfileGroups() {
     const [state, action, pending] = useActionState(CreateGroup, undefined);
 
     useEffect(() => {
-        async function load(){
-            const data = await getSession();
-            if (!data){
-                router.push("/login?to=me/guilds");
-                return;
+        getSession().then(async session => {
+            if (!session){
+               router.push("/login?to=profile/groups");
+               return;
             }
-            setUserData({email: data.email, uid: data.uid});
+            setUserData({email: session.email, uid: session.uid});
 
             const response = await getAllGroups();
             if (!response.success){
                 setNotifyMessage(response.message);
                 setNotifyType('error');
-            }else{
-                setGroups(response.data)
-                setPageLoaded(true)
+                return;
             }
-        }
-        load();
+            setGroups(response.data)
+            setPageLoaded(true)
+        })
     }, [router]);
 
     const handleClose = () => setNotifyMessage('');
@@ -137,16 +136,13 @@ export default function ProfileGroups() {
                             bg-white dark:bg-zinc-800 dark:border-zinc-700
                             hover:border-[#F38F54] transition-all duration-300 shadow-md hover:shadow-lg"
                         >
-                            <div className="flex flex-col gap-4">
-                                <div className="flex flex-row items-start gap-4">
-                                    <div className="flex-1 space-y-3">
-                                        <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                                            {group.name}
-                                        </h3>
-                                        <p>Создана {new Date(group.created_by).toLocaleString("ru-RU")}</p>
-                                    </div>
-                                </div>
+                            <div className="flex-1 space-y-2 mb-3">
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                                    {group.name}
+                                </h3>
+                                <p>Создана: {new Date(group.created_by).toLocaleString("ru-RU")}</p>
                             </div>
+                            <Link href={`groups/${group.id}`} className="bg-blue-400 hover:bg-blue-500 text-white text-center font-medium py-2 rounded-lg focus:ring-2 focus:ring-blue-300 transition-all shadow-md hover:shadow-lg select-none">Управлять</Link>
                         </div>
                     ))}
                 </div>
