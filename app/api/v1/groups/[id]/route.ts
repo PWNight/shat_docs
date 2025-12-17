@@ -14,12 +14,12 @@ export async function GET(request: NextRequest, {params}: { params: Promise<{ id
 
         const {id} = await params;
         const group = await queryOne(
-            'SELECT * FROM groups WHERE id = ? LIMIT 1', [id]
+            'SELECT * FROM groups WHERE id = ?', [id]
         );
         if (!group) {
             return NextResponse.json({ success: false, message: `Группа с айди ${id} не найдена` }, {status:404})
         }
-        return NextResponse.json({ success: true }, {status:200})
+        return NextResponse.json({ success: true, data: group }, {status:200})
     } catch (error) {
         console.error("Ошибка работы API", error);
         const errorMessage =
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest, {params}: { params: Promise<{ id
 }
 
 // UPDATE GROUP BY ID
-async function POST(request: NextRequest, {params}: { params: Promise<{ id: string }> }) {
+export async function POST(request: NextRequest, {params}: { params: Promise<{ id: string }> }) {
     try{
         const userData = await getSession();
         if (!userData){
@@ -49,7 +49,7 @@ async function POST(request: NextRequest, {params}: { params: Promise<{ id: stri
 
         const {id} = await params;
         const group = await queryOne(
-            'SELECT * FROM groups WHERE id = ? LIMIT 1', [id]
+            'SELECT * FROM groups WHERE id = ?', [id]
         );
         if (!group) {
             return NextResponse.json({ success: false, message: `Группа с айди ${id} не найдена` }, {status:404})
@@ -111,9 +111,6 @@ async function POST(request: NextRequest, {params}: { params: Promise<{ id: stri
         );
     }
 }
-
-export default POST
-
 // DELETE GROUP BY ID
 export async function DELETE(request: NextRequest, {params}: { params: Promise<{ id: string }> }) {
     try{
