@@ -54,3 +54,23 @@ export async function getAllGroups(){
         return { success: false, message: errorMessage };
     }
 }
+
+export async function getGroup(id: string){
+    try {
+        const response = await fetch(`/api/v1/groups/${id}`,{
+            method: "GET",
+        })
+        if (!response.ok) {
+            return { success: false, message: `Ошибка ${response.status}, сервер вернул неожиданный ответ: ` + response.statusText };
+        }
+        const json = await response.json();
+
+        return { success: true, message: "Успешно", data: json.data }
+    } catch (error) {
+        console.error("Ошибка работы API", error);
+        const errorMessage =
+            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
+
+        return { success: false, message: errorMessage };
+    }
+}
