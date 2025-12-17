@@ -81,6 +81,8 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, message: `Группа с названием ${name} уже существует` }, { status: 400 });
         }
 
+        // TODO: Проверка наличия закреплённой за преподавателем группы (добавить новую группу может только администратор или свободный преподаватель)
+
         await execute(
             'INSERT INTO groups (name, fk_user) VALUES (?, ?)',
             [name, fk_user]
