@@ -51,8 +51,8 @@ export default function LoginPage() {
                         className="shadow-lg w-full px-4 py-3 bg-gray-50  border border-gray-200  rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
                         placeholder="test@test.com"
                     />
-                    {state?.errors?.email && (
-                        <p className="text-red-400 text-sm mt-2">{state.errors.email}</p>
+                    {state?.fieldErrors?.email && (
+                        <p className="text-red-400 text-sm mt-2">{state.fieldErrors.email}</p>
                     )}
                 </div>
                 <div className="mb-2">
@@ -68,8 +68,8 @@ export default function LoginPage() {
                             className="shadow-lg w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
                             placeholder="********"
                         />
-                        {state?.errors?.password && (
-                            <p className="text-red-400 text-sm mt-2">{state.errors.password}</p>
+                        {state?.fieldErrors?.password && (
+                            <p className="text-red-400 text-sm mt-2">{state.fieldErrors.password}</p>
                         )}
                     </div>
                     <div className="flex justify-between items-center mt-6 text-sm">

@@ -89,11 +89,11 @@ export default function ProfileGroups() {
                             />
                             <input type="hidden" name="fk_user" defaultValue={userData.uid} />
 
-                            {state?.errors?.name && (
-                                <p className="text-red-500 text-xs font-medium">{state.errors.name}</p>
+                            {state?.fieldErrors?.name && (
+                                <p className="text-red-500 text-xs font-medium">{state.fieldErrors.name}</p>
                             )}
-                            {state?.errors?.fk_user && (
-                                <p className="text-red-500 text-xs font-medium">{state.errors.fk_user}</p>
+                            {state?.fieldErrors?.fk_user && (
+                                <p className="text-red-500 text-xs font-medium">{state.fieldErrors.fk_user}</p>
                             )}
                         </div>
 
