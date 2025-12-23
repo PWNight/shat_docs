@@ -31,8 +31,8 @@ export const StudentFormSchema = z.object({
         .string()
         .trim(),
     admission_year: z
-        .string()
-        .max(4, { message: 'Минимальная длина года - 4 символа' }),
+        .number()
+        .min(4, { message: 'Минимальная длина - 4 символа' }),
     fk_group: z
         .string(),
 })
