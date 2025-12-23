@@ -1,7 +1,7 @@
 import {execute, queryOne} from '@/utils/mysql';
 import bcrypt from 'bcrypt';
 import { NextRequest, NextResponse } from "next/server";
-import { LoginFormSchema } from "@/utils/definitions";
+import {LoginFormSchema} from "@/utils/definitions";
 import {z} from "zod";
 
 export async function POST(request: NextRequest) {
@@ -11,12 +11,11 @@ export async function POST(request: NextRequest) {
     // Проверяем полученные поля
     const parsed = LoginFormSchema.safeParse(data);
     if (!parsed.success) {
-        const tree = z.treeifyError(parsed.error);
         return NextResponse.json(
             {
                 success: false,
-                message: "Неверные данные",
-                errors: tree,
+                message: "Ошибка валидации",
+                fieldErrors: z.flattenError(parsed.error).fieldErrors
             },
             { status: 400 }
         );

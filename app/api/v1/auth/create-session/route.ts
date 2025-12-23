@@ -1,5 +1,5 @@
 import { createSession } from "@/utils/session";
-import { SessionFormSchema } from "@/utils/definitions";
+import {SessionFormSchema} from "@/utils/definitions";
 import { NextRequest, NextResponse } from "next/server";
 import {z} from "zod";
 
@@ -11,12 +11,11 @@ export async function POST(request: NextRequest) {
         // Проверяем данные формы
         const parsed = SessionFormSchema.safeParse(data);
         if (!parsed.success) {
-            const tree = z.treeifyError(parsed.error);
             return NextResponse.json(
                 {
                     success: false,
-                    message: "Неверные данные",
-                    errors: tree,
+                    message: "Ошибка валидации",
+                    fieldErrors: z.flattenError(parsed.error).fieldErrors
                 },
                 { status: 400 }
             );
