@@ -26,9 +26,20 @@ export const GroupFormSchema = z.object({
         .string(),
 })
 
+export const StudentFormSchema = z.object({
+    full_name: z
+        .string()
+        .trim(),
+    admission_year: z
+        .string()
+        .max(4, { message: 'Минимальная длина года - 4 символа' }),
+    fk_group: z
+        .string(),
+})
+
 export type LoginFormState =
   | {
-      errors?: {
+    fieldErrors?: {
         email?: string[]
         password?: string[]
       }
@@ -38,9 +49,20 @@ export type LoginFormState =
 
 export type GroupFormState =
     | {
-    errors?: {
+    fieldErrors?: {
         name?: string[]
         fk_user?: string[]
+    }
+    message?: string
+}
+    | undefined
+
+export type StudentFormState =
+    | {
+    fieldErrors?: {
+        full_name?: string[]
+        admission_year	?: string[]
+        fk_group?: string[]
     }
     message?: string
 }
