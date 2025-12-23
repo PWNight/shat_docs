@@ -48,11 +48,19 @@ export async function POST(request: NextRequest, {params}: { params: Promise<{ i
         }
 
         const {id} = await params;
-        const student = await queryOne(
-            'SELECT * FROM students WHERE id = ?', [id]
-        );
+        const student = await queryOne(`
+            SELECT s.*, g.fk_user as owner_id 
+            FROM students s 
+            JOIN groups g ON s.fk_group = g.id 
+            WHERE s.id = ?`,
+        [id]);
+
         if (!student) {
             return NextResponse.json({ success: false, message: `Студент с айди ${id} не найден` }, {status:404})
+        }
+
+        if (userData.uid !== student.owner_id) {
+            return NextResponse.json({ success: false, message: "Нет прав доступа к этому студенту" }, { status: 403 });
         }
 
         // TODO: Написать проверку доступа к обновлению (обновить студента может только классный руководитель его группы либо администратор)
@@ -117,14 +125,20 @@ export async function DELETE(request: NextRequest, {params}: { params: Promise<{
         }
 
         const {id} = await params;
-        const student = await queryOne(
-            'SELECT * FROM students WHERE id = ? LIMIT 1', [id]
-        );
+        const student = await queryOne(`
+            SELECT s.*, g.fk_user as owner_id 
+            FROM students s 
+            JOIN groups g ON s.fk_group = g.id 
+            WHERE s.id = ?`,
+            [id]);
+
         if (!student) {
             return NextResponse.json({ success: false, message: `Студент с айди ${id} не найден` }, {status:404})
         }
 
-        // TODO: Написать проверку доступа к обновлению (обновить студента может только классный руководитель его группы либо администратор)
+        if (userData.uid !== student.owner_id) {
+            return NextResponse.json({ success: false, message: "Нет прав доступа к этому студенту" }, { status: 403 });
+        }
 
         await execute("DELETE FROM students WHERE id = ?", [id]);
         return NextResponse.json({ success: true, message: `Студент с айди ${id} успешно удален` }, {status:200})

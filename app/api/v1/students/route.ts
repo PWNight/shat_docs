@@ -73,10 +73,12 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, message: `Группа с айди ${fk_group} не найдена` }, { status: 404 });
         }
 
-        // TODO: Проверка доступа к добавлению студента (доступ только для классного руководителя)
+        if (userData.uid !== group.fk_user) {
+            return NextResponse.json({ success: false, message: "Вы не можете добавлять студентов в чужую группу" }, { status: 403 });
+        }
 
         await execute(
-            'INSERT INTO students (full_name, admission_year, fk_group) VALUES (?, ?)',
+            'INSERT INTO students (full_name, admission_year, fk_group) VALUES (?, ?, ?)',
             [full_name, admission_year, fk_group]
         );
 
