@@ -2,6 +2,7 @@ import {NextRequest, NextResponse} from "next/server";
 import {execute, queryOne} from "@/utils/mysql";
 import {getSession} from "@/utils/session";
 import {z} from "zod";
+import {StudentFormSchema} from "@/utils/definitions";
 
 // GET STUDENT BY ID
 export async function GET(request: NextRequest, {params}: { params: Promise<{ id: string }> }) {

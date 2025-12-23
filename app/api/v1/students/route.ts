@@ -2,6 +2,7 @@ import {NextRequest, NextResponse} from "next/server";
 import {execute, query, queryOne} from "@/utils/mysql";
 import {z} from "zod";
 import {getSession} from "@/utils/session";
+import {StudentFormSchema} from "@/utils/definitions";
 
 // GET ALL STUDENTS (FOR ADMINS)
 export async function GET(request: NextRequest) {
