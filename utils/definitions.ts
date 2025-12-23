@@ -23,7 +23,7 @@ export const GroupFormSchema = z.object({
         .string()
         .trim(),
     fk_user: z
-        .number(),
+        .string(),
 })
 
 export type LoginFormState =
@@ -40,7 +40,7 @@ export type GroupFormState =
     | {
     errors?: {
         name?: string[]
-        fk_user?: number[]
+        fk_user?: string[]
     }
     message?: string
 }

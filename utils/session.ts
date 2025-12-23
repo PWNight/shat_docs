@@ -30,7 +30,7 @@ export async function decryptSession(session: string | undefined): Promise<any |
     }
 }
 
-// Создаём сессию — только httpOnly cookie, без передачи токена клиенту!
+// Создаём сессию
 export async function createSession(userData: { uid: number; email: string }) {
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     const session = await encryptSession({
