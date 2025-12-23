@@ -1,17 +1,19 @@
-import {GroupFormSchema, GroupFormState, LoginFormSchema, LoginFormState} from "@/utils/definitions";
+import {GroupFormSchema, GroupFormState, LoginFormSchema, LoginFormState, StudentFormSchema} from "@/utils/definitions";
 import { handleApiResponse } from "@/utils/functions";
+import {NextResponse} from "next/server";
+import {z} from "zod";
 
 // Код авторизации
 export async function Login(state: LoginFormState, formData: FormData) {
     try {
         // Проверяем полученные поля
-        const validatedFields = LoginFormSchema.safeParse(Object.fromEntries(formData));
-        if (!validatedFields.success) {
-            return { errors: validatedFields.error.flatten().fieldErrors };
+        const parsed = LoginFormSchema.safeParse(Object.fromEntries(formData));
+        if (!parsed.success) {
+            return { message: "Ошибка валидации", fieldErrors: z.flattenError(parsed.error).fieldErrors }
         }
 
         // Получаем данные из формы
-        const { email, password } = validatedFields.data;
+        const { email, password } = parsed.data;
         const redirectTo = formData.get("redirectTo")?.toString() || "/profile";
 
         // Отправляем POST запрос в авторизацию
@@ -42,13 +44,13 @@ export async function Login(state: LoginFormState, formData: FormData) {
 export async function Register(state: LoginFormState, formData: FormData) {
     try {
         // Проверяем полученные поля
-        const validatedFields = LoginFormSchema.safeParse(Object.fromEntries(formData));
-        if (!validatedFields.success) {
-            return { errors: validatedFields.error.flatten().fieldErrors };
+        const parsed = LoginFormSchema.safeParse(Object.fromEntries(formData));
+        if (!parsed.success) {
+            return { message: "Ошибка валидации", fieldErrors: z.flattenError(parsed.error).fieldErrors }
         }
 
         // Получаем данные из формы
-        const { email, password } = validatedFields.data;
+        const { email, password } = parsed.data;
         const redirectTo = formData.get("redirectTo")?.toString() || "/profile";
 
         // Отправляем POST запрос в авторизацию
@@ -80,14 +82,13 @@ export async function Register(state: LoginFormState, formData: FormData) {
 export async function CreateGroup(state: GroupFormState, formData: FormData) {
     try {
         // Проверяем полученные поля
-        const validatedFields = GroupFormSchema.safeParse(Object.fromEntries(formData));
-        if (!validatedFields.success) {
-            console.log(validatedFields.error.flatten().fieldErrors)
-            return { errors: validatedFields.error.flatten().fieldErrors };
+        const parsed = GroupFormSchema.safeParse(Object.fromEntries(formData));
+        if (!parsed.success) {
+            return { message: "Ошибка валидации", fieldErrors: z.flattenError(parsed.error).fieldErrors }
         }
 
         // Получаем данные из формы
-        const { name, fk_user } = validatedFields.data;
+        const { name, fk_user } = parsed.data;
 
         // Отправляем POST запрос в авторизацию
         await fetch('/api/v1/groups', {
