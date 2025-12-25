@@ -1,5 +1,5 @@
 "use client"
-import { useActionState, useEffect, useState } from "react";
+import React, { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSession } from "@/utils/session";
 import { getAllGroups } from "@/utils/functions";
@@ -22,12 +22,16 @@ interface Group {
     created_by: string;
 }
 
+interface Notify {
+    message: string;
+    type: 'success' | 'error' | '';
+}
+
 export default function ProfileGroups() {
     const [userData, setUserData] = useState(Object);
     const [pageLoaded, setPageLoaded] = useState(false);
     const [groups, setGroups] = useState([]);
-    const [notifyMessage, setNotifyMessage] = useState('');
-    const [notifyType, setNotifyType] = useState('');
+    const [notify, setNotify] = useState<Notify>({ message: '', type: '' });
     const router = useRouter();
     const [state, action, pending] = useActionState(CreateGroup, undefined);
 
@@ -41,8 +45,7 @@ export default function ProfileGroups() {
 
             const response = await getAllGroups();
             if (!response.success) {
-                setNotifyMessage(response.message);
-                setNotifyType('error');
+                setNotify({ message: response.message || "Ошибка", type: 'error' });
                 setPageLoaded(true);
                 return;
             }
@@ -50,8 +53,6 @@ export default function ProfileGroups() {
             setPageLoaded(true);
         });
     }, [router]);
-
-    const handleClose = () => setNotifyMessage('');
 
     // Состояние загрузки
     if (!pageLoaded) {
@@ -125,8 +126,13 @@ export default function ProfileGroups() {
 
     return (
         <div className="w-full px-2 mt-4">
-            {notifyMessage && <ErrorMessage message={notifyMessage} onClose={handleClose} type={notifyType} />}
-
+            {notify.message && (
+                <ErrorMessage
+                    message={notify.message}
+                    type={notify.type}
+                    onClose={() => setNotify({ message: '', type: '' })}
+                />
+            )}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                 <div>
                     <h1 className="text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
