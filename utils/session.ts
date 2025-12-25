@@ -18,7 +18,7 @@ export async function encryptSession(payload: JWTPayload) {
 }
 
 // Расшифровываем
-export async function decryptSession(session: string | undefined): Promise<any | null> {
+export async function decryptSession(session: string | undefined): Promise<unknown | null> {
     if (!session) return null;
     try {
         const { payload } = await jwtVerify(session, encodedKey, {

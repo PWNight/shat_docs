@@ -82,7 +82,7 @@ export async function POST(request: NextRequest, {params}: { params: Promise<{ i
         }
         
         const updates: string[] = []
-        const values: any[] = [];
+        const values: unknown[] = [];
 
         Object.entries(parsed.data).forEach(([key, value]) => {
             updates.push(`${key} = ?`);

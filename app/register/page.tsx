@@ -15,13 +15,11 @@ function RegisterForm() {
     const redirectTo = searchParams.get("to") || "/profile";
 
     useEffect(() => {
-        async function getInfo(){
-            const data = await getSession();
-            if (data){
+        getSession().then(data => {
+            if ( data ) {
                 router.push("/profile");
             }
-        }
-        getInfo();
+        })
 
         if (state?.success) {
             const target = state.redirectTo || redirectTo;

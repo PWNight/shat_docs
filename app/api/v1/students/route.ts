@@ -5,7 +5,7 @@ import {getSession} from "@/utils/session";
 import {StudentFormSchema} from "@/utils/definitions";
 
 // GET ALL STUDENTS (FOR ADMINS)
-export async function GET(request: NextRequest) {
+export async function GET() {
     try{
         const userData = await getSession();
         if (!userData){

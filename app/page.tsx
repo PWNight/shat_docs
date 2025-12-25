@@ -45,8 +45,11 @@ export default function Attendance() {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(text, 'text/html');
                 const table = doc.querySelector('table.marks');
-                if (!table) throw new Error('Таблица посещаемости не найдена');
-
+                if (!table) {
+                    setError('Таблица посещаемости не найдена');
+                    setLoading(false);
+                    return;
+                }
                 // Получаем строки
                 const rows = Array.from(table.querySelectorAll('tr'));
                 const data: Student[] = [];

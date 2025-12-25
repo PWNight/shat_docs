@@ -5,7 +5,7 @@ import {z} from "zod";
 import {getSession} from "@/utils/session";
 
 // GET ALL GROUPS
-export async function GET(request: NextRequest) {
+export async function GET() {
     try{
         const userData = await getSession();
         if (!userData){

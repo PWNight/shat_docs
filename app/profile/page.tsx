@@ -7,13 +7,11 @@ export default function Profile() {
     const router = useRouter()
 
     useEffect(()=>{
-        async function getInfo(){
-            const data = await getSession();
-            if ( !data ){
+        getSession().then(data => {
+            if ( !data ) {
                 router.push("/login");
             }
-        }
-        getInfo()
+        })
     },[router])
 
     return (
