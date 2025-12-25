@@ -15,6 +15,13 @@ import {
 import { CreateGroup } from "@/utils/handlers";
 import Link from "next/link";
 
+interface Group {
+    id: string;
+    name: string;
+    fk_user: string;
+    created_by: string;
+}
+
 export default function ProfileGroups() {
     const [userData, setUserData] = useState(Object);
     const [pageLoaded, setPageLoaded] = useState(false);
@@ -134,7 +141,7 @@ export default function ProfileGroups() {
 
             {groups.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {groups.map((group: any) => (
+                    {groups.map((group: Group) => (
                         <div
                             key={group.id}
                             className="group relative flex flex-col p-6 rounded-2xl bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
