@@ -1,6 +1,6 @@
 "use server";
 
-import { SignJWT, jwtVerify } from "jose";
+import {SignJWT, jwtVerify, JWTPayload} from "jose";
 import { cookies } from "next/headers";
 
 const secretKey = process.env.SESSION_SECRET;
@@ -9,7 +9,7 @@ if (!secretKey) throw new Error("SESSION_SECRET is not set");
 const encodedKey = new TextEncoder().encode(secretKey);
 
 // Шифруем payload
-export async function encryptSession(payload: any) {
+export async function encryptSession(payload: JWTPayload) {
     return await new SignJWT(payload)
         .setProtectedHeader({ alg: "HS256" })
         .setIssuedAt()

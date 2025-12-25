@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({ success: true, data: users }, { status: 200 });
     } catch (error) {
+        console.log(error)
         return NextResponse.json({ success: false, message: "Ошибка сервера" }, { status: 500 });
     }
 }

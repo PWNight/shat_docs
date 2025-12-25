@@ -76,14 +76,12 @@ export async function POST(request: NextRequest, {params}: { params: Promise<{ i
         }
         
         const updates: string[] = []
-        const values: string [] = []
+        const values: any[] = [];
 
-        for (const key in parsed.data) {
-            if (parsed.data.hasOwnProperty(key)) {
-                updates.push(`${key} = ?`);
-                values.push(parsed.data[key]);
-            }
-        }
+        Object.entries(parsed.data).forEach(([key, value]) => {
+            updates.push(`${key} = ?`);
+            values.push(value);
+        });
 
         if (updates.length === 0) {
             return NextResponse.json({ success: false, message: "Данные из формы совпадают с данными в базе" }, { status: 400 });

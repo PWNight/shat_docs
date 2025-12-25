@@ -104,7 +104,7 @@ export async function CreateGroup(state: GroupFormState, formData: FormData) {
     }
 }
 
-export async function UpdateGroup(id: string, data: any) {
+export async function UpdateGroup(id: string, data: object) {
     try {
         const response = await fetch(`/api/v1/groups/${id}`, {
             method: 'POST',
@@ -131,7 +131,7 @@ export async function DeleteGroup(id: string) {
 }
 
 // Код сохранения (создания/редактирования) студента
-export async function SaveStudent(studentId: string | undefined, data: any) {
+export async function SaveStudent(studentId: string | undefined, data: object) {
     try {
         const url = studentId ? `/api/v1/students/${studentId}` : `/api/v1/students`;
         const response = await fetch(url, {
