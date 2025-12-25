@@ -1,6 +1,5 @@
-import {GroupFormSchema, GroupFormState, LoginFormSchema, LoginFormState, StudentFormSchema} from "@/utils/definitions";
+import {GroupFormSchema, GroupFormState, LoginFormSchema, LoginFormState} from "@/utils/definitions";
 import { handleApiResponse } from "@/utils/functions";
-import {NextResponse} from "next/server";
 import {z} from "zod";
 
 // Код авторизации
@@ -102,5 +101,61 @@ export async function CreateGroup(state: GroupFormState, formData: FormData) {
     } catch (error) {
         console.log( error )
         return { message: error instanceof Error ? error.message : 'Произошла ошибка' };
+    }
+}
+
+export async function UpdateGroup(id: string, data: any) {
+    try {
+        const response = await fetch(`/api/v1/groups/${id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
+
+        return await handleApiResponse(response);
+    } catch (error) {
+        console.log( error )
+        return { success: false, message: error instanceof Error ? error.message : 'Ошибка обновления' };
+    }
+}
+
+// Код удаления группы
+export async function DeleteGroup(id: string) {
+    try {
+        const response = await fetch(`/api/v1/groups/${id}`, { method: 'DELETE' });
+        return await handleApiResponse(response);
+    } catch (error) {
+        console.log( error )
+        return { success: false, message: error instanceof Error ? error.message : 'Ошибка обновления' };
+    }
+}
+
+// Код сохранения (создания/редактирования) студента
+export async function SaveStudent(studentId: string | undefined, data: any) {
+    try {
+        const url = studentId ? `/api/v1/students/${studentId}` : `/api/v1/students`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
+
+        return await handleApiResponse(response);
+    } catch (error) {
+        console.log( error )
+        return { success: false, message: error instanceof Error ? error.message : 'Ошибка сохранения' };
+    }
+}
+
+export async function DeleteStudent(id: number) {
+    try {
+        const response = await fetch(`/api/v1/students/${id}`, {
+            method: 'DELETE',
+        });
+
+        return await handleApiResponse(response);
+    } catch (error) {
+        console.log( error )
+        return { success: false, message: error instanceof Error ? error.message : 'Ошибка удаления' };
     }
 }

@@ -11,7 +11,8 @@ import {
 } from "@/components/ui/Dialog";
 import ErrorMessage from "@/components/notify-alert";
 import { getSession } from "@/utils/session";
-import {getGroup, getStudentsByGroup, deleteStudent, getUsersList} from "@/utils/functions";
+import {getGroup, getStudentsByGroup, getUsersList} from "@/utils/functions";
+import {UpdateGroup, DeleteGroup, SaveStudent, DeleteStudent} from "@/utils/handlers"; // Импорт новых хендлеров
 import Link from "next/link";
 
 export default function MyGuild(props: { params: Promise<{ id: string }> }) {
@@ -20,42 +21,164 @@ export default function MyGuild(props: { params: Promise<{ id: string }> }) {
     const [students, setStudents] = useState<any[]>([]);
     const [updateFormData, setUpdateFormData] = useState<any>({ name: '', fk_user: '' });
 
+    const [isPending, startTransition] = useTransition();
     const [pageLoaded, setPageLoaded] = useState(false);
     const [notify, setNotify] = useState({ message: '', type: '' });
 
     const router = useRouter();
     const [groupId, setGroupId] = useState('');
-
-    const [users, setUsers] = useState<any[]>([]); // Состояние для списка преподавателей
+    const [users, setUsers] = useState<any[]>([]);
 
     const loadData = async (id: string) => {
-        // Загрузка данных группы и студентов
+        // Получаем информацию о группе
         const groupRes = await getGroup(id);
         if (groupRes.success) {
             setGroup(groupRes.data);
-            setUpdateFormData({ name: groupRes.data.name, fk_user: groupRes.data.fk_user });
+            setUpdateFormData({ name: groupRes.data.name, fk_user: `${groupRes.data.fk_user}` });
         }
 
+        // Получаем информацию о студентах
         const studentsRes = await getStudentsByGroup(id);
         if (studentsRes.success) setStudents(studentsRes.data);
 
+        // Получаем список преподавателей
         const usersRes = await getUsersList();
         if (usersRes.success) setUsers(usersRes.data);
     };
 
     useEffect(() => {
+        // Проверяем сессию
         getSession().then(async session => {
+            // Получаем айди из адресной строки
             const params = await props.params;
             setGroupId(params.id);
+
             if (!session) {
                 router.push(`/login?to=profile/groups/${params.id}`);
                 return;
             }
+
             setUserData(session);
             await loadData(params.id);
             setPageLoaded(true);
         });
     }, [props.params, router]);
+
+    const handleUpdateGroup = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setNotify({ message: '', type: '' });
+
+        // Отправляем запрос в API
+        startTransition(async () => {
+            const result = await UpdateGroup(groupId, updateFormData);
+            if ( !result.success ) {
+                setNotify({ message: result.message || "Ошибка", type: 'error' });
+                return;
+            }
+            setNotify({ message: 'Настройки группы успешно сохранены', type: 'success' });
+            await loadData(groupId);
+        });
+    };
+
+    const handleDeleteGroup = async () => {
+        // Отправляем запрос в API
+        const result = await DeleteGroup(groupId);
+        if ( !result.success ) {
+            setNotify({ message: result.message || "Ошибка", type: 'error' });
+            return;
+        }
+        router.push('/profile/groups');
+    };
+
+    const handleDeleteStudent = async (studentId:number) => {
+        // Отправляем запрос в API
+        const result = await DeleteStudent(studentId);
+        if ( !result.success ) {
+            setNotify({ message: result.message || "Ошибка", type: 'error' });
+            return;
+        }
+        setNotify({ message: "Студент успешно удалён", type: 'success' });
+    };
+
+    const StudentDialog = ({ student, groupId, onRefresh }: any) => {
+        const [open, setOpen] = useState(false);
+        const [isLoading, setIsLoading] = useState(false);
+        const [form, setForm] = useState(student || { full_name: '', admission_year: new Date().getFullYear() });
+
+        const handleSubmit = async (e: any) => {
+            e.preventDefault();
+            setIsLoading(true);
+
+            try {
+                const result = await SaveStudent(student?.id, { ...form, fk_group: groupId });
+                if ( !result.success ) {
+                    setNotify({ message: result.message || "Ошибка", type: 'error' });
+                    return;
+                }
+                setNotify({ message: "Список студентов успешно обновлён", type: 'success' });
+                setOpen(false);
+                onRefresh();
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        return (
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                    {student ? (
+                        <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all">
+                            <Pencil size={18} />
+                        </button>
+                    ) : (
+                        <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-medium transition-all shadow-sm active:scale-95 text-sm">
+                            <UserPlus className="w-4 h-4" /> Добавить
+                        </button>
+                    )}
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                    <form onSubmit={handleSubmit}>
+                        <DialogHeader>
+                            <DialogTitle className="text-2xl font-bold">
+                                {student ? 'Редактировать студента' : 'Новый студент'}
+                            </DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4 py-6">
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Полное имя</label>
+                                <input
+                                    placeholder="Иванов Иван Иванович"
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                    value={form.full_name}
+                                    onChange={e => setForm({...form, full_name: e.target.value})}
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Год поступления</label>
+                                <input
+                                    type="number"
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                    value={form.admission_year}
+                                    onChange={e => setForm({...form, admission_year: parseInt(e.target.value)})}
+                                    required
+                                />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <button
+                                type="submit"
+                                disabled={isLoading}
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                            >
+                                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : student ? "Обновить данные" : "Добавить в список"}
+                            </button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+        );
+    }
 
     if (!pageLoaded) return (
         <div className="flex h-[60vh] w-full items-center justify-center">
@@ -209,23 +332,23 @@ export default function MyGuild(props: { params: Promise<{ id: string }> }) {
                                         <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
                                             {student.admission_year}
                                         </td>
-                                            <td className="px-6 py-4 text-right">
-                                                {isOwner ? (
-                                                    <div className="flex justify-end gap-2">
-                                                        <StudentDialog student={student} groupId={groupId} onRefresh={() => loadData(groupId)} />
-                                                        <button
-                                                            onClick={async () => { if(confirm('Удалить студента?')) { await deleteStudent(student.id); loadData(groupId); }}}
-                                                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
-                                                        >
-                                                            <Trash2 size={18} />
-                                                        </button>
-                                                    </div>
-                                                ) : (
-                                                    <div className="flex justify-end gap-2">
-                                                        <CircleX size={18} className="w-5 h-5 text-gray-400 mr-6" />
-                                                    </div>
-                                                )}
-                                            </td>
+                                        <td className="px-6 py-4 text-right">
+                                            {isOwner ? (
+                                                <div className="flex justify-end gap-2">
+                                                    <StudentDialog student={student} groupId={groupId} onRefresh={() => loadData(groupId)} />
+                                                    <button
+                                                        onClick={async () => { if(confirm('Удалить студента?')) { await handleDeleteStudent(student.id) }}}
+                                                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex justify-end gap-2">
+                                                    <CircleX size={18} className="w-5 h-5 text-gray-400 mr-6" />
+                                                </div>
+                                            )}
+                                        </td>
                                     </tr>
                                 )) : (
                                     <tr>
@@ -241,68 +364,5 @@ export default function MyGuild(props: { params: Promise<{ id: string }> }) {
                 </div>
             </div>
         </div>
-    );
-}
-
-// Компонент диалога для создания/редактирования студента в стиле образца
-function StudentDialog({ student, groupId, onRefresh }: any) {
-    const [open, setOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [form, setForm] = useState(student || { full_name: '', admission_year: new Date().getFullYear() });
-
-    return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                {student ? (
-                    <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all">
-                        <Pencil size={18} />
-                    </button>
-                ) : (
-                    <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-medium transition-all shadow-sm active:scale-95 text-sm">
-                        <UserPlus className="w-4 h-4" /> Добавить
-                    </button>
-                )}
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-                <form onSubmit={handleSubmit}>
-                    <DialogHeader>
-                        <DialogTitle className="text-2xl font-bold">
-                            {student ? 'Редактировать студента' : 'Новый студент'}
-                        </DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 py-6">
-                        <div className="space-y-1.5">
-                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Полное имя</label>
-                            <input
-                                placeholder="Иванов Иван Иванович"
-                                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                value={form.full_name}
-                                onChange={e => setForm({...form, full_name: e.target.value})}
-                                required
-                            />
-                        </div>
-                        <div className="space-y-1.5">
-                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Год поступления</label>
-                            <input
-                                type="number"
-                                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                value={form.admission_year}
-                                onChange={e => setForm({...form, admission_year: parseInt(e.target.value)})}
-                                required
-                            />
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <button
-                            type="submit"
-                            disabled={isLoading}
-                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                        >
-                            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : student ? "Обновить данные" : "Добавить в список"}
-                        </button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
     );
 }

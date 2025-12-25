@@ -57,9 +57,7 @@ export async function getAllGroups(){
 
 export async function getGroup(id: string){
     try {
-        const response = await fetch(`/api/v1/groups/${id}`,{
-            method: "GET",
-        })
+        const response = await fetch(`/api/v1/groups/${id}`)
         if (!response.ok) {
             return { success: false, message: `Ошибка ${response.status}, сервер вернул неожиданный ответ: ` + response.statusText };
         }
@@ -72,5 +70,35 @@ export async function getGroup(id: string){
             error instanceof Error ? error.message : "Неизвестная ошибка сервера";
 
         return { success: false, message: errorMessage };
+    }
+}
+
+export async function getStudentsByGroup(groupId: string) {
+    try {
+        const response = await fetch(`/api/v1/groups/${groupId}/students`);
+        if (!response.ok) {
+            return { success: false, message: `Ошибка ${response.status}, сервер вернул неожиданный ответ: ` + response.statusText };
+        }
+        const json = await handleApiResponse(response);
+
+        return { success: true, data: json.data };
+    } catch (error) {
+        console.error("Ошибка работы API", error);
+        const errorMessage =
+            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
+
+        return { success: false, message: errorMessage };
+    }
+}
+
+export async function getUsersList() {
+    try {
+        const response = await fetch('/api/v1/users');
+        if (!response.ok) return { success: false, data: [] };
+        const json = await response.json();
+        return { success: true, data: json.data };
+    } catch (error) {
+        console.log(error)
+        return { success: false, data: [] };
     }
 }
