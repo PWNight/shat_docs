@@ -12,13 +12,13 @@ type AnchorProps = ComponentProps<typeof Link> & {
 };
 
 export default function Anchor({
-                                      absolute,
-                                      className = "",
-                                      activeClassName = "",
-                                      disabled,
-                                      children,
-                                      ...props
-                                  }: AnchorProps) {
+    absolute,
+    className = "",
+    activeClassName = "",
+    disabled,
+    children,
+    ...props
+}: AnchorProps) {
     const path = usePathname();
     let isMatch = absolute
         ? props.href.toString() === path
