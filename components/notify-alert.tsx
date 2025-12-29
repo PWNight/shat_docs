@@ -56,7 +56,7 @@ function ErrorMessage({ message, type, onClose }: ErrorMessageProps) {
 
   return (
       <div
-          className={`fixed top-6 left-1/2 transform -translate-x-1/2 w-[90%] max-w-lg z-[100] ${style.bg} ${style.border} border shadow-2xl rounded-2xl p-4 transition-all duration-500 animate-in fade-in slide-in-from-top-4`}
+          className={`fixed top-6 left-1/2 transform -translate-x-1/2 w-[90%] max-w-lg z-100 ${style.bg} ${style.border} border shadow-2xl rounded-2xl p-4 transition-all duration-500 animate-in fade-in slide-in-from-top-4`}
           role="alert"
       >
         <div className="flex items-start gap-4">
