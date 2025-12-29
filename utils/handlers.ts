@@ -3,7 +3,7 @@ import { handleApiResponse } from "@/utils/functions";
 import {z} from "zod";
 
 // Код авторизации
-export async function Login(state: LoginFormState, formData: FormData) {
+export async function Login(_state: LoginFormState, formData: FormData) {
     try {
         // Проверяем полученные поля
         const parsed = LoginFormSchema.safeParse(Object.fromEntries(formData));
@@ -40,7 +40,7 @@ export async function Login(state: LoginFormState, formData: FormData) {
 }
 
 // Код авторизации
-export async function Register(state: LoginFormState, formData: FormData) {
+export async function Register(_state: LoginFormState, formData: FormData) {
     try {
         // Проверяем полученные поля
         const parsed = LoginFormSchema.safeParse(Object.fromEntries(formData));
@@ -52,15 +52,15 @@ export async function Register(state: LoginFormState, formData: FormData) {
         const { email, password } = parsed.data;
         const redirectTo = formData.get("redirectTo")?.toString() || "/profile";
 
-        // Отправляем POST запрос в авторизацию
-        const loginResponse = await fetch('/api/v1/auth/register', {
+        // Отправляем POST запрос в регистрацию
+        const registerResponse = await fetch('/api/v1/auth/register', {
             method: 'POST',
             body: JSON.stringify({ email, password }),
             headers: { 'Content-Type': 'application/json' }
         });
 
         // Получаем данные из ответа
-        const { data } = await handleApiResponse(loginResponse);
+        const { data } = await handleApiResponse(registerResponse);
 
         // Создаём сессию
         await fetch('/api/v1/auth/create-session', {
@@ -78,7 +78,7 @@ export async function Register(state: LoginFormState, formData: FormData) {
 }
 
 // Код создания группы
-export async function CreateGroup(state: GroupFormState, formData: FormData) {
+export async function CreateGroup(_state: GroupFormState, formData: FormData) {
     try {
         // Проверяем полученные поля
         const parsed = GroupFormSchema.safeParse(Object.fromEntries(formData));
