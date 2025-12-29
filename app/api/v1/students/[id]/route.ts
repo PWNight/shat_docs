@@ -5,7 +5,7 @@ import {z} from "zod";
 import {StudentFormSchema} from "@/utils/definitions";
 
 // GET STUDENT BY ID
-export async function GET(request: NextRequest, {params}: { params: Promise<{ id: string }> }) {
+export async function GET(_request: NextRequest, {params}: { params: Promise<{ id: string }> }) {
     try{
         const userData = await getSession();
         if (!userData){
@@ -13,13 +13,13 @@ export async function GET(request: NextRequest, {params}: { params: Promise<{ id
         }
 
         const {id} = await params;
-        const group = await queryOne(
-            'SELECT * FROM groups WHERE id = ?', [id]
+        const student = await queryOne(
+            'SELECT * FROM students WHERE id = ?', [id]
         );
-        if (!group) {
-            return NextResponse.json({ success: false, message: `Группа с айди ${id} не найдена` }, {status:404})
+        if (!student) {
+            return NextResponse.json({ success: false, message: `Студент с айди ${id} не найден` }, {status:404})
         }
-        return NextResponse.json({ success: true, data: group }, {status:200})
+        return NextResponse.json({ success: true, data: student }, {status:200})
     } catch (error) {
         console.error("Ошибка работы API", error);
         const errorMessage =
