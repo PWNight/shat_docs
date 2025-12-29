@@ -10,7 +10,7 @@ import {
     DialogTitle, DialogDescription, DialogFooter
 } from "@/components/ui/Dialog";
 import ErrorMessage from "@/components/notify-alert";
-import { getSession } from "@/utils/session";
+import {getSession, SessionPayload} from "@/utils/session";
 import { getGroup, getStudentsByGroup, getUsersList } from "@/utils/functions";
 import { UpdateGroup, DeleteGroup, SaveStudent, DeleteStudent } from "@/utils/handlers";
 import Link from "next/link";
@@ -23,13 +23,13 @@ interface Student {
 }
 
 interface Group {
-    id: string;
+    id: number;
     name: string;
-    fk_user: string;
+    fk_user: number;
 }
 
 interface UserListItem {
-    id: string;
+    id: number;
     email: string;
 }
 
@@ -133,7 +133,7 @@ export default function MyGuild({ params }: { params: Promise<{ id: string }> })
     const groupId = resolvedParams.id;
     const router = useRouter();
 
-    const [userData, setUserData] = useState({uid: ""});
+    const [userData, setUserData] = useState<SessionPayload | null>(null);
     const [group, setGroup] = useState<Group | null>(null);
     const [students, setStudents] = useState<Student[]>([]);
     const [users, setUsers] = useState<UserListItem[]>([]);

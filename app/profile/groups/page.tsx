@@ -95,7 +95,7 @@ export default function ProfileGroups() {
                                 className="mt-1 w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                                 placeholder=""
                             />
-                            <input type="hidden" name="fk_user" defaultValue={userData.uid} />
+                            <input type="hidden" name="fk_user" defaultValue={userData?.uid} />
 
                             {state?.fieldErrors?.name && (
                                 <p className="text-red-500 text-xs font-medium">{state.fieldErrors.name}</p>
