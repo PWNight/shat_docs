@@ -23,29 +23,12 @@ export async function handleApiResponse(response: Response) {
     return response.json();
 }
 
-// Утилита для авторизованных запросов
-export async function makeAuthorizedRequest(url: string, token: string, data: object, method = 'GET') {
-    return fetch(url, {
-        method,
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-    });
-}
-
 export async function getAllGroups(){
     try {
-        const response = await fetch("/api/v1/groups/",{
-            method: "GET",
-        })
-        if (!response.ok) {
-            return { success: false, message: `Ошибка ${response.status}, сервер вернул неожиданный ответ: ` + response.statusText };
-        }
-        const json = await response.json();
+        const response = await fetch("/api/v1/groups/")
+        const { data } = await handleApiResponse(response);
 
-        return { success: true, message: "Успешно", data: json.data }
+        return { success: true, message: "Успешно", data }
     } catch (error) {
         console.error("Ошибка работы API", error);
         const errorMessage =
@@ -58,12 +41,9 @@ export async function getAllGroups(){
 export async function getGroup(id: string){
     try {
         const response = await fetch(`/api/v1/groups/${id}`)
-        if (!response.ok) {
-            return { success: false, message: `Ошибка ${response.status}, сервер вернул неожиданный ответ: ` + response.statusText };
-        }
-        const json = await response.json();
+        const { data } = await handleApiResponse(response);
 
-        return { success: true, message: "Успешно", data: json.data }
+        return { success: true, message: "Успешно", data }
     } catch (error) {
         console.error("Ошибка работы API", error);
         const errorMessage =
@@ -76,12 +56,9 @@ export async function getGroup(id: string){
 export async function getStudentsByGroup(groupId: string) {
     try {
         const response = await fetch(`/api/v1/groups/${groupId}/students`);
-        if (!response.ok) {
-            return { success: false, message: `Ошибка ${response.status}, сервер вернул неожиданный ответ: ` + response.statusText };
-        }
-        const json = await handleApiResponse(response);
+        const { data } = await handleApiResponse(response);
 
-        return { success: true, data: json.data };
+        return { success: true, data};
     } catch (error) {
         console.error("Ошибка работы API", error);
         const errorMessage =
@@ -94,9 +71,9 @@ export async function getStudentsByGroup(groupId: string) {
 export async function getUsersList() {
     try {
         const response = await fetch('/api/v1/users');
-        if (!response.ok) return { success: false, data: [] };
-        const json = await response.json();
-        return { success: true, data: json.data };
+        const { data } = await handleApiResponse(response);
+
+        return { success: true, data };
     } catch (error) {
         console.log(error)
         return { success: false, data: [] };
