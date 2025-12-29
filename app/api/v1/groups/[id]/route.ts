@@ -5,7 +5,7 @@ import {GroupFormSchema} from "@/utils/definitions";
 import {z} from "zod";
 
 // GET GROUP BY ID
-export async function GET(request: NextRequest, {params}: { params: Promise<{ id: string }> }) {
+export async function GET(_request: NextRequest, {params}: { params: Promise<{ id: string }> }) {
     try{
         const userData = await getSession();
         if (!userData){

@@ -4,7 +4,7 @@ import {getSession} from "@/utils/session";
 
 
 // GET STUDENTS BY GROUP ID
-export async function GET(request: NextRequest, {params}: { params: Promise<{ id: string }> }) {
+export async function GET(_request: NextRequest, {params}: { params: Promise<{ id: string }> }) {
     try{
         const userData = await getSession();
         if (!userData){
