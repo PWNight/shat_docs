@@ -56,14 +56,3 @@ export type GroupFormState =
     message?: string
 }
     | undefined
-
-export type StudentFormState =
-    | {
-    fieldErrors?: {
-        full_name?: string[]
-        admission_year	?: string[]
-        fk_group?: string[]
-    }
-    message?: string
-}
-    | undefined
