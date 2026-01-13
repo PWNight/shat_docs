@@ -30,8 +30,7 @@ export async function getAllGroups(){
 
         return { success: true, message: "Успешно", data }
     } catch (error) {
-        console.error("Ошибка работы API", error);
-        const errorMessage =
+            const errorMessage =
             error instanceof Error ? error.message : "Неизвестная ошибка сервера";
 
         return { success: false, message: errorMessage };
@@ -45,7 +44,6 @@ export async function getGroup(id: string){
 
         return { success: true, message: "Успешно", data }
     } catch (error) {
-        console.error("Ошибка работы API", error);
         const errorMessage =
             error instanceof Error ? error.message : "Неизвестная ошибка сервера";
 
@@ -60,7 +58,6 @@ export async function getStudentsByGroup(groupId: string) {
 
         return { success: true, data};
     } catch (error) {
-        console.error("Ошибка работы API", error);
         const errorMessage =
             error instanceof Error ? error.message : "Неизвестная ошибка сервера";
 
@@ -75,7 +72,9 @@ export async function getUsersList() {
 
         return { success: true, data };
     } catch (error) {
-        console.log(error)
-        return { success: false, data: [] };
+        const errorMessage =
+            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
+
+        return { success: false, message: errorMessage };
     }
 }
