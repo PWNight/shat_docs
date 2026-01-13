@@ -2,7 +2,7 @@
 import React, { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSession } from "@/utils/session";
-import { getAllGroups } from "@/utils/functions";
+import {getAllGroups} from "@/utils/functions";
 import ErrorMessage from "@/components/notify-alert";
 import { Loader2, SearchX, Plus, Users, Calendar, ArrowRight } from "lucide-react";
 import {
@@ -35,6 +35,16 @@ export default function ProfileGroups() {
     const router = useRouter();
     const [state, action, pending] = useActionState(CreateGroup, undefined);
 
+    const loadData = async () => {
+        const response = await getAllGroups();
+        if (!response.success) {
+            setNotify({ message: response.message || "Ошибка", type: 'error' });
+            setPageLoaded(true);
+            return;
+        }
+        setGroups(response.data);
+    };
+
     useEffect(() => {
         getSession().then(async session => {
             if (!session) {
@@ -43,13 +53,7 @@ export default function ProfileGroups() {
             }
             setUserData({ email: session.email, uid: session.uid });
 
-            const response = await getAllGroups();
-            if (!response.success) {
-                setNotify({ message: response.message || "Ошибка", type: 'error' });
-                setPageLoaded(true);
-                return;
-            }
-            setGroups(response.data);
+            await loadData()
             setPageLoaded(true);
         });
     }, [router]);
@@ -67,7 +71,9 @@ export default function ProfileGroups() {
         const [open, setOpen] = useState(false);
 
         useEffect(() => {
-            if (state?.success) setOpen(false);
+            if (state?.success){
+            loadData().then(() => setOpen(false));
+            }
         }, []);
 
         return (
