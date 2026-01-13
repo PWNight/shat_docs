@@ -1,6 +1,6 @@
 "use client"
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState, useTransition, use } from "react";
+import React, {useEffect, useState, useTransition, use, useCallback} from "react";
 import {
     Loader2, Pencil, Trash2, UserPlus, ArrowLeft,
     Settings, Users, GraduationCap, ShieldAlert, Save, CircleX
@@ -143,32 +143,68 @@ export default function MyGuild({ params }: { params: Promise<{ id: string }> })
     const [pageLoaded, setPageLoaded] = useState(false);
     const [notify, setNotify] = useState<Notify>({ message: '', type: '' });
 
-    const loadData = async (id: string) => {
-        const [groupRes, studentsRes, usersRes] = await Promise.all([
-            getGroup(id),
-            getStudentsByGroup(id),
-            getUsersList()
-        ]);
-
-        if (groupRes.success) {
-            setGroup(groupRes.data);
-            setUpdateFormData({ name: groupRes.data.name, fk_user: `${groupRes.data.fk_user}` });
-        }
-        if (studentsRes.success) setStudents(studentsRes.data);
-        if (usersRes.success) setUsers(usersRes.data);
-    };
-
-    useEffect(() => {
-        getSession().then(async session => {
-            if (!session) {
-                router.push(`/login?to=profile/groups/${groupId}`);
+    const loadData = useCallback(async (id: string) => {
+        try {
+            const groupRes = await getGroup(id);
+            if (!groupRes.success) {
+                router.replace('/profile/groups');
                 return;
             }
-            setUserData(session);
-            await loadData(groupId);
+
+            setGroup(groupRes.data);
+            setUpdateFormData({
+                name: groupRes.data.name,
+                fk_user: String(groupRes.data.fk_user),
+            });
+
+            const studentsRes = await getStudentsByGroup(id);
+            if (!studentsRes.success) {
+                setNotify({message: studentsRes.message || "Не удалось загрузить студентов", type: 'error'});
+            }
+            setStudents(studentsRes.data ?? []);
+
+
+            const usersRes = await getUsersList();
+            if (!usersRes.success) {
+                setNotify({ message: usersRes.message || "Не удалось загрузить список преподавателей", type: 'error' });
+            }
+            setUsers(usersRes.data ?? []);
+
+        } catch (err) {
+            console.error("Ошибка загрузки данных группы:", err);
+            setNotify({ message: "Произошла ошибка при загрузке данных", type: 'error' });
+        } finally {
             setPageLoaded(true);
-        });
-    }, [groupId, router]);
+        }
+    }, [router]);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        getSession()
+            .then(async (session) => {
+                if (!isMounted) return;
+
+                if (!session) {
+                    router.replace(`/login?to=${encodeURIComponent(`/profile/groups/${groupId}`)}`);
+                    return;
+                }
+
+                setUserData(session);
+                await loadData(groupId);
+            })
+            .catch(err => {
+                console.error("Ошибка при получении сессии:", err);
+                if (isMounted) {
+                    setNotify({ message: "Не удалось авторизоваться", type: 'error' });
+                    setPageLoaded(true);
+                }
+            });
+
+        return () => {
+            isMounted = false;
+        };
+    }, [groupId, loadData, router]);
 
     const handleUpdateGroup = async (e: React.FormEvent) => {
         e.preventDefault();
