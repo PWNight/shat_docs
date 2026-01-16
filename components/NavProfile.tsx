@@ -1,15 +1,15 @@
 import Anchor from "@/components/ui/Anchor";
-import {House, GraduationCap, FileChartColumn} from "lucide-react";
+import {House, GraduationCap, Sheet} from "lucide-react";
 
 export function NavProfile() {
     const navItems = [
         { href: "/profile", label: "Главная страница", icon: House },
         { href: "/profile/groups", label: "Группы", icon: GraduationCap },
-        { href: "/profile/reports", label: "Отчёты", icon: FileChartColumn },
+        { href: "/profile/attendance", label: "Посещаемость", icon: Sheet },
     ];
 
     return (
-        <div className=" mt-4 bg-white rounded-xl shadow-sm border border-neutral-200/70 dark:bg-neutral-800 dark:border-neutral-700 p-5 sm:p-6">
+        <div className="h-fit mt-4 bg-white rounded-xl shadow-sm border border-neutral-200/70 dark:bg-neutral-800 dark:border-neutral-700 p-5 sm:p-6">
             <h1 className="text-center text-xl sm:text-2xl font-bold text-neutral-900 dark:text-neutral-100 pb-4 border-b border-neutral-200 dark:border-neutral-700">
                 Навигация
             </h1>
