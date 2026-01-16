@@ -15,16 +15,14 @@ function LoginForm() {
     const redirectTo = searchParams.get("to") || "/profile";
 
     useEffect(() => {
+        if (state?.success) {
+            router.push(redirectTo);
+        }
         getSession().then(data => {
             if ( data ) {
-                router.push("/profile");
+                router.push(redirectTo);
             }
         })
-
-        if (state?.success) {
-            const target = state.redirectTo || redirectTo;
-            router.push(target);
-        }
     }, [state, router, redirectTo]);
 
     const togglePasswordVisibility = () => {
