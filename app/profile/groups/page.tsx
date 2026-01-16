@@ -153,38 +153,50 @@ export default function ProfileGroups() {
 
             {groups.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {groups.map((group: Group) => (
-                        <div
-                            key={group.id}
-                            className="group relative flex flex-col p-6 rounded-2xl bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
-                        >
-                            <div className="flex justify-between items-start mb-4">
-                                <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
-                                    <Users className="w-6 h-6" />
-                                </div>
-                                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-gray-100 dark:bg-zinc-700 rounded text-gray-500">
-                                    ID: {group.id}
-                                </span>
-                            </div>
-
-                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 transition-colors">
-                                {group.name}
-                            </h3>
-
-                            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-6 gap-2">
-                                <Calendar className="w-4 h-4" />
-                                <span>{new Date(group.created_by).toLocaleDateString("ru-RU", { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                            </div>
-
-                            <Link
-                                href={`/profile/groups/${group.id}`}
-                                className="mt-auto flex items-center justify-center gap-2 w-full bg-gray-100 dark:bg-zinc-700/50 hover:bg-blue-600 hover:text-white text-gray-700 dark:text-gray-200 font-semibold py-3 rounded-xl transition-all"
+                    {groups.map((group: Group) => {
+                        // Проверяем, является ли текущий пользователь владельцем группы
+                        const isOwner = group.fk_user === userData?.uid;
+                        return (
+                            <div
+                                    key={group.id}
+                                className="group relative flex flex-col p-6 rounded-2xl bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                             >
-                                Управлять
-                                <ArrowRight className="w-4 h-4" />
-                            </Link>
-                        </div>
-                    ))}
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className={`p-3 rounded-lg ${isOwner ? 'bg-blue-600 text-white' : 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'}`}>
+                                        <Users className="w-6 h-6" />
+                                    </div>
+                                    <div className='flex gap-2'>
+                                        {isOwner && (
+                                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-blue-600 text-white rounded shadow-sm">
+                                            Ваша группа
+                                        </span>
+                                        )}
+
+                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-gray-100 dark:bg-zinc-700 rounded text-gray-500">
+                                            ID: {group.id}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 transition-colors">
+                                    {group.name}
+                                </h3>
+
+                                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-6 gap-2">
+                                    <Calendar className="w-4 h-4" />
+                                    <span>{new Date(group.created_by).toLocaleDateString("ru-RU", { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                                </div>
+
+                                <Link
+                                    href={`/profile/groups/${group.id}`}
+                                    className="mt-auto flex items-center justify-center gap-2 w-full bg-gray-100 dark:bg-zinc-700/50 hover:bg-blue-600 hover:text-white text-gray-700 dark:text-gray-200 font-semibold py-3 rounded-xl transition-all"
+                                >
+                                    Управлять
+                                    <ArrowRight className="w-4 h-4" />
+                                </Link>
+                            </div>
+                        )
+                    })}
                 </div>
             ) : (
                 <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-gray-50 dark:bg-zinc-800/50 rounded-3xl border-2 border-dashed border-gray-200 dark:border-zinc-700">
