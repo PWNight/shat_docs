@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     try {
         // Получаем пользователя из базы данных
         const user = await queryOne(
-            'SELECT id, email, password_hash FROM users WHERE email = ? LIMIT 1',
+            'SELECT id, email, full_name, password_hash FROM users WHERE email = ? LIMIT 1',
             [email]
         );
         if (!user) {
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, message: "Неправильный пароль" }, { status: 401 });
         }
 
-        return NextResponse.json({ success: true, data: { uid: user.id, email } }, { status: 200 });
+        return NextResponse.json({ success: true, data: { uid: user.id, email, full_name: user.full_name } }, { status: 200 });
     } catch (error) {
         console.error("Ошибка работы API", error);
         const errorMessage =
