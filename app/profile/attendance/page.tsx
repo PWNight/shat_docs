@@ -254,7 +254,7 @@ export default function Attendance() {
                         </label>
                     )}
 
-                    <div className='grid grid-cols-2 grid-rows-2 justify-between mt-4'>
+                    <div className='flex flex-col justify-between'>
                         {fileName && (
                             <div className="flex items-center text-green-600">
                                 <FileSpreadsheet className="w-5 h-5 mr-2" />
@@ -263,7 +263,7 @@ export default function Attendance() {
                         )}
 
                         {students.length > 0 && (
-                            <div className="flex items-end flex-col gap-2 row-span-2">
+                            <div className="flex w-fit gap-2 mt-4 row-span-2">
                                 <button
                                     onClick={exportToWord}
                                     className="flex items-center px-3 py-1 gap-2 bg-blue-700 text-white rounded-lg hover:bg-blue-600 transition shadow-md"
