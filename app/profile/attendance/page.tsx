@@ -1,8 +1,10 @@
 'use client';
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {Upload, FileSpreadsheet, AlertCircle, FileText, Trash} from 'lucide-react';
 import { Packer, Document, Table, TableRow, TableCell, Paragraph, WidthType, BorderStyle } from 'docx';
 import { saveAs } from 'file-saver';
+import {getSession} from "@/utils/session";
+import {useRouter} from "next/navigation";
 
 interface Student {
     number: string;
@@ -21,6 +23,30 @@ export default function Attendance() {
     const [fileName, setFileName] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
+
+    const router = useRouter();
+
+    useEffect(() => {
+        let isMounted = true;
+
+        getSession()
+            .then(async (session) => {
+                if (!isMounted) return;
+
+                if (!session) {
+                    router.replace(`/login?to=/profile/attendance`);
+                    return;
+                }
+            })
+            .catch(err => {
+                console.error("Ошибка при получении сессии:", err);
+                return;
+            });
+
+        return () => {
+            isMounted = false;
+        };
+    }, [router]);
 
     // Создаём функцию загрузки файла
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

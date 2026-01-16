@@ -186,7 +186,7 @@ export default function MyGuild({ params }: { params: Promise<{ id: string }> })
                 if (!isMounted) return;
 
                 if (!session) {
-                    router.replace(`/login?to=${encodeURIComponent(`/profile/groups/${groupId}`)}`);
+                    router.replace(`/login?to=/profile/groups/${groupId}`);
                     return;
                 }
 

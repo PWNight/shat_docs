@@ -9,7 +9,7 @@ export default function Profile() {
     useEffect(()=>{
         getSession().then(data => {
             if ( !data ) {
-                router.push("/login");
+                router.push("/login?to=profile/");
             }
         })
     },[router])
