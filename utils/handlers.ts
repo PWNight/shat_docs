@@ -1,4 +1,8 @@
-import {GroupFormSchema, GroupFormState, LoginFormSchema, LoginFormState} from "@/utils/definitions";
+import {
+    GroupFormSchema, GroupFormState,
+    LoginFormSchema, LoginFormState,
+    RegisterFormSchema, RegisterFormState
+} from "@/utils/definitions";
 import { handleApiResponse } from "@/utils/functions";
 import {z} from "zod";
 
@@ -40,22 +44,22 @@ export async function Login(_state: LoginFormState, formData: FormData) {
 }
 
 // Код авторизации
-export async function Register(_state: LoginFormState, formData: FormData) {
+export async function Register(_state: RegisterFormState, formData: FormData) {
     try {
         // Проверяем полученные поля
-        const parsed = LoginFormSchema.safeParse(Object.fromEntries(formData));
+        const parsed = RegisterFormSchema.safeParse(Object.fromEntries(formData));
         if (!parsed.success) {
             return { message: "Ошибка валидации", fieldErrors: z.flattenError(parsed.error).fieldErrors }
         }
 
         // Получаем данные из формы
-        const { email, password } = parsed.data;
+        const { email, full_name, password } = parsed.data;
         const redirectTo = formData.get("redirectTo")?.toString() || "/profile";
 
         // Отправляем POST запрос в регистрацию
         const registerResponse = await fetch('/api/v1/auth/register', {
             method: 'POST',
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify({ email, full_name, password }),
             headers: { 'Content-Type': 'application/json' }
         });
 
@@ -65,7 +69,7 @@ export async function Register(_state: LoginFormState, formData: FormData) {
         // Создаём сессию
         await fetch('/api/v1/auth/create-session', {
             method: 'POST',
-            body: JSON.stringify({ uid: data.uid, email }),
+            body: JSON.stringify({ uid: data.uid, email, full_name }),
             headers: { 'Content-Type': 'application/json' }
         });
 

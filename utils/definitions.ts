@@ -10,11 +10,27 @@ export const LoginFormSchema = z.object({
     .trim(),
 })
 
+export const RegisterFormSchema = z.object({
+    email: z
+        .email("Введите корректную почту")
+        .trim(),
+    full_name: z
+        .string()
+        .trim(),
+    password: z
+        .string()
+        .min(8, { message: 'Минимальная длина пароля - 8 символов' })
+        .trim(),
+})
+
 export const SessionFormSchema = z.object({
     uid: z
         .number(),
     email: z
-        .email()
+        .email("Введите корректную почту")
+        .trim(),
+    full_name: z
+        .string()
         .trim(),
 })
 
@@ -46,6 +62,17 @@ export type LoginFormState =
       message?: string
     }
   | undefined
+
+export type RegisterFormState =
+    | {
+    fieldErrors?: {
+        email?: string[]
+        full_name?: string[]
+        password?: string[]
+    }
+    message?: string
+}
+    | undefined
 
 export type GroupFormState =
     | {

@@ -57,6 +57,23 @@ function RegisterForm() {
                 )}
             </div>
 
+            <div className="mb-2">
+                <label htmlFor="full_name" className="block mb-1 font-medium text-sm">
+                    ФИО
+                </label>
+                <input
+                    type="text"
+                    autoComplete="name"
+                    id="full_name"
+                    name="full_name"
+                    className="shadow-lg w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
+                    placeholder="Иванов И.И."
+                />
+                {state?.fieldErrors?.full_name && (
+                    <p className="text-red-400 text-sm mt-2">{state.fieldErrors.full_name}</p>
+                )}
+            </div>
+
             <div className="mb-6">
                 <label htmlFor="password" className="block mb-1 font-medium text-sm">
                     Пароль

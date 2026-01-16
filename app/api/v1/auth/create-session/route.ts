@@ -22,10 +22,10 @@ export async function POST(request: NextRequest) {
         }
 
         // Получаем данные
-        const { uid, email } = parsed.data;
+        const { uid, email, full_name } = parsed.data;
 
         // Создаём безопасную сессию
-        await createSession({ uid, email });
+        await createSession({ uid, email, full_name });
 
         return NextResponse.json(
             { success: true, message: "Сессия создана" },

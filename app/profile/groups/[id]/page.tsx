@@ -30,7 +30,7 @@ interface Group {
 
 interface UserListItem {
     id: number;
-    email: string;
+    full_name: string;
 }
 
 interface Notify {
@@ -328,7 +328,7 @@ export default function MyGuild({ params }: { params: Promise<{ id: string }> })
                                     <option value="" disabled>Выберите преподавателя</option>
                                     {users.map((u) => (
                                         <option key={u.id} value={u.id}>
-                                            {u.email} {u.id === userData?.uid ? "(Вы)" : ""}
+                                            {u.full_name} {u.id === userData?.uid ? "(Вы)" : ""}
                                         </option>
                                     ))}
                                 </select>

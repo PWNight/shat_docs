@@ -1,7 +1,7 @@
 import {execute, queryOne} from '@/utils/mysql';
 import bcrypt from 'bcrypt';
 import { NextRequest, NextResponse } from "next/server";
-import {LoginFormSchema} from "@/utils/definitions";
+import {RegisterFormSchema} from "@/utils/definitions";
 import {z} from "zod";
 
 export async function POST(request: NextRequest) {
@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     const data = await request.json();
 
     // Проверяем полученные поля
-    const parsed = LoginFormSchema.safeParse(data);
+    const parsed = RegisterFormSchema.safeParse(data);
     if (!parsed.success) {
         return NextResponse.json(
             {
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Получаем данные из формы
-    const { email, password } = parsed.data;
+    const { email, full_name, password } = parsed.data;
     try {
         // Получение пользователя из базы данных
         const userWithEmail = await queryOne('SELECT * FROM users WHERE email = ?', [email]);
@@ -33,13 +33,13 @@ export async function POST(request: NextRequest) {
         // Шифрование пароля и добавление записи в БД
         const passwordHash = await bcrypt.hash(password, 10);
         const result = await execute(
-            'INSERT INTO users (email, password_hash) VALUES (?, ?)',
-            [email, passwordHash]
+            'INSERT INTO users (email, full_name, password_hash) VALUES (?, ?, ?)',
+            [email, full_name, passwordHash]
         );
 
         // Получаем ID пользователя и возвращаем ответ
         const userId = result.insertId;
-        return NextResponse.json({ success: true, data: { uid: userId, email } }, { status: 200 });
+        return NextResponse.json({ success: true, data: { uid: userId, email, full_name } }, { status: 200 });
     } catch (error) {
         console.error("Ошибка работы API", error);
         const errorMessage =

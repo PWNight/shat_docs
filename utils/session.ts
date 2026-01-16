@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 export interface SessionPayload {
     uid: number;
     email: string;
+    full_name: string;
     expiresAt: number;
 }
 
@@ -39,12 +40,13 @@ export async function decryptSession(session: string | undefined): Promise<Sessi
 }
 
 // Создаём сессию
-export async function createSession(userData: { uid: number; email: string }) {
+export async function createSession(userData: { uid: number; email: string, full_name: string }) {
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     const session = await encryptSession({
         uid: userData.uid,
         email: userData.email,
+        full_name: userData.full_name,
         expiresAt: expiresAt.getTime(),
     });
 

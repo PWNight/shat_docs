@@ -9,7 +9,7 @@ export async function GET() {
             return NextResponse.json({ success: false, message: "Необходима авторизация" }, { status: 401 });
         }
 
-        const users = await query('SELECT id, email FROM users');
+        const users = await query('SELECT id, full_name FROM users');
 
         return NextResponse.json({ success: true, data: users }, { status: 200 });
     } catch (error) {
