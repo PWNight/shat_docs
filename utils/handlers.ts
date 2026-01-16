@@ -17,7 +17,6 @@ export async function Login(_state: LoginFormState, formData: FormData) {
 
         // Получаем данные из формы
         const { email, password } = parsed.data;
-        const redirectTo = formData.get("redirectTo")?.toString() || "/profile";
 
         // Отправляем POST запрос в авторизацию
         const loginResponse = await fetch('/api/v1/auth/login', {
@@ -32,12 +31,12 @@ export async function Login(_state: LoginFormState, formData: FormData) {
         // Создаём сессию
         await fetch('/api/v1/auth/create-session', {
             method: 'POST',
-            body: JSON.stringify({ uid: data.uid, email }),
+            body: JSON.stringify({ uid: data.uid, email, full_name: data.full_name }),
             headers: { 'Content-Type': 'application/json' }
         });
 
-        // Возвращаем успех и redirectTo
-        return { success: true, redirectTo };
+        // Возвращаем успех
+        return { success: true };
     } catch (error) {
         return { message: error instanceof Error ? error.message : 'Произошла ошибка' };
     }
@@ -54,7 +53,6 @@ export async function Register(_state: RegisterFormState, formData: FormData) {
 
         // Получаем данные из формы
         const { email, full_name, password } = parsed.data;
-        const redirectTo = formData.get("redirectTo")?.toString() || "/profile";
 
         // Отправляем POST запрос в регистрацию
         const registerResponse = await fetch('/api/v1/auth/register', {
@@ -73,8 +71,8 @@ export async function Register(_state: RegisterFormState, formData: FormData) {
             headers: { 'Content-Type': 'application/json' }
         });
 
-        // Возвращаем успех и redirectTo
-        return { success: true, redirectTo };
+        // Возвращаем успех
+        return { success: true };
     } catch (error) {
         console.log( error )
         return { message: error instanceof Error ? error.message : 'Произошла ошибка' };
