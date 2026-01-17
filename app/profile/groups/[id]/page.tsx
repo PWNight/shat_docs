@@ -166,6 +166,9 @@ export default function MyGuild({ params }: { params: Promise<{ id: string }> })
     const [pageLoaded, setPageLoaded] = useState(false);
     const [notify, setNotify] = useState<Notify>({ message: '', type: '' });
 
+    const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
+    const [pendingNewOwner, setPendingNewOwner] = useState<string>('');
+
     const loadData = useCallback(async (id: string) => {
         try {
             const groupRes = await getGroup(id);
@@ -263,6 +266,20 @@ export default function MyGuild({ params }: { params: Promise<{ id: string }> })
         await loadData(groupId);
     };
 
+    const handleOwnerChange = (newOwnerId: string) => {
+        if (newOwnerId !== String(userData?.uid)) {
+            setPendingNewOwner(newOwnerId);
+            setIsTransferDialogOpen(true);
+        } else {
+            setUpdateFormData({ ...updateFormData, fk_user: newOwnerId });
+        }
+    };
+
+    const confirmTransfer = () => {
+        setUpdateFormData({ ...updateFormData, fk_user: pendingNewOwner });
+        setIsTransferDialogOpen(false);
+    };
+
     if (!pageLoaded || !group) return (
         <div className="flex h-[60vh] w-full items-center justify-center">
             <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
@@ -344,8 +361,8 @@ export default function MyGuild({ params }: { params: Promise<{ id: string }> })
                                 <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Преподаватель (Владелец)</label>
                                 <select
                                     disabled={!isOwner}
-                                    value={updateFormData.fk_user}
-                                    onChange={(e) => setUpdateFormData({ ...updateFormData, fk_user: e.target.value })}
+                                    value={isTransferDialogOpen ? pendingNewOwner : updateFormData.fk_user}
+                                    onChange={(e) => handleOwnerChange(e.target.value)}
                                     className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all disabled:opacity-60 appearance-none cursor-pointer"
                                 >
                                     <option value="" disabled>Выберите преподавателя</option>
@@ -359,6 +376,36 @@ export default function MyGuild({ params }: { params: Promise<{ id: string }> })
                                     <p className="text-[11px] text-gray-500 px-1">Передача группы сменит ответственного пользователя.</p>
                                 )}
                             </div>
+                            <Dialog open={isTransferDialogOpen} onOpenChange={setIsTransferDialogOpen}>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle className="text-2xl font-bold text-red-600 flex items-center gap-2">
+                                            <ShieldAlert /> Передача прав владельца
+                                        </DialogTitle>
+                                        <DialogDescription className="text-lg">
+                                            Вы действительно хотите передать управление группой другому преподавателю?
+                                            <br/><strong> Вы потеряете доступ к редактированию этой группы</strong> сразу после сохранения.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <DialogFooter className="mt-4 gap-2">
+                                        <button
+                                            onClick={() => {
+                                                setIsTransferDialogOpen(false);
+                                                setPendingNewOwner('');
+                                            }}
+                                            className="px-6 py-2.5 rounded-xl font-bold bg-gray-100 hover:bg-gray-200 transition-all"
+                                        >
+                                            Отмена
+                                        </button>
+                                        <button
+                                            onClick={confirmTransfer}
+                                            className="bg-red-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-red-700 transition-all"
+                                        >
+                                            Подтвердить смену
+                                        </button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
                             {isOwner && (
                                 <button
                                     type="submit"
