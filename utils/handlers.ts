@@ -137,7 +137,6 @@ export async function SaveStudent(studentId: string | undefined, data: object) {
     try {
         // Валидация на стороне клиента перед отправкой
         const parsed = StudentFormSchema.safeParse(data);
-        console.log(parsed);
         if (!parsed.success) {
             return {
                 success: false,
