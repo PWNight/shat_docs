@@ -1,7 +1,7 @@
 import {
     GroupFormSchema, GroupFormState,
     LoginFormSchema, LoginFormState,
-    RegisterFormSchema, RegisterFormState
+    RegisterFormSchema, RegisterFormState, StudentFormSchema
 } from "@/utils/definitions";
 import { handleApiResponse } from "@/utils/functions";
 import {z} from "zod";
@@ -135,16 +135,27 @@ export async function DeleteGroup(id: string) {
 // Код сохранения (создания/редактирования) студента
 export async function SaveStudent(studentId: string | undefined, data: object) {
     try {
+        // Валидация на стороне клиента перед отправкой
+        const parsed = StudentFormSchema.safeParse(data);
+        console.log(parsed);
+        if (!parsed.success) {
+            return {
+                success: false,
+                message: "Ошибка валидации",
+                fieldErrors: z.flattenError(parsed.error).fieldErrors
+            };
+        }
+
         const url = studentId ? `/api/v1/students/${studentId}` : `/api/v1/students`;
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
+            body: JSON.stringify(parsed.data),
         });
 
         return await handleApiResponse(response);
     } catch (error) {
-        console.log( error )
+        console.log(error);
         return { success: false, message: error instanceof Error ? error.message : 'Ошибка сохранения' };
     }
 }

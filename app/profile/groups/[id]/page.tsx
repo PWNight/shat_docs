@@ -14,6 +14,7 @@ import {getSession, SessionPayload} from "@/utils/session";
 import { getGroup, getStudentsByGroup, getUsersList } from "@/utils/functions";
 import { UpdateGroup, DeleteGroup, SaveStudent, DeleteStudent } from "@/utils/handlers";
 import Link from "next/link";
+import {StudentFormState} from "@/utils/definitions";
 
 // Интерфейсы
 interface Student {
@@ -48,6 +49,8 @@ interface StudentDialogProps {
 function StudentDialog({ student, groupId, onRefresh, setNotify }: StudentDialogProps) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [state, setState] = useState<StudentFormState>(undefined);
+
     const [form, setForm] = useState({
         full_name: student?.full_name || '',
         admission_year: student?.admission_year || new Date().getFullYear()
@@ -56,13 +59,23 @@ function StudentDialog({ student, groupId, onRefresh, setNotify }: StudentDialog
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
+        setState(undefined);
 
         try {
-            const result = await SaveStudent(student?.id?.toString(), { ...form, fk_group: groupId });
+            const result = await SaveStudent(student?.id?.toString(), {
+                ...form,
+                fk_group: groupId
+            });
+
             if (!result.success) {
-                setNotify({ message: result.message || "Ошибка", type: 'error' });
+                if (result.fieldErrors) {
+                    setState({ fieldErrors: result.fieldErrors, message: result.message });
+                } else {
+                    setNotify({ message: result.message || "Ошибка", type: 'error' });
+                }
                 return;
             }
+
             setNotify({ message: "Список студентов успешно обновлён", type: 'success' });
             setOpen(false);
             await onRefresh();
@@ -72,7 +85,10 @@ function StudentDialog({ student, groupId, onRefresh, setNotify }: StudentDialog
     };
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(val) => {
+            setOpen(val);
+            if(!val) setState(undefined);
+        }}>
             <DialogTrigger asChild>
                 {student ? (
                     <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all">
@@ -99,19 +115,26 @@ function StudentDialog({ student, groupId, onRefresh, setNotify }: StudentDialog
                                 className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                                 value={form.full_name}
                                 onChange={e => setForm({ ...form, full_name: e.target.value })}
-                                required
                             />
+                            {state?.fieldErrors?.full_name && (
+                                <p className="text-xs text-red-500 ml-1">{state.fieldErrors.full_name[0]}</p>
+                            )}
                         </div>
                         <div className="space-y-1.5">
                             <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Год поступления</label>
                             <input
-                                type="number"
+                                type="text"
                                 className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                                 value={form.admission_year}
                                 onChange={e => setForm({ ...form, admission_year: parseInt(e.target.value) || 0 })}
-                                required
                             />
+                            {state?.fieldErrors?.admission_year && (
+                                <p className="text-xs text-red-500 ml-1">{state.fieldErrors.admission_year[0]}</p>
+                            )}
                         </div>
+                        {state?.message && !state.fieldErrors && (
+                            <p className="text-sm text-red-500 text-center bg-red-50 p-2 rounded-lg">{state.message}</p>
+                        )}
                     </div>
                     <DialogFooter>
                         <button
