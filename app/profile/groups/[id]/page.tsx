@@ -236,6 +236,14 @@ export default function MyGuild({ params }: { params: Promise<{ id: string }> })
         e.preventDefault();
         setNotify({ message: '', type: '' });
 
+        const isNameSame = updateFormData.name === group?.name;
+        const isOwnerSame = updateFormData.fk_user === String(group?.fk_user);
+
+        if (isNameSame && isOwnerSame) {
+            setNotify({ message: 'Изменений не обнаружено', type: '' });
+            return;
+        }
+
         startTransition(async () => {
             const result = await UpdateGroup(groupId, updateFormData);
             if (!result.success) {
