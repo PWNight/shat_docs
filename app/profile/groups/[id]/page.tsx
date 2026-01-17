@@ -431,12 +431,32 @@ export default function MyGuild({ params }: { params: Promise<{ id: string }> })
                                                         onRefresh={() => loadData(groupId)}
                                                         setNotify={setNotify}
                                                     />
-                                                    <button
-                                                        onClick={async () => { if (confirm('Удалить студента?')) { await handleDeleteStudent(student.id) } }}
-                                                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
-                                                    >
-                                                        <Trash2 size={18} />
-                                                    </button>
+                                                    <Dialog>
+                                                        <DialogTrigger asChild>
+                                                            <button className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all">
+                                                                <Trash2 size={18} />
+                                                            </button>
+                                                        </DialogTrigger>
+                                                        <DialogContent>
+                                                            <DialogHeader>
+                                                                <DialogTitle className="text-2xl font-bold text-red-600">
+                                                                    Удаление студента
+                                                                </DialogTitle>
+                                                                <DialogDescription className="text-lg">
+                                                                    Вы уверены, что хотите удалить студента <strong>{student.full_name}</strong>?
+                                                                    Это действие нельзя будет отменить.
+                                                                </DialogDescription>
+                                                            </DialogHeader>
+                                                            <DialogFooter className="mt-4 gap-2">
+                                                                <button
+                                                                    onClick={() => handleDeleteStudent(student.id)}
+                                                                    className="bg-red-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-red-700 transition-all"
+                                                                >
+                                                                    Да, удалить
+                                                                </button>
+                                                            </DialogFooter>
+                                                        </DialogContent>
+                                                    </Dialog>
                                                 </div>
                                             ) : (
                                                 <div className="flex justify-end gap-2">
