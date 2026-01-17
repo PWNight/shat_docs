@@ -62,6 +62,15 @@ function StudentDialog({ student, groupId, onRefresh, setNotify }: StudentDialog
         setState(undefined);
 
         try {
+            const isNameSame = form.full_name === student?.full_name;
+            const isYearSame = form.admission_year === student?.admission_year;
+
+            if (isNameSame && isYearSame) {
+                setNotify({ message: 'Изменений не обнаружено', type: '' });
+                setOpen(false);
+                return;
+            }
+
             const result = await SaveStudent(student?.id?.toString(), {
                 ...form,
                 fk_group: groupId
