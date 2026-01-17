@@ -45,10 +45,12 @@ export const GroupFormSchema = z.object({
 export const StudentFormSchema = z.object({
     full_name: z
         .string()
-        .trim(),
+        .trim()
+        .min(1, { message: 'ФИО не может быть пустым' }),
     admission_year: z
         .number()
-        .min(4, { message: 'Минимальная длина - 4 символа' }),
+        .min(1900, { message: 'Введите корректный год' })
+        .max(new Date().getFullYear(), { message: 'Введите корректный год' }),
     fk_group: z
         .string(),
 })
@@ -83,3 +85,12 @@ export type GroupFormState =
     message?: string
 }
     | undefined
+
+export type StudentFormState = {
+    fieldErrors?: {
+        full_name?: string[];
+        admission_year?: string[];
+        fk_group?: string[];
+    };
+    message?: string;
+} | undefined;
