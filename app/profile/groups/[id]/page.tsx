@@ -435,16 +435,6 @@ export default function MyGuild({ params }: { params: Promise<{ id: string }> })
                             )}
                         </form>
                     </div>
-                    {isOwner && (
-                        <div className="bg-orange-50 dark:bg-orange-900/10 p-6 rounded-2xl border border-orange-100 dark:border-orange-900/30">
-                            <div>
-                                <h4 className="flex gap-2 items-center font-bold text-orange-800 dark:text-orange-400"><ShieldAlert className="w-5 h-5 text-orange-600" /> Внимание</h4>
-                                <p className="text-sm text-orange-700 dark:text-orange-500/80 mt-1">
-                                    Изменение ID владельца немедленно ограничит ваш доступ к управлению этой группой.
-                                </p>
-                            </div>
-                        </div>
-                    )}
                 </div>
 
                 <div className="lg:col-span-2">
