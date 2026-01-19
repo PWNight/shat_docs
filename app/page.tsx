@@ -2,7 +2,7 @@ import InDev from "@/components/InDev";
 
 export default function MainPage(){
     return (
-        <div className="m-auto">
+        <div className="flex justify-center my-4">
             <InDev />
         </div>
     )
