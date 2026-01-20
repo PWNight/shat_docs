@@ -53,7 +53,7 @@ export function Logo() {
                 width={50}
                 height={50}
                 quality={100}
-                className="w-14 h-14 drop-shadow-md"
+                className="w-10 h-10 drop-shadow-md"
             />
             <h2 className="font-bold text-blue-500 mb-1">SHAT Docs</h2>
         </Link>
@@ -67,12 +67,12 @@ export function NavMenu({ isSheet = false }) {
                 const Comp = (
                     <Anchor
                         key={item.title + item.href}
-                        activeClassName="text-blue-400 font-semibold rounded-md"
+                        activeClassName="text-blue-500 font-semibold rounded-md"
                         absolute
                         className="flex items-center gap-2 py-1.5 hover:text-blue-500 transition-all duration-200 group"
                         href={item.href}
                     >
-            <span className="group-[.active]:text-blue-400 transition-colors duration-200">
+            <span className="group-[.active]:text-blue-500 transition-colors duration-200">
               {item.icon}
             </span>
                         {item.title}
