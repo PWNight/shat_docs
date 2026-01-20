@@ -131,7 +131,7 @@ export default function ProfileGroups() {
     };
 
     return (
-        <div className="w-full px-2">
+        <div>
             {notify.message && (
                 <ErrorMessage
                     message={notify.message}
@@ -139,7 +139,7 @@ export default function ProfileGroups() {
                     onClose={() => setNotify({ message: '', type: '' })}
                 />
             )}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+            <div className="flex flex-col xl:flex-row xl:items-center items-start justify-between gap-4 mb-4">
                 <div>
                     <h1 className="text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
                         Группы
@@ -161,7 +161,7 @@ export default function ProfileGroups() {
                                 key={group.id}
                                 className="group relative flex flex-col p-6 rounded-2xl bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                             >
-                                <div className="flex justify-between items-start mb-4">
+                                <div className="flex justify-between items-center xl:items-start gap-2 mb-4">
                                     <div className={`p-3 rounded-lg ${isOwner ? 'bg-blue-600 text-white' : 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'}`}>
                                         <Users className="w-6 h-6" />
                                     </div>
@@ -201,7 +201,7 @@ export default function ProfileGroups() {
             ) : (
                 <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-gray-50 dark:bg-zinc-800/50 rounded-3xl border-2 border-dashed border-gray-200 dark:border-zinc-700">
                     <div className="bg-white dark:bg-zinc-800 p-6 rounded-full shadow-sm mb-4">
-                        <SearchX className="h-12 w-12 text-gray-400" />
+                        <SearchX className="h-12 w-12 text-blue-400" />
                     </div>
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Групп пока нет</h2>
                     <p className="text-gray-500 max-w-xs mx-auto mt-2">
