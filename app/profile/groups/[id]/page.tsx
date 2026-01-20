@@ -306,7 +306,7 @@ export default function MyGuild({ params }: { params: Promise<{ id: string }> })
     const isOwner = userData?.uid === group?.fk_user;
 
     return (
-        <div className="w-full sm:px-2 mt-4 space-y-6">
+        <div className="w-full sm:px-2 space-y-6">
             {notify.message && (
                 <ErrorMessage
                     message={notify.message}
