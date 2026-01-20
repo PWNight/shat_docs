@@ -226,7 +226,7 @@ export default function Attendance() {
     }
 
     return (
-        <div className="py-4 flex">
+        <div className="lg:flex">
             <div className="flex flex-col gap-4">
                 <div className="bg-white rounded-lg shadow-md p-4 mb-8">
                     <h1 className="w-fit sm:text-4xl text-3xl font-bold text-gray-900 mb-8">
