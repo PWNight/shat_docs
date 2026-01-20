@@ -21,7 +21,7 @@ export function AuthButton({ session }: AuthButtonProps) {
         href: "/login",
         label: "Войти",
         icon: LogIn,
-        className: "bg-neutral-100 hover:bg-neutral-200"
+        className: "bg-neutral-100 hover:bg-blue-500 hover:text-white"
       };
 
   const Icon = config.icon;
