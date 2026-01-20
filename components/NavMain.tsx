@@ -55,7 +55,7 @@ export function Logo() {
                 quality={100}
                 className="w-14 h-14 drop-shadow-md"
             />
-            <h2 className="font-bold text-blue-600 mb-1">SHAT Docs</h2>
+            <h2 className="font-bold text-blue-500 mb-1">SHAT Docs</h2>
         </Link>
     );
 }
