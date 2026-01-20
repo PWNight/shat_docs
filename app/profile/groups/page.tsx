@@ -131,7 +131,7 @@ export default function ProfileGroups() {
     };
 
     return (
-        <div className="w-full px-2 mt-4">
+        <div className="w-full px-2">
             {notify.message && (
                 <ErrorMessage
                     message={notify.message}
@@ -152,13 +152,13 @@ export default function ProfileGroups() {
             </div>
 
             {groups.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                     {groups.map((group: Group) => {
                         // Проверяем, является ли текущий пользователь владельцем группы
                         const isOwner = group.fk_user === userData?.uid;
                         return (
                             <div
-                                    key={group.id}
+                                key={group.id}
                                 className="group relative flex flex-col p-6 rounded-2xl bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                             >
                                 <div className="flex justify-between items-start mb-4">
