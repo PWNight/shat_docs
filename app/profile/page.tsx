@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {getSession} from "@/utils/session";
+import InDev from "@/components/InDev";
 
 export default function Profile() {
     const router = useRouter()
@@ -15,8 +16,8 @@ export default function Profile() {
     },[router])
 
     return (
-        <div>
-            <h1>Добро пожаловать</h1>
+        <div className="mt-4">
+            <InDev />
         </div>
     )
 }
