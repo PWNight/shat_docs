@@ -24,7 +24,7 @@ export async function Navbar() {
     const session = await getSession();
 
     return (
-        <nav className="w-full border-b max-h-16 p-2 px-6 flex items-center shadow-md bg-gray-200/10 dark:bg-gray-900/10 text-gray-900 dark:text-white">
+        <nav className="w-full border-b max-h-16 p-2 px-10 flex items-center shadow-md bg-gray-200/10 dark:bg-gray-900/10 text-gray-900 dark:text-white">
             <div className="w-full h-full flex items-center justify-between gap-2">
                 <div className="flex items-center h-full gap-8">
                     <div className="sm:text-2xl text-lg">
