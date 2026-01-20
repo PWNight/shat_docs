@@ -20,7 +20,7 @@ export function Footer() {
                     />
                     <div className="">
                         <p className="text-sm opacity-90">SHAT Docs © 2025-2026</p>
-                        <p className="text-xs opacity-70">Version 0.7.0</p>
+                        <p className="text-xs opacity-70">Version 0.7.1</p>
                     </div>
                 </div>
                 <FooterButtons />
