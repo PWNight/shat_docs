@@ -229,7 +229,7 @@ export default function Attendance() {
         <div className="py-4 flex">
             <div className="flex flex-col gap-4">
                 <div className="bg-white rounded-lg shadow-md p-4 mb-8">
-                    <h1 className="w-fit text-4xl font-bold text-gray-900 mb-8">
+                    <h1 className="w-fit sm:text-4xl text-3xl font-bold text-gray-900 mb-8">
                         Парсер посещаемости из .xls
                     </h1>
                     {students.length == 0 && (
@@ -240,7 +240,7 @@ export default function Attendance() {
                                 ) : (
                                     <>
                                         <Upload className="w-16 h-16 text-gray-400 mb-4" />
-                                        <p className="mb-2 text-xl text-gray-600">Перетащите .xls файл из Дневник.ру</p>
+                                        <p className="mb-2 text-xl text-gray-600 text-center">Перетащите .xls файл из Дневник.ру</p>
                                     </>
                                 )}
                             </div>
