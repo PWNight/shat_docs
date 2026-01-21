@@ -9,7 +9,7 @@ import {
     Dialog, DialogTrigger, DialogContent, DialogHeader,
     DialogTitle, DialogDescription, DialogFooter
 } from "@/components/ui/Dialog";
-import ErrorMessage from "@/components/notify-alert";
+import ErrorMessage from "@/components/NotifyAlert";
 import {getSession, SessionPayload} from "@/utils/session";
 import { getGroup, getStudentsByGroup, getUsersList } from "@/utils/functions";
 import { UpdateGroup, DeleteGroup, SaveStudent, DeleteStudent } from "@/utils/handlers";
@@ -36,7 +36,7 @@ interface UserListItem {
 
 interface Notify {
     message: string;
-    type: 'success' | 'error' | '';
+    type: 'success' | 'warning' | 'error' | '';
 }
 
 interface StudentDialogProps {
@@ -66,7 +66,7 @@ function StudentDialog({ student, groupId, onRefresh, setNotify }: StudentDialog
             const isYearSame = form.admission_year === student?.admission_year;
 
             if (isNameSame && isYearSame) {
-                setNotify({ message: 'Изменений не обнаружено', type: '' });
+                setNotify({ message: 'Изменений не обнаружено', type: 'warning' });
                 setOpen(false);
                 return;
             }
@@ -249,7 +249,7 @@ export default function MyGuild({ params }: { params: Promise<{ id: string }> })
         const isOwnerSame = updateFormData.fk_user === String(group?.fk_user);
 
         if (isNameSame && isOwnerSame) {
-            setNotify({ message: 'Изменений не обнаружено', type: '' });
+            setNotify({ message: 'Изменений не обнаружено', type: 'warning' });
             return;
         }
 

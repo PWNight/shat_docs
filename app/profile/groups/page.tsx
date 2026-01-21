@@ -3,7 +3,7 @@ import React, { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSession } from "@/utils/session";
 import {getAllGroups} from "@/utils/functions";
-import ErrorMessage from "@/components/notify-alert";
+import ErrorMessage from "@/components/NotifyAlert";
 import { Loader2, SearchX, Plus, Users, Calendar, ArrowRight } from "lucide-react";
 import {
     Dialog,
@@ -24,7 +24,7 @@ interface Group {
 
 interface Notify {
     message: string;
-    type: 'success' | 'error' | '';
+    type: 'success' | 'warning' | 'error' | '';
 }
 
 export default function ProfileGroups() {
