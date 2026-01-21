@@ -29,11 +29,11 @@ function ErrorMessage({ message, type, onClose }: ErrorMessageProps) {
       title: 'Ошибка'
     },
     warning: {
-      bg: 'bg-yellow-50 dark:bg-yellow-900/80',
-      border: 'border-yellow-200 dark:border-yellow-800',
-      text: 'text-yellow-800 dark:text-yellow-100',
-      iconBg: 'bg-yellow-100 dark:bg-yellow-800/50',
-      closeHover: 'hover:bg-yellow-100 dark:hover:bg-yellow-800',
+      bg: 'bg-orange-50 dark:bg-orange-900/80',
+      border: 'border-orange-200 dark:border-orange-800',
+      text: 'text-orange-800 dark:text-orange-100',
+      iconBg: 'bg-orange-100 dark:bg-orange-800/50',
+      closeHover: 'hover:bg-orange-100 dark:hover:bg-orange-800',
       icon: <AlertTriangle className="w-6 h-6" />,
       title: 'Внимание'
     },
