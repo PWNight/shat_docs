@@ -16,8 +16,6 @@ export default function Profile() {
     },[router])
 
     return (
-        <div className="mt-4">
-            <InDev />
-        </div>
+        <InDev />
     )
 }
