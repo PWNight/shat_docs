@@ -21,8 +21,6 @@ export const NAVLINKS = [
 ];
 
 export async function Navbar() {
-    const session = await getSession();
-
     return (
         <nav className="w-full border-b max-h-16 p-2 px-4 sm:px-10 flex items-center shadow-md bg-gray-200/10 dark:bg-gray-900/10 text-gray-900 dark:text-white">
             <div className="w-full h-full flex items-center justify-between gap-2">
@@ -37,7 +35,7 @@ export async function Navbar() {
                 </div>
 
                 <div className="flex items-center">
-                    <AuthButton session={session} />
+                    <AuthButton/>
                 </div>
             </div>
         </nav>
