@@ -17,6 +17,7 @@ function LoginForm() {
     useEffect(() => {
         if (state?.success) {
             router.push(redirectTo);
+            router.refresh();
         }
         getSession().then(data => {
             if ( data ) {
