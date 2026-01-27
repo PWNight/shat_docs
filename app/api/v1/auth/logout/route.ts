@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
     try {
-        const session = request.cookies.get('s_token')
+        const session = request.cookies.get('session')
         if( session === undefined ){
             return NextResponse.json({ success: false, error: 'Не авторизован' }, { status: 401 })
         }
