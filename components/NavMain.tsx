@@ -4,7 +4,6 @@ import { SheetLeftbar } from "./LeftBar";
 import Image from "next/image";
 import { Home, BookOpen } from "lucide-react";
 import {SheetClose} from "@/components/ui/Sheet";
-import {getSession} from "@/utils/session";
 import {AuthButton} from "@/components/AccountButton";
 
 export const NAVLINKS = [
