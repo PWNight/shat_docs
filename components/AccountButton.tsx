@@ -1,38 +1,51 @@
-// components/AuthButton.tsx
 import Anchor from "@/components/ui/Anchor";
-import { LogIn, UserCircle } from "lucide-react";
-import { SessionPayload } from "@/utils/session";
+import { LogIn, UserCircle, LogOut } from "lucide-react";
+import { getSession, deleteSession } from "@/utils/session";
+import { redirect } from "next/navigation";
 
-interface AuthButtonProps {
-  session: SessionPayload | null;
-}
+export async function AuthButton() {
+    const session = await getSession();
+    const isLoggedIn = !!session;
 
-export function AuthButton({ session }: AuthButtonProps) {
-  const isLoggedIn = !!session;
+    async function handleLogout() {
+        "use server";
+        await deleteSession();
+        redirect("/");
+    }
 
-  const config = isLoggedIn
-      ? {
-        href: "/profile",
-        label: session.full_name || "Личный кабинет",
-        icon: UserCircle,
-        className: "bg-blue-600 hover:bg-blue-700 text-white"
-      }
-      : {
-        href: "/login",
-        label: "Войти",
-        icon: LogIn,
-        className: "bg-neutral-100 hover:bg-blue-500 hover:text-white"
-      };
+    if (!isLoggedIn) {
+        return (
+            <Anchor
+                href="/login"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl transition-all duration-200 font-semibold shadow-sm hover:shadow-md bg-neutral-100 hover:bg-blue-500 hover:text-white"
+            >
+                <LogIn className="w-4 h-4" />
+                <span>Войти</span>
+            </Anchor>
+        );
+    }
 
-  const Icon = config.icon;
+    return (
+        <div className="flex items-center gap-2">
+            <Anchor
+                href="/profile"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl transition-all duration-200 font-semibold shadow-sm hover:shadow-md bg-blue-600 hover:bg-blue-700 text-white"
+            >
+                <UserCircle className="w-4 h-4" />
+                <span className="max-w-[150px] truncate">
+                    {session.full_name || "Личный кабинет"}
+                </span>
+            </Anchor>
 
-  return (
-      <Anchor
-          href={config.href}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl transition-all duration-200 font-semibold shadow-sm hover:shadow-md ${config.className}`}
-      >
-        <Icon className="w-4 h-4" />
-        <span className="max-w-[150px] truncate">{config.label}</span>
-      </Anchor>
-  );
+            <form action={handleLogout}>
+                <button
+                    type="submit"
+                    className="flex items-center justify-center p-2.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all duration-200 shadow-sm"
+                    title="Выйти"
+                >
+                    <LogOut className="w-5 h-5" />
+                </button>
+            </form>
+        </div>
+    );
 }
