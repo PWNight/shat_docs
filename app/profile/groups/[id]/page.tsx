@@ -22,23 +22,19 @@ interface Student {
     full_name: string;
     admission_year: number;
 }
-
 interface Group {
     id: number;
     name: string;
     fk_user: number;
 }
-
 interface UserListItem {
     id: number;
     full_name: string;
 }
-
 interface Notify {
     message: string;
     type: 'success' | 'warning' | 'error' | '';
 }
-
 interface StudentDialogProps {
     student?: Student;
     groupId: string;
@@ -46,6 +42,7 @@ interface StudentDialogProps {
     setNotify: (n: Notify) => void;
 }
 
+// Форма добавления и управления студентом
 function StudentDialog({ student, groupId, onRefresh, setNotify }: StudentDialogProps) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -160,51 +157,55 @@ function StudentDialog({ student, groupId, onRefresh, setNotify }: StudentDialog
     );
 }
 
-export default function MyGuild({ params }: { params: Promise<{ id: string }> }) {
+export default function MyGroup({ params }: { params: Promise<{ id: string }> }) {
+    // Технические переменные
     const resolvedParams = use(params);
     const groupId = resolvedParams.id;
     const router = useRouter();
 
+    // Информационные переменные
     const [userData, setUserData] = useState<SessionPayload | null>(null);
     const [group, setGroup] = useState<Group | null>(null);
     const [students, setStudents] = useState<Student[]>([]);
     const [users, setUsers] = useState<UserListItem[]>([]);
     const [updateFormData, setUpdateFormData] = useState({ name: '', fk_user: '' });
 
+    // Переменные состояний и уведомлений
     const [isPending, startTransition] = useTransition();
     const [pageLoaded, setPageLoaded] = useState(false);
-    const [notify, setNotify] = useState<Notify>({ message: '', type: '' });
-
     const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
     const [pendingNewOwner, setPendingNewOwner] = useState<string>('');
 
+    const [notify, setNotify] = useState<Notify>({ message: '', type: '' });
+
+    // Функция загрузки информации о группе
     const loadData = useCallback(async (id: string) => {
         try {
+            // Получаем информацию о группе
             const groupRes = await getGroup(id);
             if (!groupRes.success) {
                 router.replace('/profile/groups');
                 return;
             }
-
             setGroup(groupRes.data);
             setUpdateFormData({
                 name: groupRes.data.name,
                 fk_user: String(groupRes.data.fk_user),
             });
 
+            // Получаем информацию о студентах
             const studentsRes = await getStudentsByGroup(id);
             if (!studentsRes.success) {
                 setNotify({message: studentsRes.message || "Не удалось загрузить студентов", type: 'error'});
             }
             setStudents(studentsRes.data ?? []);
 
-
+            // Получаем информацию о преподавателях
             const usersRes = await getUsersList();
             if (!usersRes.success) {
                 setNotify({ message: usersRes.message || "Не удалось загрузить список преподавателей", type: 'error' });
             }
             setUsers(usersRes.data ?? []);
-
         } catch (err) {
             console.error("Ошибка загрузки данных группы:", err);
             setNotify({ message: "Произошла ошибка при загрузке данных", type: 'error' });
@@ -213,19 +214,20 @@ export default function MyGuild({ params }: { params: Promise<{ id: string }> })
         }
     }, [router]);
 
+    // Событие при загрузке страницы
     useEffect(() => {
         let isMounted = true;
 
+        // Получаем данные сессии
         getSession()
             .then(async (session) => {
                 if (!isMounted) return;
-
                 if (!session) {
                     router.replace(`/login?to=/profile/groups/${groupId}`);
                     return;
                 }
-
                 setUserData(session);
+
                 await loadData(groupId);
             })
             .catch(err => {
@@ -241,6 +243,7 @@ export default function MyGuild({ params }: { params: Promise<{ id: string }> })
         };
     }, [groupId, loadData, router]);
 
+    // Обработчик обновления группы
     const handleUpdateGroup = async (e: React.FormEvent) => {
         e.preventDefault();
         setNotify({ message: '', type: '' });
@@ -264,6 +267,7 @@ export default function MyGuild({ params }: { params: Promise<{ id: string }> })
         });
     };
 
+    // Обработчик удаления группы
     const handleDeleteGroup = async () => {
         const result = await DeleteGroup(groupId);
         if (!result.success) {
@@ -273,6 +277,7 @@ export default function MyGuild({ params }: { params: Promise<{ id: string }> })
         router.push('/profile/groups');
     };
 
+    // Обработчик удаления студента
     const handleDeleteStudent = async (studentId: number) => {
         const result = await DeleteStudent(studentId);
         if (!result.success) {
@@ -283,6 +288,7 @@ export default function MyGuild({ params }: { params: Promise<{ id: string }> })
         await loadData(groupId);
     };
 
+    // Обработчик изменения владельца группы
     const handleOwnerChange = (newOwnerId: string) => {
         if (newOwnerId !== String(userData?.uid)) {
             setPendingNewOwner(newOwnerId);
@@ -292,11 +298,13 @@ export default function MyGuild({ params }: { params: Promise<{ id: string }> })
         }
     };
 
+    // Обработчик подтверждения передачи владения группой
     const confirmTransfer = () => {
         setUpdateFormData({ ...updateFormData, fk_user: pendingNewOwner });
         setIsTransferDialogOpen(false);
     };
 
+    // Выводим окно загрузки, пока не загрузим все данные
     if (!pageLoaded || !group) return (
         <div className="flex h-[60vh] w-full items-center justify-center">
             <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
