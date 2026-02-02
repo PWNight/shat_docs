@@ -15,26 +15,32 @@ import {
 import { CreateGroup } from "@/utils/handlers";
 import Link from "next/link";
 
+// Интерфейсы
 interface Group {
     id: string;
     name: string;
     fk_user: string;
     created_by: string;
 }
-
 interface Notify {
     message: string;
     type: 'success' | 'warning' | 'error' | '';
 }
 
 export default function ProfileGroups() {
-    const [userData, setUserData] = useState(Object);
-    const [pageLoaded, setPageLoaded] = useState(false);
-    const [groups, setGroups] = useState([]);
-    const [notify, setNotify] = useState<Notify>({ message: '', type: '' });
+    // Технические переменные
     const router = useRouter();
     const [state, action, pending] = useActionState(CreateGroup, undefined);
 
+    // Информационные переменные
+    const [userData, setUserData] = useState(Object);
+    const [groups, setGroups] = useState([]);
+
+    // Переменные состояний
+    const [pageLoaded, setPageLoaded] = useState(false);
+    const [notify, setNotify] = useState<Notify>({ message: '', type: '' });
+
+    // Функция загрузки данных
     const loadData = async () => {
         const response = await getAllGroups();
         if (!response.success) {
@@ -45,7 +51,9 @@ export default function ProfileGroups() {
         setGroups(response.data);
     };
 
+    // Событие при загрузке страницы
     useEffect(() => {
+        // Получаем сессию
         getSession().then(async session => {
             if (!session) {
                 router.push("/login?to=profile/groups");
@@ -58,7 +66,7 @@ export default function ProfileGroups() {
         });
     }, [router]);
 
-    // Состояние загрузки
+    // Выводим окно загрузки, пока не получим все данные
     if (!pageLoaded) {
         return (
             <div className="flex h-[60vh] w-full items-center justify-center">
@@ -67,6 +75,7 @@ export default function ProfileGroups() {
         );
     }
 
+    // Форма создания группы
     const GroupCreateForm = () => {
         const [open, setOpen] = useState(false);
 
