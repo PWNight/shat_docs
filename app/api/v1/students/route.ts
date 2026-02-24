@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Получаем данные из формы
-        const { full_name, admission_year, fk_group } = parsed.data;
+        const { full_name, fk_group } = parsed.data;
 
         // Получаем группу из БД
         const group = await queryOne(
@@ -78,8 +78,8 @@ export async function POST(request: NextRequest) {
         }
 
         await execute(
-            'INSERT INTO students (full_name, admission_year, fk_group) VALUES (?, ?, ?)',
-            [full_name, admission_year, fk_group]
+            'INSERT INTO students (full_name, fk_group) VALUES (?, ?, ?)',
+            [full_name, fk_group]
         );
 
         return NextResponse.json({ success: true, message: `Студент успешно создан` }, { status: 200 });
