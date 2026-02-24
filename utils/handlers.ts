@@ -171,3 +171,27 @@ export async function DeleteStudent(id: number) {
         return { success: false, message: error instanceof Error ? error.message : 'Ошибка удаления' };
     }
 }
+
+export async function SaveAttendance(groupId: string, students: any[]) {
+    try {
+        const response = await fetch(`/api/v1/groups/${groupId}/attendance`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ groupId, students }),
+        });
+        return await handleApiResponse(response);
+    } catch (error) {
+        return { success: false, message: "Ошибка синхронизации с БД" };
+    }
+}
+
+export async function GetAttendance(groupId: string) {
+    try {
+        const response = await fetch(`/api/v1/groups/${groupId}/attendance`, {
+            method: 'GET',
+        });
+        return await handleApiResponse(response);
+    } catch (error) {
+        return { success: false, message: "Ошибка загрузки из БД" };
+    }
+}
