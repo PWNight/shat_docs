@@ -1,11 +1,10 @@
 import Anchor from "@/components/ui/Anchor";
-import {House, GraduationCap, Sheet} from "lucide-react";
+import {House, GraduationCap} from "lucide-react";
 
 export function NavProfile() {
     const navItems = [
         { href: "/profile", label: "Главная страница", icon: House },
         { href: "/profile/groups", label: "Группы", icon: GraduationCap },
-        { href: "/profile/attendance", label: "Посещаемость", icon: Sheet },
     ];
 
     return (
