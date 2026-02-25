@@ -4,7 +4,7 @@ import React, { useEffect, useState, useTransition, use, useCallback } from "rea
 import {
     Loader2, Trash2,
     ArrowLeft, ShieldAlert, Save,
-    Upload, FileText, Database, Download
+    Upload, FileText, Database, Download, Users
 } from "lucide-react";
 import {
     Dialog, DialogTrigger, DialogContent, DialogHeader,
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/Dialog";
 import ErrorMessage from "@/components/NotifyAlert";
 import { getSession, SessionPayload } from "@/utils/session";
-import {cn, getGroup, getUsersList} from "@/utils/functions";
+import {getGroup, getUsersList} from "@/utils/handlers";
 import {UpdateGroup, DeleteGroup, SaveAttendance, GetAttendance} from "@/utils/handlers";
 import Link from "next/link";
 import { Document, Packer, Paragraph, Table, TableCell, TableRow, WidthType, AlignmentType, HeadingLevel, VerticalAlign, TextRun } from "docx";
@@ -103,7 +103,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                         rows: [
                             new TableRow({
                                 children: [
-                                    new TableCell({ children: [new Paragraph("№")], rowSpan: 2, verticalAlign: VerticalAlign.CENTER }),
+                                    new TableCell({ children: [new Paragraph("ID")], rowSpan: 2, verticalAlign: VerticalAlign.CENTER }),
                                     new TableCell({ children: [new Paragraph("ФИО")], rowSpan: 2, verticalAlign: VerticalAlign.CENTER }),
                                     new TableCell({ children: [new Paragraph({ text: "Дни", alignment: AlignmentType.CENTER })], columnSpan: 2 }),
                                     new TableCell({ children: [new Paragraph({ text: "Уроки", alignment: AlignmentType.CENTER })], columnSpan: 2 }),
@@ -214,6 +214,19 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                     onChange={e => setUpdateFormData({...updateFormData, name: e.target.value})}
                                     className="text-2xl font-bold bg-transparent border-b-2 border-transparent focus:border-blue-500 outline-none w-full pb-1 transition-all disabled:opacity-80"
                                 />
+                                <div className="flex justify-between items-center xl:items-start gap-2 mt-2">
+                                    <div className='flex gap-2'>
+                                        {isOwner && (
+                                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-blue-600 text-white rounded shadow-sm">
+                                            Ваша группа
+                                        </span>
+                                        )}
+
+                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-gray-100 dark:bg-zinc-700 rounded text-gray-500">
+                                            ID: {group.id}
+                                        </span>
+                                    </div>
+                                </div>
                                 {isOwner && (
                                     <button onClick={() => startTransition(async () => { await UpdateGroup(groupId, updateFormData); setNotify({message: "Сохранено", type: 'success'}); loadData(groupId); })} className="absolute right-0 top-1 text-blue-600 opacity-0 group-focus-within:opacity-100 hover:scale-110 transition-all">
                                         {isPending ? <Loader2 className="animate-spin" size={18}/> : <Save size={20}/>}
@@ -256,12 +269,12 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                     <div className="flex items-center gap-2 w-full sm:w-auto">
                         {attendanceStudents.length > 0 ? (
                             <>
-                                <button onClick={exportToWord} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-bold hover:bg-blue-600 hover:text-white transition-all">
+                                <button onClick={exportToWord} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-600 hover:text-white transition-all">
                                     <Download size={16}/> Word
                                 </button>
                                 {isOwner && (
                                     <>
-                                        <button onClick={() => SaveAttendance(groupId, attendanceStudents).then(() => setNotify({message: "Сохранено", type: "success"}))} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-100 text-green-500 rounded-lg text-sm font-bold hover:bg-green-500 hover:text-white transition-all">
+                                        <button onClick={() => SaveAttendance(groupId, attendanceStudents).then(() => setNotify({message: "Сохранено", type: "success"}))} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-50 text-green-500 font-semibold rounded-lg text-sm  hover:bg-green-500 hover:text-white transition-all">
                                             <Database size={16}/> В базу
                                         </button>
                                         <button onClick={() => setAttendanceStudents([])} className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-colors">
@@ -293,7 +306,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                         <table className="w-full text-sm border-collapse">
                             <thead className="bg-gray-50/50 dark:bg-zinc-900/50 text-[10px] font-bold uppercase text-gray-400">
                             <tr className="divide-x divide-gray-100 dark:divide-zinc-700 border-b dark:border-zinc-700">
-                                <th rowSpan={2} className="px-2 py-4 w-10 text-center">№</th>
+                                <th rowSpan={2} className="px-2 py-4 w-10 text-center">ID</th>
                                 <th rowSpan={2} className="px-4 py-4 text-left">ФИО</th>
                                 <th colSpan={2} className="px-2 py-2 bg-gray-100/30 text-center border-b dark:border-zinc-700">Дни</th>
                                 <th colSpan={2} className="px-2 py-2 text-center border-b dark:border-zinc-700">Уроки</th>
@@ -314,19 +327,19 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                         <input disabled={!isOwner} value={s.fullName} onChange={e => updateAttendanceField(i, 'fullName', e.target.value)} className="w-full bg-transparent outline-none focus:text-blue-600 disabled:text-gray-700 dark:disabled:text-gray-300" />
                                     </td>
                                     <td className="px-2 py-3 bg-gray-50/20">
-                                        <input disabled={!isOwner} type="number" value={s.fullDaysTotal} onChange={e => updateAttendanceField(i, 'fullDaysTotal', e.target.value)} className="w-full bg-transparent outline-none text-center disabled:opacity-70" />
+                                        <input disabled={!isOwner} min={0} type="number" value={s.fullDaysTotal} onChange={e => updateAttendanceField(i, 'fullDaysTotal', e.target.value)} className="w-full bg-transparent outline-none text-center disabled:opacity-70" />
                                     </td>
                                     <td className="px-2 py-3 bg-gray-50/20 font-bold text-amber-600">
-                                        <input disabled={!isOwner} type="number" value={s.fullDaysSick} onChange={e => updateAttendanceField(i, 'fullDaysSick', e.target.value)} className="w-full bg-transparent outline-none text-center disabled:opacity-70" />
+                                        <input disabled={!isOwner} min={0} type="number" value={s.fullDaysSick} onChange={e => updateAttendanceField(i, 'fullDaysSick', e.target.value)} className="w-full bg-transparent outline-none text-center disabled:opacity-70" />
                                     </td>
                                     <td className="px-2 py-3">
-                                        <input disabled={!isOwner} type="number" value={s.lessonsTotal} onChange={e => updateAttendanceField(i, 'lessonsTotal', e.target.value)} className="w-full bg-transparent outline-none text-center disabled:opacity-70"/>
+                                        <input disabled={!isOwner} min={0} type="number" value={s.lessonsTotal} onChange={e => updateAttendanceField(i, 'lessonsTotal', e.target.value)} className="w-full bg-transparent outline-none text-center disabled:opacity-70"/>
                                     </td>
                                     <td className="px-2 py-3 font-bold text-amber-600">
-                                        <input disabled={!isOwner} type="number" value={s.lessonsSick} onChange={e => updateAttendanceField(i, 'lessonsSick', e.target.value)} className="w-full bg-transparent outline-none text-center disabled:opacity-70"/>
+                                        <input disabled={!isOwner} min={0} type="number" value={s.lessonsSick} onChange={e => updateAttendanceField(i, 'lessonsSick', e.target.value)} className="w-full bg-transparent outline-none text-center disabled:opacity-70"/>
                                     </td>
                                     <td className="px-2 py-3 bg-red-50/10 font-bold text-red-600">
-                                        <input disabled={!isOwner} type="number" value={s.late} onChange={e => updateAttendanceField(i, 'late', e.target.value)} className="w-full bg-transparent outline-none text-center disabled:opacity-70" />
+                                        <input disabled={!isOwner} min={0} type="number" value={s.late} onChange={e => updateAttendanceField(i, 'late', e.target.value)} className="w-full bg-transparent outline-none text-center disabled:opacity-70" />
                                     </td>
                                 </tr>
                             ))}
