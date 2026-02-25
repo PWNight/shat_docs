@@ -1,544 +1,349 @@
 "use client"
 import { useRouter } from "next/navigation";
-import React, {useEffect, useState, useTransition, use, useCallback} from "react";
+import React, { useEffect, useState, useTransition, use, useCallback } from "react";
 import {
-    Loader2, Pencil, Trash2, UserPlus, ArrowLeft,
-    Settings, Users, GraduationCap, ShieldAlert, Save, CircleX
+    Loader2, Trash2,
+    ArrowLeft, ShieldAlert, Save,
+    Upload, FileText, Database, Download
 } from "lucide-react";
 import {
     Dialog, DialogTrigger, DialogContent, DialogHeader,
-    DialogTitle, DialogDescription, DialogFooter
+    DialogTitle, DialogFooter
 } from "@/components/ui/Dialog";
 import ErrorMessage from "@/components/NotifyAlert";
-import {getSession, SessionPayload} from "@/utils/session";
-import { getGroup, getStudentsByGroup, getUsersList } from "@/utils/functions";
-import { UpdateGroup, DeleteGroup, SaveStudent, DeleteStudent } from "@/utils/handlers";
+import { getSession, SessionPayload } from "@/utils/session";
+import {cn, getGroup, getUsersList} from "@/utils/functions";
+import {UpdateGroup, DeleteGroup, SaveAttendance, GetAttendance} from "@/utils/handlers";
 import Link from "next/link";
-import {StudentFormState} from "@/utils/definitions";
+import { Document, Packer, Paragraph, Table, TableCell, TableRow, WidthType, AlignmentType, HeadingLevel, VerticalAlign, TextRun } from "docx";
+import { saveAs } from "file-saver";
 
-// Интерфейсы
-interface Student {
-    id: number;
-    full_name: string;
-    admission_year: number;
+interface Group { id: number; name: string; fk_user: number; }
+interface UserListItem { id: number; full_name: string; }
+interface Notify { message: string; type: 'success' | 'warning' | 'error' | ''; }
+interface AttendanceStudent {
+    number: string;
+    fullName: string;
+    fullDaysTotal: number;
+    fullDaysSick: number;
+    lessonsTotal: number;
+    lessonsSick: number;
+    late: number;
 }
-interface Group {
-    id: number;
-    name: string;
-    fk_user: number;
-}
-interface UserListItem {
-    id: number;
-    full_name: string;
-}
-interface Notify {
-    message: string;
-    type: 'success' | 'warning' | 'error' | '';
-}
-interface StudentDialogProps {
-    student?: Student;
-    groupId: string;
-    onRefresh: () => Promise<void>;
-    setNotify: (n: Notify) => void;
-}
-
-// Форма добавления и управления студентом
-function StudentDialog({ student, groupId, onRefresh, setNotify }: StudentDialogProps) {
-    const [open, setOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [state, setState] = useState<StudentFormState>(undefined);
-
-    const [form, setForm] = useState({
-        full_name: student?.full_name || '',
-        admission_year: student?.admission_year || new Date().getFullYear()
-    });
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-        setState(undefined);
-
-        try {
-            const isNameSame = form.full_name === student?.full_name;
-            const isYearSame = form.admission_year === student?.admission_year;
-
-            if (isNameSame && isYearSame) {
-                setNotify({ message: 'Изменений не обнаружено', type: 'warning' });
-                setOpen(false);
-                return;
-            }
-
-            const result = await SaveStudent(student?.id?.toString(), {
-                ...form,
-                fk_group: groupId
-            });
-
-            if (!result.success) {
-                if (result.fieldErrors) {
-                    setState({ fieldErrors: result.fieldErrors, message: result.message });
-                } else {
-                    setNotify({ message: result.message || "Ошибка", type: 'error' });
-                }
-                return;
-            }
-
-            setNotify({ message: "Список студентов успешно обновлён", type: 'success' });
-            setOpen(false);
-            await onRefresh();
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    return (
-        <Dialog open={open} onOpenChange={(val) => {
-            setOpen(val);
-            if(!val) setState(undefined);
-        }}>
-            <DialogTrigger asChild>
-                {student ? (
-                    <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all">
-                        <Pencil size={18} />
-                    </button>
-                ) : (
-                    <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-medium transition-all shadow-sm active:scale-95 text-sm">
-                        <UserPlus className="w-4 h-4" /> Добавить
-                    </button>
-                )}
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-                <form onSubmit={handleSubmit}>
-                    <DialogHeader>
-                        <DialogTitle className="text-2xl font-bold">
-                            {student ? 'Редактировать студента' : 'Новый студент'}
-                        </DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 py-6">
-                        <div className="space-y-1.5">
-                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Полное имя</label>
-                            <input
-                                placeholder="Иванов Иван Иванович"
-                                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                value={form.full_name}
-                                onChange={e => setForm({ ...form, full_name: e.target.value })}
-                            />
-                            {state?.fieldErrors?.full_name && (
-                                <p className="text-xs text-red-500 ml-1">{state.fieldErrors.full_name[0]}</p>
-                            )}
-                        </div>
-                        <div className="space-y-1.5">
-                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Год поступления</label>
-                            <input
-                                type="text"
-                                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                value={form.admission_year}
-                                onChange={e => setForm({ ...form, admission_year: parseInt(e.target.value) || 0 })}
-                            />
-                            {state?.fieldErrors?.admission_year && (
-                                <p className="text-xs text-red-500 ml-1">{state.fieldErrors.admission_year[0]}</p>
-                            )}
-                        </div>
-                        {state?.message && !state.fieldErrors && (
-                            <p className="text-sm text-red-500 text-center bg-red-50 p-2 rounded-lg">{state.message}</p>
-                        )}
-                    </div>
-                    <DialogFooter>
-                        <button
-                            type="submit"
-                            disabled={isLoading}
-                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                        >
-                            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : student ? "Обновить данные" : "Добавить в список"}
-                        </button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
-    );
+interface AttendanceTotal {
+    fullDaysTotal: number;
+    fullDaysSick: number;
+    lessonsTotal: number;
+    lessonsSick: number;
+    late: number;
 }
 
 export default function MyGroup({ params }: { params: Promise<{ id: string }> }) {
-    // Технические переменные
     const resolvedParams = use(params);
     const groupId = resolvedParams.id;
     const router = useRouter();
 
-    // Информационные переменные
     const [userData, setUserData] = useState<SessionPayload | null>(null);
     const [group, setGroup] = useState<Group | null>(null);
-    const [students, setStudents] = useState<Student[]>([]);
     const [users, setUsers] = useState<UserListItem[]>([]);
     const [updateFormData, setUpdateFormData] = useState({ name: '', fk_user: '' });
-
-    // Переменные состояний и уведомлений
+    const [attendanceStudents, setAttendanceStudents] = useState<AttendanceStudent[]>([]);
+    const [attendanceTotal, setAttendanceTotal] = useState<AttendanceTotal | null>(null);
     const [isPending, startTransition] = useTransition();
-    const [pageLoaded, setPageLoaded] = useState(false);
-    const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
-    const [pendingNewOwner, setPendingNewOwner] = useState<string>('');
-
     const [notify, setNotify] = useState<Notify>({ message: '', type: '' });
 
-    // Функция загрузки информации о группе
     const loadData = useCallback(async (id: string) => {
-        try {
-            // Получаем информацию о группе
-            const groupRes = await getGroup(id);
-            if (!groupRes.success) {
-                router.replace('/profile/groups');
-                return;
-            }
-            setGroup(groupRes.data);
-            setUpdateFormData({
-                name: groupRes.data.name,
-                fk_user: String(groupRes.data.fk_user),
-            });
+        const groupRes = await getGroup(id);
+        if (!groupRes.success) return router.replace('/profile/groups');
 
-            // Получаем информацию о студентах
-            const studentsRes = await getStudentsByGroup(id);
-            if (!studentsRes.success) {
-                setNotify({message: studentsRes.message || "Не удалось загрузить студентов", type: 'error'});
-            }
-            setStudents(studentsRes.data ?? []);
+        setGroup(groupRes.data);
+        setUpdateFormData({ name: groupRes.data.name, fk_user: String(groupRes.data.fk_user) });
 
-            // Получаем информацию о преподавателях
-            const usersRes = await getUsersList();
-            if (!usersRes.success) {
-                setNotify({ message: usersRes.message || "Не удалось загрузить список преподавателей", type: 'error' });
-            }
-            setUsers(usersRes.data ?? []);
-        } catch (err) {
-            console.error("Ошибка загрузки данных группы:", err);
-            setNotify({ message: "Произошла ошибка при загрузке данных", type: 'error' });
-        } finally {
-            setPageLoaded(true);
-        }
+        const usersRes = await getUsersList();
+        setUsers(usersRes.data ?? []);
     }, [router]);
 
-    // Событие при загрузке страницы
     useEffect(() => {
-        let isMounted = true;
-
-        // Получаем данные сессии
-        getSession()
-            .then(async (session) => {
-                if (!isMounted) return;
-                if (!session) {
-                    router.replace(`/login?to=/profile/groups/${groupId}`);
-                    return;
-                }
-                setUserData(session);
-
-                await loadData(groupId);
-            })
-            .catch(err => {
-                console.error("Ошибка при получении сессии:", err);
-                if (isMounted) {
-                    setNotify({ message: "Не удалось авторизоваться", type: 'error' });
-                    setPageLoaded(true);
-                }
-            });
-
-        return () => {
-            isMounted = false;
-        };
+        getSession().then(session => {
+            if (!session) return router.replace('/login');
+            setUserData(session);
+            loadData(groupId);
+        });
     }, [groupId, loadData, router]);
 
-    // Обработчик обновления группы
-    const handleUpdateGroup = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setNotify({ message: '', type: '' });
+    useEffect(() => {
+        if (attendanceStudents.length > 0) {
+            const total = attendanceStudents.reduce((acc, curr) => ({
+                fullDaysTotal: acc.fullDaysTotal + curr.fullDaysTotal,
+                fullDaysSick: acc.fullDaysSick + curr.fullDaysSick,
+                lessonsTotal: acc.lessonsTotal + curr.lessonsTotal,
+                lessonsSick: acc.lessonsSick + curr.lessonsSick,
+                late: acc.late + curr.late,
+            }), { fullDaysTotal: 0, fullDaysSick: 0, lessonsTotal: 0, lessonsSick: 0, late: 0 });
+            setAttendanceTotal(total);
+        } else setAttendanceTotal(null);
+    }, [attendanceStudents]);
 
-        const isNameSame = updateFormData.name === group?.name;
-        const isOwnerSame = updateFormData.fk_user === String(group?.fk_user);
-
-        if (isNameSame && isOwnerSame) {
-            setNotify({ message: 'Изменений не обнаружено', type: 'warning' });
-            return;
-        }
-
-        startTransition(async () => {
-            const result = await UpdateGroup(groupId, updateFormData);
-            if (!result.success) {
-                setNotify({ message: result.message || "Ошибка", type: 'error' });
-                return;
-            }
-            setNotify({ message: 'Настройки группы успешно сохранены', type: 'success' });
-            await loadData(groupId);
-        });
-    };
-
-    // Обработчик удаления группы
-    const handleDeleteGroup = async () => {
-        const result = await DeleteGroup(groupId);
-        if (!result.success) {
-            setNotify({ message: result.message || "Ошибка", type: 'error' });
-            return;
-        }
-        router.push('/profile/groups');
-    };
-
-    // Обработчик удаления студента
-    const handleDeleteStudent = async (studentId: number) => {
-        const result = await DeleteStudent(studentId);
-        if (!result.success) {
-            setNotify({ message: result.message || "Ошибка", type: 'error' });
-            return;
-        }
-        setNotify({ message: "Студент успешно удалён", type: 'success' });
-        await loadData(groupId);
-    };
-
-    // Обработчик изменения владельца группы
-    const handleOwnerChange = (newOwnerId: string) => {
-        if (newOwnerId !== String(userData?.uid)) {
-            setPendingNewOwner(newOwnerId);
-            setIsTransferDialogOpen(true);
-        } else {
-            setUpdateFormData({ ...updateFormData, fk_user: newOwnerId });
-        }
-    };
-
-    // Обработчик подтверждения передачи владения группой
-    const confirmTransfer = () => {
-        setUpdateFormData({ ...updateFormData, fk_user: pendingNewOwner });
-        setIsTransferDialogOpen(false);
-    };
-
-    // Выводим окно загрузки, пока не загрузим все данные
-    if (!pageLoaded || !group) return (
-        <div className="flex h-[60vh] w-full items-center justify-center">
-            <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
-        </div>
-    );
-
+    // Проверка прав
     const isOwner = userData?.uid === group?.fk_user;
 
+    const exportToWord = async () => {
+        if (attendanceStudents.length === 0) return;
+        const doc = new Document({
+            sections: [{
+                children: [
+                    new Paragraph({
+                        text: `Отчет по посещаемости группы: ${group?.name || ""}`,
+                        heading: HeadingLevel.HEADING_1,
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 400 },
+                    }),
+                    new Table({
+                        width: { size: 100, type: WidthType.PERCENTAGE },
+                        rows: [
+                            new TableRow({
+                                children: [
+                                    new TableCell({ children: [new Paragraph("№")], rowSpan: 2, verticalAlign: VerticalAlign.CENTER }),
+                                    new TableCell({ children: [new Paragraph("ФИО")], rowSpan: 2, verticalAlign: VerticalAlign.CENTER }),
+                                    new TableCell({ children: [new Paragraph({ text: "Дни", alignment: AlignmentType.CENTER })], columnSpan: 2 }),
+                                    new TableCell({ children: [new Paragraph({ text: "Уроки", alignment: AlignmentType.CENTER })], columnSpan: 2 }),
+                                    new TableCell({ children: [new Paragraph("Опозд.")], rowSpan: 2, verticalAlign: VerticalAlign.CENTER }),
+                                ],
+                            }),
+                            new TableRow({
+                                children: [
+                                    new TableCell({ children: [new Paragraph("Всего")] }),
+                                    new TableCell({ children: [new Paragraph("Болезнь")] }),
+                                    new TableCell({ children: [new Paragraph("Всего")] }),
+                                    new TableCell({ children: [new Paragraph("Болезнь")] }),
+                                ],
+                            }),
+                            ...attendanceStudents.map(s => new TableRow({
+                                children: [
+                                    new TableCell({ children: [new Paragraph(s.number)] }),
+                                    new TableCell({ children: [new Paragraph(s.fullName)] }),
+                                    new TableCell({ children: [new Paragraph(s.fullDaysTotal.toString())] }),
+                                    new TableCell({ children: [new Paragraph(s.fullDaysSick.toString())] }),
+                                    new TableCell({ children: [new Paragraph(s.lessonsTotal.toString())] }),
+                                    new TableCell({ children: [new Paragraph(s.lessonsSick.toString())] }),
+                                    new TableCell({ children: [new Paragraph(s.late.toString())] }),
+                                ],
+                            })),
+                            ...(attendanceTotal ? [new TableRow({
+                                children: [
+                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ИТОГО", bold: true })] })], columnSpan: 2 }),
+                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: attendanceTotal.fullDaysTotal.toString(), bold: true })] })] }),
+                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: attendanceTotal.fullDaysSick.toString(), bold: true })] })] }),
+                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: attendanceTotal.lessonsTotal.toString(), bold: true })] })] }),
+                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: attendanceTotal.lessonsSick.toString(), bold: true })] })] }),
+                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: attendanceTotal.late.toString(), bold: true })] })] }),
+                                ],
+                            })] : [])
+                        ],
+                    }),
+                ],
+            }],
+        });
+        const blob = await Packer.toBlob(doc);
+        saveAs(blob, `Отчет_${group?.name}.docx`);
+    };
+
+    const handleAttendanceFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!isOwner) return;
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(event.target?.result as string, 'text/html');
+            const table = doc.querySelector('table.marks');
+            if (!table) return setNotify({ message: "Таблица не найдена", type: 'error' });
+            const data: AttendanceStudent[] = Array.from(table.querySelectorAll('tr')).map(row => {
+                const cells = Array.from(row.cells);
+                if (cells.length < 7 || !/^\d+$/.test(cells[0].textContent?.trim() || '')) return null;
+                return {
+                    number: cells[0].textContent?.trim() || '',
+                    fullName: cells[1].textContent?.trim() || '',
+                    fullDaysTotal: Number(cells[2].textContent) || 0,
+                    fullDaysSick: Number(cells[3].textContent) || 0,
+                    lessonsTotal: Number(cells[4].textContent) || 0,
+                    lessonsSick: Number(cells[5].textContent) || 0,
+                    late: Number(cells[6].textContent) || 0,
+                };
+            }).filter(Boolean) as AttendanceStudent[];
+            setAttendanceStudents(data);
+        };
+        reader.readAsText(file);
+    };
+
+    const updateAttendanceField = (index: number, field: keyof AttendanceStudent, value: any) => {
+        if (!isOwner) return;
+        const updated = [...attendanceStudents];
+        updated[index] = { ...updated[index], [field]: (field === 'fullName' || field === 'number') ? value : (parseInt(value) || 0) };
+        setAttendanceStudents(updated);
+    };
+
+    const handleLoadFromDB = async () => {
+        const result = await GetAttendance(groupId);
+        if (result.success && result.data.length > 0) {
+            setAttendanceStudents(result.data);
+            setNotify({ message: "Данные загружены", type: 'success' });
+        } else {
+            setNotify({ message: "Данные отсутствуют", type: 'warning' });
+        }
+    };
+
+    if (!group) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-blue-600" /></div>;
+
     return (
-        <div className="w-full sm:px-2 space-y-6">
-            {notify.message && (
-                <ErrorMessage
-                    message={notify.message}
-                    type={notify.type}
-                    onClose={() => setNotify({ message: '', type: '' })}
-                />
-            )}
+        <div className="w-full space-y-6 max-w-7xl mx-auto pb-10">
+            {notify.message && <ErrorMessage message={notify.message} type={notify.type} onClose={() => setNotify({ message: '', type: '' })} />}
 
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                    <Link href="/profile/groups" className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors">
-                        <ArrowLeft className="w-6 h-6 text-gray-500" />
-                    </Link>
-                    <div>
-                        <h1 className="text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
-                            {group.name}
-                        </h1>
-                        <p className="text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-2">
-                            <Users className="w-4 h-4" /> {students.length} студентов в группе
-                        </p>
-                    </div>
-                </div>
-
-                {isOwner && (
-                    <Dialog>
-                        <DialogTrigger asChild>
-                            <button className="flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 px-5 py-2.5 rounded-xl font-semibold transition-all border border-red-100">
-                                <Trash2 className="w-5 h-5" /> Удалить группу
-                            </button>
-                        </DialogTrigger>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle className="text-2xl font-bold text-red-600">Удаление группы</DialogTitle>
-                                <DialogDescription className="text-lg">
-                                    Вы уверены, что хотите удалить группу <strong>{group.name}</strong>? Это действие удалит всех студентов и историю обучения без возможности восстановления.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <DialogFooter className="mt-4 gap-2">
-                                <button onClick={handleDeleteGroup} className="bg-red-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-red-700 transition-all">
-                                    Да, удалить навсегда
-                                </button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
-                )}
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1 space-y-6">
-                    <div className="bg-white dark:bg-zinc-800 p-6 rounded-2xl border border-gray-100 dark:border-zinc-700 shadow-sm">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-blue-600">
-                                <Settings className="w-5 h-5" />
-                            </div>
-                            <h2 className="text-xl font-bold">Параметры</h2>
-                        </div>
-
-                        <form onSubmit={handleUpdateGroup} className="space-y-4">
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Название</label>
+            <div className="bg-white dark:bg-zinc-800 p-4 rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm">
+                <div className="flex flex-col md:flex-row gap-6 justify-between items-center">
+                    <div className="flex items-center gap-5 w-full md:w-auto">
+                        <Link href="/profile/groups" className="p-3 bg-gray-50 dark:bg-zinc-900 text-gray-400 hover:text-blue-600 rounded-lg border border-transparent hover:border-blue-100 transition-all">
+                            <ArrowLeft size={22} />
+                        </Link>
+                        <div className="flex-1">
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 px-1">Название группы</label>
+                            <div className="relative group max-w-sm">
                                 <input
                                     disabled={!isOwner}
                                     value={updateFormData.name}
-                                    onChange={(e) => setUpdateFormData({ ...updateFormData, name: e.target.value })}
-                                    className="disabled:opacity-60 w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                    onChange={e => setUpdateFormData({...updateFormData, name: e.target.value})}
+                                    className="text-2xl font-bold bg-transparent border-b-2 border-transparent focus:border-blue-500 outline-none w-full pb-1 transition-all disabled:opacity-80"
                                 />
-                            </div>
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Преподаватель (Владелец)</label>
-                                <select
-                                    disabled={!isOwner}
-                                    value={isTransferDialogOpen ? pendingNewOwner : updateFormData.fk_user}
-                                    onChange={(e) => handleOwnerChange(e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all disabled:opacity-60 appearance-none cursor-pointer"
-                                >
-                                    <option value="" disabled>Выберите преподавателя</option>
-                                    {users.map((u) => (
-                                        <option key={u.id} value={u.id}>
-                                            {u.full_name} {u.id === userData?.uid ? "(Вы)" : ""}
-                                        </option>
-                                    ))}
-                                </select>
                                 {isOwner && (
-                                    <p className="text-[11px] text-gray-500 px-1">Передача группы сменит ответственного пользователя.</p>
+                                    <button onClick={() => startTransition(async () => { await UpdateGroup(groupId, updateFormData); setNotify({message: "Сохранено", type: 'success'}); loadData(groupId); })} className="absolute right-0 top-1 text-blue-600 opacity-0 group-focus-within:opacity-100 hover:scale-110 transition-all">
+                                        {isPending ? <Loader2 className="animate-spin" size={18}/> : <Save size={20}/>}
+                                    </button>
                                 )}
                             </div>
-                            <Dialog open={isTransferDialogOpen} onOpenChange={setIsTransferDialogOpen}>
+                        </div>
+                    </div>
+
+                    {isOwner && (
+                        <div className="flex items-center gap-3 w-full md:w-auto border-t md:border-t-0 pt-4 md:pt-0 border-gray-100">
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <button className="flex-1 md:flex-none flex items-center gap-2 px-4 py-2.5 bg-amber-50 text-amber-600 rounded-lg font-semibold text-sm hover:bg-amber-500 hover:text-white transition-colors">
+                                        <ShieldAlert size={18}/> Передать
+                                    </button>
+                                </DialogTrigger>
                                 <DialogContent>
-                                    <DialogHeader>
-                                        <DialogTitle className="text-2xl font-bold text-red-600 flex items-center gap-2">
-                                            <ShieldAlert /> Передача прав владельца
-                                        </DialogTitle>
-                                        <DialogDescription className="text-lg">
-                                            Вы действительно хотите передать управление группой другому преподавателю?
-                                            <br/><strong> Вы потеряете доступ к редактированию этой группы</strong> сразу после сохранения.
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <DialogFooter className="mt-4 gap-2">
-                                        <button
-                                            onClick={() => {
-                                                setIsTransferDialogOpen(false);
-                                                setPendingNewOwner('');
-                                            }}
-                                            className="px-6 py-2.5 rounded-xl font-bold bg-gray-100 hover:bg-gray-200 transition-all"
-                                        >
-                                            Отмена
-                                        </button>
-                                        <button
-                                            onClick={confirmTransfer}
-                                            className="bg-red-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-red-700 transition-all"
-                                        >
-                                            Подтвердить смену
-                                        </button>
-                                    </DialogFooter>
+                                    <DialogHeader><DialogTitle>Передать права</DialogTitle></DialogHeader>
+                                    <select className="w-full p-3 mt-4 rounded-lg border dark:bg-zinc-900 outline-none" value={updateFormData.fk_user} onChange={e => setUpdateFormData({...updateFormData, fk_user: e.target.value})}>
+                                        {users.map(u => <option key={u.id} value={u.id}>{u.full_name}</option>)}
+                                    </select>
+                                    <DialogFooter><button onClick={() => startTransition(async () => { await UpdateGroup(groupId, updateFormData); router.push('/profile/groups'); })} className="w-full bg-amber-600 text-white py-3 rounded-lg font-bold">Подтвердить</button></DialogFooter>
                                 </DialogContent>
                             </Dialog>
-                            {isOwner && (
-                                <button
-                                    type="submit"
-                                    disabled={isPending}
-                                    className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                                >
-                                    {isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                                    Сохранить
+                            <button onClick={() => {if(confirm("Удалить?")) DeleteGroup(groupId).then(() => router.push('/profile/groups'))}} className="flex-1 md:flex-none flex items-center gap-2 px-4 py-2.5 bg-red-50 text-red-600 hover:bg-red-500 hover:text-white rounded-lg font-semibold text-sm transition-colors">
+                                <Trash2 size={18}/> Удалить
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <div className="bg-white dark:bg-zinc-800 rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm p-6 overflow-hidden">
+                <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="p-3 bg-purple-50 text-purple-600 rounded-lg"><FileText size={20}/></div>
+                        <h2 className="text-lg font-bold">Ведомость посещаемости</h2>
+                    </div>
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                        {attendanceStudents.length > 0 ? (
+                            <>
+                                <button onClick={exportToWord} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-bold hover:bg-blue-600 hover:text-white transition-all">
+                                    <Download size={16}/> Word
                                 </button>
-                            )}
-                        </form>
-                    </div>
-                </div>
-
-                <div className="lg:col-span-2">
-                    <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-100 dark:border-zinc-700 shadow-sm overflow-hidden">
-                        <div className="p-6 border-b border-gray-50 dark:border-zinc-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-green-50 dark:bg-green-900/30 rounded-lg text-green-600">
-                                    <GraduationCap className="w-5 h-5" />
-                                </div>
-                                <h2 className="text-xl font-bold">Студенты</h2>
-                            </div>
-                            {isOwner && (
-                                <StudentDialog
-                                    groupId={groupId}
-                                    onRefresh={() => loadData(groupId)}
-                                    setNotify={setNotify}
-                                />
-                            )}
-                        </div>
-
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
-                                <thead>
-                                <tr className="bg-gray-50/50 dark:bg-zinc-900/50 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">
-                                    <th className="px-6 py-4 font-bold">ФИО Студента</th>
-                                    <th className="px-6 py-4 font-bold">Год поступления</th>
-                                    <th className="px-6 py-4 font-bold text-right">Действия</th>
-                                </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-50 dark:divide-zinc-700">
-                                {students.length > 0 ? students.map((student) => (
-                                    <tr key={student.id} className="hover:bg-gray-50/50 dark:hover:bg-zinc-900/30 transition-colors group">
-                                        <td className="px-6 py-4">
-                                            <div className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">
-                                                {student.full_name}
-                                            </div>
-                                            <div className="text-[10px] text-gray-400 font-mono uppercase">ID: {student.id}</div>
-                                        </td>
-                                        <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
-                                            {student.admission_year}
-                                        </td>
-                                        <td className="px-6 py-4 text-right">
-                                            {isOwner ? (
-                                                <div className="flex justify-end gap-2">
-                                                    <StudentDialog
-                                                        student={student}
-                                                        groupId={groupId}
-                                                        onRefresh={() => loadData(groupId)}
-                                                        setNotify={setNotify}
-                                                    />
-                                                    <Dialog>
-                                                        <DialogTrigger asChild>
-                                                            <button className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all">
-                                                                <Trash2 size={18} />
-                                                            </button>
-                                                        </DialogTrigger>
-                                                        <DialogContent>
-                                                            <DialogHeader>
-                                                                <DialogTitle className="text-2xl font-bold text-red-600">
-                                                                    Удаление студента
-                                                                </DialogTitle>
-                                                                <DialogDescription className="text-lg">
-                                                                    Вы уверены, что хотите удалить студента <strong>{student.full_name}</strong>?
-                                                                    Это действие нельзя будет отменить.
-                                                                </DialogDescription>
-                                                            </DialogHeader>
-                                                            <DialogFooter className="mt-4 gap-2">
-                                                                <button
-                                                                    onClick={() => handleDeleteStudent(student.id)}
-                                                                    className="bg-red-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-red-700 transition-all"
-                                                                >
-                                                                    Да, удалить
-                                                                </button>
-                                                            </DialogFooter>
-                                                        </DialogContent>
-                                                    </Dialog>
-                                                </div>
-                                            ) : (
-                                                <div className="flex justify-end gap-2">
-                                                    <CircleX size={18} className="w-5 h-5 text-gray-400 mr-6" />
-                                                </div>
-                                            )}
-                                        </td>
-                                    </tr>
-                                )) : (
-                                    <tr>
-                                        <td colSpan={3} className="px-6 py-12 text-center text-gray-500 italic">
-                                            В группе пока нет ни одного студента
-                                        </td>
-                                    </tr>
+                                {isOwner && (
+                                    <>
+                                        <button onClick={() => SaveAttendance(groupId, attendanceStudents).then(() => setNotify({message: "Сохранено", type: "success"}))} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-100 text-green-500 rounded-lg text-sm font-bold hover:bg-green-500 hover:text-white transition-all">
+                                            <Database size={16}/> В базу
+                                        </button>
+                                        <button onClick={() => setAttendanceStudents([])} className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-colors">
+                                            <Trash2 size={18}/>
+                                        </button>
+                                    </>
                                 )}
-                                </tbody>
-                            </table>
-                        </div>
+                            </>
+                        ) : (
+                            <button onClick={handleLoadFromDB} className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-all">
+                                <Database size={16}/> Загрузить из БД
+                            </button>
+                        )}
                     </div>
                 </div>
+
+                {attendanceStudents.length === 0 ? (
+                    isOwner ? (
+                        <label className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-gray-100 dark:border-zinc-700 rounded-3xl cursor-pointer hover:bg-purple-50/20 transition-all group">
+                            <Upload className="text-gray-300 group-hover:text-purple-500 transition-all mb-4" size={40}/>
+                            <span className="text-sm font-medium text-gray-500">Загрузить отчет из Дневник.ру</span>
+                            <input type="file" className="hidden" accept=".xls, .xlsx, text/html" onChange={handleAttendanceFileUpload} />
+                        </label>
+                    ) : (
+                        <div className="py-20 text-center text-gray-400">Нет данных для отображения</div>
+                    )
+                ) : (
+                    <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-zinc-700">
+                        <table className="w-full text-sm border-collapse">
+                            <thead className="bg-gray-50/50 dark:bg-zinc-900/50 text-[10px] font-bold uppercase text-gray-400">
+                            <tr className="divide-x divide-gray-100 dark:divide-zinc-700 border-b dark:border-zinc-700">
+                                <th rowSpan={2} className="px-2 py-4 w-10 text-center">№</th>
+                                <th rowSpan={2} className="px-4 py-4 text-left">ФИО</th>
+                                <th colSpan={2} className="px-2 py-2 bg-gray-100/30 text-center border-b dark:border-zinc-700">Дни</th>
+                                <th colSpan={2} className="px-2 py-2 text-center border-b dark:border-zinc-700">Уроки</th>
+                                <th rowSpan={2} className="px-2 py-4 bg-red-50/30">Опозд.</th>
+                            </tr>
+                            <tr className="divide-x divide-gray-100 dark:divide-zinc-700 border-b dark:border-zinc-700">
+                                <th className="px-2 py-2 bg-gray-100/30 text-center">Всего</th>
+                                <th className="px-2 py-2 bg-gray-100/30 text-center text-amber-600">Болезнь</th>
+                                <th className="px-2 py-2 text-center">Всего</th>
+                                <th className="px-2 py-2 text-center text-amber-600">Болезнь</th>
+                            </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50 dark:divide-zinc-700">
+                            {attendanceStudents.map((s, i) => (
+                                <tr key={i} className="divide-x divide-gray-50 dark:divide-zinc-700 hover:bg-blue-50/10 transition-colors">
+                                    <td className="px-2 py-3 text-center text-gray-300 font-mono text-[10px]">{s.number}</td>
+                                    <td className="font-medium px-2 py-1">
+                                        <input disabled={!isOwner} value={s.fullName} onChange={e => updateAttendanceField(i, 'fullName', e.target.value)} className="w-full bg-transparent outline-none focus:text-blue-600 disabled:text-gray-700 dark:disabled:text-gray-300" />
+                                    </td>
+                                    <td className="px-2 py-3 bg-gray-50/20">
+                                        <input disabled={!isOwner} type="number" value={s.fullDaysTotal} onChange={e => updateAttendanceField(i, 'fullDaysTotal', e.target.value)} className="w-full bg-transparent outline-none text-center disabled:opacity-70" />
+                                    </td>
+                                    <td className="px-2 py-3 bg-gray-50/20 font-bold text-amber-600">
+                                        <input disabled={!isOwner} type="number" value={s.fullDaysSick} onChange={e => updateAttendanceField(i, 'fullDaysSick', e.target.value)} className="w-full bg-transparent outline-none text-center disabled:opacity-70" />
+                                    </td>
+                                    <td className="px-2 py-3">
+                                        <input disabled={!isOwner} type="number" value={s.lessonsTotal} onChange={e => updateAttendanceField(i, 'lessonsTotal', e.target.value)} className="w-full bg-transparent outline-none text-center disabled:opacity-70"/>
+                                    </td>
+                                    <td className="px-2 py-3 font-bold text-amber-600">
+                                        <input disabled={!isOwner} type="number" value={s.lessonsSick} onChange={e => updateAttendanceField(i, 'lessonsSick', e.target.value)} className="w-full bg-transparent outline-none text-center disabled:opacity-70"/>
+                                    </td>
+                                    <td className="px-2 py-3 bg-red-50/10 font-bold text-red-600">
+                                        <input disabled={!isOwner} type="number" value={s.late} onChange={e => updateAttendanceField(i, 'late', e.target.value)} className="w-full bg-transparent outline-none text-center disabled:opacity-70" />
+                                    </td>
+                                </tr>
+                            ))}
+                            {attendanceTotal && (
+                                <tr className="divide-x divide-gray-100 bg-gray-50 dark:bg-zinc-900 font-bold border-t-2">
+                                    <td colSpan={2} className="px-4 py-4 text-[11px] uppercase text-gray-400">Итого:</td>
+                                    <td className="px-2 py-4 text-center">{attendanceTotal.fullDaysTotal}</td>
+                                    <td className="px-2 py-4 text-center text-amber-600">{attendanceTotal.fullDaysSick}</td>
+                                    <td className="px-2 py-4 text-center">{attendanceTotal.lessonsTotal}</td>
+                                    <td className="px-2 py-4 text-center text-amber-600">{attendanceTotal.lessonsSick}</td>
+                                    <td className="px-2 py-4 text-center bg-red-50 text-red-600">{attendanceTotal.late}</td>
+                                </tr>
+                            )}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
         </div>
     );
