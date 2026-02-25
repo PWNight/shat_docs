@@ -2,7 +2,7 @@
 import React, { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSession } from "@/utils/session";
-import {getAllGroups} from "@/utils/functions";
+import {getAllGroups} from "@/utils/handlers";
 import ErrorMessage from "@/components/NotifyAlert";
 import { Loader2, SearchX, Plus, Users, Calendar, ArrowRight } from "lucide-react";
 import {

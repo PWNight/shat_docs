@@ -195,3 +195,60 @@ export async function GetAttendance(groupId: string) {
         return { success: false, message: "Ошибка загрузки из БД" };
     }
 }
+
+export async function getAllGroups(){
+    try {
+        const response = await fetch("/api/v1/groups/")
+        const { data } = await handleApiResponse(response);
+
+        return { success: true, message: "Успешно", data }
+    } catch (error) {
+        const errorMessage =
+            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
+
+        return { success: false, message: errorMessage };
+    }
+}
+
+export async function getGroup(id: string){
+    try {
+        const response = await fetch(`/api/v1/groups/${id}`)
+        const { data } = await handleApiResponse(response);
+
+        return { success: true, message: "Успешно", data }
+    } catch (error) {
+        const errorMessage =
+            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
+
+        return { success: false, message: errorMessage };
+    }
+}
+
+export async function getStudentsByGroup(groupId: string) {
+    try {
+        const response = await fetch(`/api/v1/groups/${groupId}/students`);
+        const { data } = await handleApiResponse(response);
+
+        return { success: true, data};
+    } catch (error) {
+        const errorMessage =
+            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
+
+        return { success: false, message: errorMessage };
+    }
+}
+
+export async function getUsersList() {
+    try {
+        const response = await fetch('/api/v1/users');
+        const { data } = await handleApiResponse(response);
+
+        return { success: true, data };
+    } catch (error) {
+        const errorMessage =
+            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
+
+        return { success: false, message: errorMessage };
+    }
+}
+
