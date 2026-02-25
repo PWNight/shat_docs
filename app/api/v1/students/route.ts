@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
         }
 
         await execute(
-            'INSERT INTO students (full_name, fk_group) VALUES (?, ?, ?)',
+            'INSERT INTO students (full_name, fk_group) VALUES (?, ?)',
             [full_name, fk_group]
         );
 
