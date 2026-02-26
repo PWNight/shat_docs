@@ -4,7 +4,7 @@ import React, { useEffect, useState, useTransition, use, useCallback } from "rea
 import {
     Loader2, Trash2,
     ArrowLeft, ShieldAlert, Save,
-    Upload, FileText, Database, Download, Users
+    Upload, FileText, Database, Download
 } from "lucide-react";
 import {
     Dialog, DialogTrigger, DialogContent, DialogHeader,
@@ -46,11 +46,16 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
     const [userData, setUserData] = useState<SessionPayload | null>(null);
     const [group, setGroup] = useState<Group | null>(null);
     const [users, setUsers] = useState<UserListItem[]>([]);
-    const [updateFormData, setUpdateFormData] = useState({ name: '', fk_user: '' });
+
     const [attendanceStudents, setAttendanceStudents] = useState<AttendanceStudent[]>([]);
     const [attendanceTotal, setAttendanceTotal] = useState<AttendanceTotal | null>(null);
-    const [isPending, startTransition] = useTransition();
+
     const [notify, setNotify] = useState<Notify>({ message: '', type: '' });
+    const [updateFormData, setUpdateFormData] = useState({ name: '', fk_user: '' });
+
+    const [isPending, startTransition] = useTransition();
+    const [isDragging, setIsDragging] = useState(false);
+
 
     const loadData = useCallback(async (id: string) => {
         const groupRes = await getGroup(id);
@@ -150,17 +155,22 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
 
     const handleAttendanceFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!isOwner) return;
+
         const file = e.target.files?.[0];
         if (!file) return;
+
         const reader = new FileReader();
         reader.onload = (event) => {
             const parser = new DOMParser();
             const doc = parser.parseFromString(event.target?.result as string, 'text/html');
             const table = doc.querySelector('table.marks');
+
             if (!table) return setNotify({ message: "Таблица не найдена", type: 'error' });
+
             const data: AttendanceStudent[] = Array.from(table.querySelectorAll('tr')).map(row => {
                 const cells = Array.from(row.cells);
                 if (cells.length < 7 || !/^\d+$/.test(cells[0].textContent?.trim() || '')) return null;
+
                 return {
                     number: cells[0].textContent?.trim() || '',
                     fullName: cells[1].textContent?.trim() || '',
@@ -193,16 +203,45 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
         }
     };
 
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (isOwner) setIsDragging(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+
+        if (!isOwner) return;
+
+        const files = e.dataTransfer.files;
+        if (files && files.length > 0) {
+            const mockEvent = {
+                target: { files: files }
+            } as unknown as React.ChangeEvent<HTMLInputElement>;
+
+            handleAttendanceFileUpload(mockEvent);
+        }
+    };
+
     if (!group) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-blue-600" /></div>;
 
     return (
         <div className="w-full space-y-6 max-w-7xl mx-auto pb-10">
             {notify.message && <ErrorMessage message={notify.message} type={notify.type} onClose={() => setNotify({ message: '', type: '' })} />}
 
-            <div className="bg-white dark:bg-zinc-800 p-4 rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm">
-                <div className="flex flex-col md:flex-row gap-6 justify-between items-center">
+            <div className="bg-white dark:bg-zinc-800 py-4 px-2 rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm">
+                <div className="flex flex-col md:flex-row justify-between items-center">
                     <div className="flex items-center gap-5 w-full md:w-auto">
-                        <Link href="/profile/groups" className="p-3 bg-gray-50 dark:bg-zinc-900 text-gray-400 hover:text-blue-600 rounded-lg border border-transparent hover:border-blue-100 transition-all">
+                        <Link href="/profile/groups" className="p-3 bg-gray-50 dark:bg-zinc-900 text-gray-400 rounded-lg border border-transparent hover:bg-blue-500 hover:text-white transition-all">
                             <ArrowLeft size={22} />
                         </Link>
                         <div className="flex-1">
@@ -212,7 +251,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                     disabled={!isOwner}
                                     value={updateFormData.name}
                                     onChange={e => setUpdateFormData({...updateFormData, name: e.target.value})}
-                                    className="text-2xl font-bold bg-transparent border-b-2 border-transparent focus:border-blue-500 outline-none w-full pb-1 transition-all disabled:opacity-80"
+                                    className="text-2xl font-bold bg-transparent border-b-2 border-blue-500 outline-none w-full pb-1 transition-all disabled:opacity-80"
                                 />
                                 <div className="flex justify-between items-center xl:items-start gap-2 mt-2">
                                     <div className='flex gap-2'>
@@ -228,7 +267,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                     </div>
                                 </div>
                                 {isOwner && (
-                                    <button onClick={() => startTransition(async () => { await UpdateGroup(groupId, updateFormData); setNotify({message: "Сохранено", type: 'success'}); loadData(groupId); })} className="absolute right-0 top-1 text-blue-600 opacity-0 group-focus-within:opacity-100 hover:scale-110 transition-all">
+                                    <button onClick={() => startTransition(async () => { await UpdateGroup(groupId, updateFormData); setNotify({message: "Сохранено", type: 'success'}); loadData(groupId); })} className="absolute right-0 top-1 text-blue-600 hover:scale-110 transition-all">
                                         {isPending ? <Loader2 className="animate-spin" size={18}/> : <Save size={20}/>}
                                     </button>
                                 )}
@@ -293,10 +332,29 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
 
                 {attendanceStudents.length === 0 ? (
                     isOwner ? (
-                        <label className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-gray-100 dark:border-zinc-700 rounded-3xl cursor-pointer hover:bg-purple-50/20 transition-all group">
-                            <Upload className="text-gray-300 group-hover:text-purple-500 transition-all mb-4" size={40}/>
-                            <span className="text-sm font-medium text-gray-500">Загрузить отчет из Дневник.ру</span>
-                            <input type="file" className="hidden" accept=".xls, .xlsx, text/html" onChange={handleAttendanceFileUpload} />
+                        <label
+                            onDragOver={handleDragOver}
+                            onDragLeave={handleDragLeave}
+                            onDrop={handleDrop}
+                            className={`flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-3xl cursor-pointer transition-all group ${
+                                isDragging
+                                    ? "border-purple-500 bg-purple-50/50"
+                                    : "border-gray-100 dark:border-zinc-700 hover:bg-purple-50/20"
+                            }`}
+                        >
+                            <Upload
+                                className={`${isDragging ? "text-purple-500 scale-110" : "text-gray-300 group-hover:text-purple-500"} transition-all mb-4`}
+                                size={40}
+                            />
+                            <span className="text-sm font-medium text-gray-500">
+                                {isDragging ? "Отпустите файл здесь" : "Загрузить отчет из Дневник.ру или перетащите файл"}
+                            </span>
+                            <input
+                                type="file"
+                                className="hidden"
+                                accept=".xls, .xlsx, text/html"
+                                onChange={handleAttendanceFileUpload}
+                            />
                         </label>
                     ) : (
                         <div className="py-20 text-center text-gray-400">Нет данных для отображения</div>
@@ -323,22 +381,22 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                             {attendanceStudents.map((s, i) => (
                                 <tr key={i} className="divide-x divide-gray-50 dark:divide-zinc-700 hover:bg-blue-50/10 transition-colors">
                                     <td className="px-2 py-3 text-center text-gray-300 font-mono text-[10px]">{s.number}</td>
-                                    <td className="font-medium px-2 py-1">
+                                    <td className="font-medium px-2 py-1 hover:bg-gray-100">
                                         <input disabled={!isOwner} value={s.fullName} onChange={e => updateAttendanceField(i, 'fullName', e.target.value)} className="w-full bg-transparent outline-none focus:text-blue-600 disabled:text-gray-700 dark:disabled:text-gray-300" />
                                     </td>
-                                    <td className="px-2 py-3 bg-gray-50/20">
+                                    <td className="px-2 py-3 bg-gray-50/20 hover:bg-gray-100">
                                         <input disabled={!isOwner} min={0} type="number" value={s.fullDaysTotal} onChange={e => updateAttendanceField(i, 'fullDaysTotal', e.target.value)} className="w-full bg-transparent outline-none text-center disabled:opacity-70" />
                                     </td>
-                                    <td className="px-2 py-3 bg-gray-50/20 font-bold text-amber-600">
+                                    <td className="px-2 py-3 bg-gray-50/20 font-bold text-amber-600 hover:bg-gray-100">
                                         <input disabled={!isOwner} min={0} type="number" value={s.fullDaysSick} onChange={e => updateAttendanceField(i, 'fullDaysSick', e.target.value)} className="w-full bg-transparent outline-none text-center disabled:opacity-70" />
                                     </td>
-                                    <td className="px-2 py-3">
+                                    <td className="px-2 py-3 hover:bg-gray-100">
                                         <input disabled={!isOwner} min={0} type="number" value={s.lessonsTotal} onChange={e => updateAttendanceField(i, 'lessonsTotal', e.target.value)} className="w-full bg-transparent outline-none text-center disabled:opacity-70"/>
                                     </td>
-                                    <td className="px-2 py-3 font-bold text-amber-600">
+                                    <td className="px-2 py-3 font-bold text-amber-600 hover:bg-gray-100">
                                         <input disabled={!isOwner} min={0} type="number" value={s.lessonsSick} onChange={e => updateAttendanceField(i, 'lessonsSick', e.target.value)} className="w-full bg-transparent outline-none text-center disabled:opacity-70"/>
                                     </td>
-                                    <td className="px-2 py-3 bg-red-50/10 font-bold text-red-600">
+                                    <td className="px-2 py-3 bg-red-50/10 font-bold text-red-600 hover:bg-gray-100">
                                         <input disabled={!isOwner} min={0} type="number" value={s.late} onChange={e => updateAttendanceField(i, 'late', e.target.value)} className="w-full bg-transparent outline-none text-center disabled:opacity-70" />
                                     </td>
                                 </tr>
