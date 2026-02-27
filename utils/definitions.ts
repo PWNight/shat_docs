@@ -16,6 +16,7 @@ export const RegisterFormSchema = z.object({
         .trim(),
     full_name: z
         .string()
+        .min(1, {message: "Это поле обязательно"})
         .trim(),
     password: z
         .string()
@@ -51,26 +52,26 @@ export const StudentFormSchema = z.object({
         .string(),
 })
 
-export type LoginFormState =
-  | {
-    fieldErrors?: {
-        email?: string[]
-        password?: string[]
-      }
-      message?: string
-    }
-  | undefined
+export type LoginFormState = {
+    success?: boolean;
+    message?: string;
+    fieldErrors?: Record<string, string | string[]>;
+    values?: {
+        email: string;
+        password?: string;
+    };
+};
 
-export type RegisterFormState =
-    | {
-    fieldErrors?: {
-        email?: string[]
-        full_name?: string[]
-        password?: string[]
-    }
-    message?: string
-}
-    | undefined
+export type RegisterFormState = {
+    success?: boolean;
+    message?: string;
+    fieldErrors?: Record<string, string | string[]>;
+    values?: {
+        email: string;
+        password?: string;
+        full_name?: string;
+    };
+};
 
 export type GroupFormState =
     | {
