@@ -64,7 +64,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
 
     const loadData = useCallback(async (id: string) => {
         const groupRes = await getGroup(id);
-        if (!groupRes.success) return router.replace('/profile/groups');
+        if (!groupRes.success) return router.replace(`/profile/groups`);
 
         setGroup(groupRes.data);
         setUpdateFormData({ name: groupRes.data.name, fk_user: String(groupRes.data.fk_user) });
@@ -75,7 +75,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
 
     useEffect(() => {
         getSession().then(session => {
-            if (!session) return router.replace('/login');
+            if (!session) return router.replace(`/login?to=profile/groups/${groupId}`);
             setUserData(session);
             loadData(groupId);
         });
