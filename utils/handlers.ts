@@ -1,23 +1,31 @@
 import {
     GroupFormSchema, GroupFormState,
     LoginFormSchema, LoginFormState,
-    RegisterFormSchema, RegisterFormState, StudentFormSchema
+    RegisterFormSchema, RegisterFormState,
+    StudentFormSchema
 } from "@/utils/definitions";
 import { handleApiResponse } from "@/utils/functions";
 import {z} from "zod";
 
 // Код авторизации
-export async function Login(_state: LoginFormState, formData: FormData) {
+export async function Login(_prevState: LoginFormState, formData: FormData): Promise<LoginFormState> {
+    // Проверяем полученные поля
+    const parsed = LoginFormSchema.safeParse(Object.fromEntries(formData));
+    if (!parsed.success) {
+        return {
+            success: false,
+            message: "Проверьте введённые данные",
+            fieldErrors: z.flattenError(parsed.error).fieldErrors,
+            values: {
+                email: formData.get("email") as string || "",
+            },
+        };
+    }
+
+    // Получаем данные из формы
+    const { email, password } = parsed.data;
+
     try {
-        // Проверяем полученные поля
-        const parsed = LoginFormSchema.safeParse(Object.fromEntries(formData));
-        if (!parsed.success) {
-            return { message: "Ошибка валидации", fieldErrors: z.flattenError(parsed.error).fieldErrors }
-        }
-
-        // Получаем данные из формы
-        const { email, password } = parsed.data;
-
         // Отправляем POST запрос в авторизацию
         const loginResponse = await fetch('/api/v1/auth/login', {
             method: 'POST',
@@ -37,45 +45,69 @@ export async function Login(_state: LoginFormState, formData: FormData) {
 
         // Возвращаем успех
         return { success: true };
-    } catch (error) {
-        return { message: error instanceof Error ? error.message : 'Произошла ошибка' };
+    } catch (err) {
+        const message = err instanceof Error ? err.message : "Ошибка авторизации";
+
+        return {
+            success: false,
+            message,
+            values: {
+                email: email || "",
+            },
+        };
     }
 }
 
 // Код авторизации
-export async function Register(_state: RegisterFormState, formData: FormData) {
+export async function Register(_prevState: RegisterFormState, formData: FormData): Promise<RegisterFormState> {
+    // Проверяем полученные поля
+    const parsed = RegisterFormSchema.safeParse(Object.fromEntries(formData));
+    if (!parsed.success) {
+        return {
+            success: false,
+            message: "Проверьте введённые данные",
+            fieldErrors: z.flattenError(parsed.error).fieldErrors,
+            values: {
+                email: formData.get("email") as string || "",
+                full_name: formData.get("full_name") as string || "",
+            },
+        };
+    }
+
+    // Получаем данные из формы
+    const { email, full_name, password } = parsed.data;
+
     try {
-        // Проверяем полученные поля
-        const parsed = RegisterFormSchema.safeParse(Object.fromEntries(formData));
-        if (!parsed.success) {
-            return { message: "Ошибка валидации", fieldErrors: z.flattenError(parsed.error).fieldErrors }
-        }
+    // Отправляем POST запрос в регистрацию
+    const registerResponse = await fetch('/api/v1/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({ email, full_name, password }),
+        headers: { 'Content-Type': 'application/json' }
+    });
 
-        // Получаем данные из формы
-        const { email, full_name, password } = parsed.data;
+    // Получаем данные из ответа
+    const { data } = await handleApiResponse(registerResponse);
 
-        // Отправляем POST запрос в регистрацию
-        const registerResponse = await fetch('/api/v1/auth/register', {
-            method: 'POST',
-            body: JSON.stringify({ email, full_name, password }),
-            headers: { 'Content-Type': 'application/json' }
-        });
+    // Создаём сессию
+    await fetch('/api/v1/auth/create-session', {
+        method: 'POST',
+        body: JSON.stringify({ uid: data.uid, email, full_name }),
+        headers: { 'Content-Type': 'application/json' }
+    });
 
-        // Получаем данные из ответа
-        const { data } = await handleApiResponse(registerResponse);
+    // Возвращаем успех
+    return { success: true };
+    } catch (err) {
+        const message = err instanceof Error ? err.message : "Ошибка авторизации";
 
-        // Создаём сессию
-        await fetch('/api/v1/auth/create-session', {
-            method: 'POST',
-            body: JSON.stringify({ uid: data.uid, email, full_name }),
-            headers: { 'Content-Type': 'application/json' }
-        });
-
-        // Возвращаем успех
-        return { success: true };
-    } catch (error) {
-        console.log( error )
-        return { message: error instanceof Error ? error.message : 'Произошла ошибка' };
+        return {
+            success: false,
+            message,
+            values: {
+                email: email || "",
+                full_name: full_name || "",
+            },
+        };
     }
 }
 
