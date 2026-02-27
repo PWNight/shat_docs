@@ -1,12 +1,14 @@
 import mysql from 'mysql2/promise';
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
+const { MYSQL_SERVER, MYSQL_PORT, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE } = process.env;
 const pool = mysql.createPool({
-    host: '127.0.0.1',
-    port: 3306,
-    user: 'rodion',
-    password: 'rodion',
-    database: 'shat_docs',
+    host: MYSQL_SERVER,
+    port: Number(MYSQL_PORT ?? 3306),
+    user: MYSQL_USER,
+    password: MYSQL_PASSWORD,
+    database: MYSQL_DATABASE,
+
     waitForConnections: true,
     connectionLimit: 10,
     maxIdle: 10,
