@@ -66,7 +66,7 @@ function LoginForm() {
                         id="password"
                         name="password"
                         className="shadow-lg w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
-                        placeholder="********"
+                        placeholder="🞄🞄🞄🞄🞄🞄🞄🞄"
                     />
                     {state?.fieldErrors?.password && (
                         <p className="text-red-400 text-sm mt-2">{state.fieldErrors.password}</p>
@@ -83,7 +83,7 @@ function LoginForm() {
                         Показать пароль
                     </label>
                     <Link
-                        href="https://t.me/pwnight"
+                        href="https://t.me/rodiongoshev"
                         className="text-blue-400 hover:text-blue-500 transition-colors"
                     >
                         Забыли пароль?

@@ -247,6 +247,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
 
             <div className="bg-white dark:bg-zinc-800 py-4 px-2 rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm">
                 <div className="flex flex-col md:flex-row justify-between items-center">
+                    {/* Блок с информацией о группе */}
                     <div className="flex items-center gap-5 w-full md:w-auto">
                         <Link href="/profile/groups" className="p-3 bg-gray-50 dark:bg-zinc-900 text-gray-400 rounded-lg border border-transparent hover:bg-blue-500 hover:text-white transition-all">
                             <ArrowLeft size={22} />
@@ -282,6 +283,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                         </div>
                     </div>
 
+                    {/* Блок с кнопками управления группой */}
                     {isOwner && (
                         <div className="flex items-center gap-3 w-full md:w-auto border-t md:border-t-0 pt-4 md:pt-0 border-gray-100">
                             <Dialog>
@@ -306,12 +308,14 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                 </div>
             </div>
 
+            {/* Блок с посещаемостью */}
             <div className="bg-white dark:bg-zinc-800 rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm p-6 overflow-hidden">
                 <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
                     <div className="flex items-center gap-3">
                         <div className="p-3 bg-purple-50 text-purple-600 rounded-lg"><FileText size={20}/></div>
                         <h2 className="text-lg font-bold">Ведомость посещаемости</h2>
                     </div>
+                    {/* Блок с кнопками управления посещаемостью */}
                     <div className="flex items-center gap-2 w-full sm:w-auto">
                         {attendanceStudents.length > 0 ? (
                             <>
@@ -337,6 +341,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                     </div>
                 </div>
 
+                {/* Блок с полем загрузки посещаемости */}
                 {attendanceStudents.length === 0 ? (
                     isOwner ? (
                         <label
@@ -367,6 +372,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                         <div className="py-20 text-center text-gray-400">Нет данных для отображения</div>
                     )
                 ) : (
+                    /* Блок с выводом посещаемости */
                     <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-zinc-700">
                         <table className="w-full text-sm border-collapse">
                             <thead className="bg-gray-50/50 dark:bg-zinc-900/50 text-[10px] font-bold uppercase text-gray-400">
