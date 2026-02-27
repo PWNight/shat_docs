@@ -3,11 +3,16 @@ import { useActionState, useEffect, useState, Suspense } from "react";
 import { Loader2, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Register } from "@/utils/handlers";
+import {Register} from "@/utils/handlers";
 import { getSession } from "@/utils/session";
 
 function RegisterForm() {
-    const [state, action, pending] = useActionState(Register, undefined);
+    const [state, action, pending] = useActionState(Register, {
+        success: false,
+        message: "",
+        fieldErrors: {},
+        values: { email: "" }
+    });
     const [showPassword, setShowPassword] = useState(false);
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -48,6 +53,7 @@ function RegisterForm() {
                     autoComplete="email"
                     id="email"
                     name="email"
+                    defaultValue={state.values?.email ?? ""}
                     className="shadow-lg w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
                     placeholder="test@test.com"
                 />
@@ -65,6 +71,7 @@ function RegisterForm() {
                     autoComplete="name"
                     id="full_name"
                     name="full_name"
+                    defaultValue={state.values?.full_name ?? ""}
                     className="shadow-lg w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
                     placeholder="Иванов И.И."
                 />

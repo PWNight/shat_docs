@@ -7,7 +7,12 @@ import { Login } from "@/utils/handlers";
 import { getSession } from "@/utils/session";
 
 function LoginForm() {
-    const [state, action, pending] = useActionState(Login, undefined);
+    const [state, action, pending] = useActionState(Login, {
+        success: false,
+        message: "",
+        fieldErrors: {},
+        values: { email: "" }
+    });
     const [showPassword, setShowPassword] = useState(false);
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -47,6 +52,7 @@ function LoginForm() {
                     autoComplete="email"
                     id="email"
                     name="email"
+                    defaultValue={state.values?.email ?? ""}
                     className="shadow-lg w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
                     placeholder="test@test.com"
                 />
