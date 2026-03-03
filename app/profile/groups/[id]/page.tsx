@@ -4,7 +4,8 @@ import React, { useEffect, useState, useTransition, use, useCallback } from "rea
 import {
     Loader2, Trash2,
     ArrowLeft, ShieldAlert, Save,
-    Upload, FileText, Database, Download
+    Upload, FileText, Database, Download,
+    GraduationCap, ClipboardCheck
 } from "lucide-react";
 import {
     Dialog, DialogTrigger, DialogContent, DialogHeader,
@@ -12,7 +13,7 @@ import {
 } from "@/components/ui/Dialog";
 import ErrorMessage from "@/components/NotifyAlert";
 import { getSession, SessionPayload } from "@/utils/session";
-import {getGroup, getUsersList} from "@/utils/handlers";
+import {getGroup, getUsersList, SaveGrades, GetGrades} from "@/utils/handlers";
 import {UpdateGroup, DeleteGroup, SaveAttendance, GetAttendance} from "@/utils/handlers";
 import Link from "next/link";
 import {
@@ -26,6 +27,8 @@ import { saveAs } from "file-saver";
 interface Group { id: number; name: string; fk_user: number; }
 interface UserListItem { id: number; full_name: string; }
 interface Notify { message: string; type: 'success' | 'warning' | 'error' | ''; }
+
+// Интерфейсы
 interface AttendanceStudent {
     number: string;
     fullName: string;
@@ -43,6 +46,16 @@ interface AttendanceTotal {
     late: number;
 }
 
+interface SubjectGrade {
+    name: string;
+    grade: string;
+}
+interface GradeStudent {
+    fullName: string;
+    subjects: SubjectGrade[];
+    averageScore: number;
+}
+
 export default function MyGroup({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = use(params);
     const groupId = resolvedParams.id;
@@ -55,12 +68,15 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
     const [attendanceStudents, setAttendanceStudents] = useState<AttendanceStudent[]>([]);
     const [attendanceTotal, setAttendanceTotal] = useState<AttendanceTotal | null>(null);
 
+    const [activeTab, setActiveTab] = useState<'attendance' | 'grades'>('attendance');
+    const [gradesStudents, setGradesStudents] = useState<GradeStudent[]>([]);
+    const [isDraggingGrades, setIsDraggingGrades] = useState(false);
+
     const [notify, setNotify] = useState<Notify>({ message: '', type: '' });
     const [updateFormData, setUpdateFormData] = useState({ name: '', fk_user: '' });
 
     const [isPending, startTransition] = useTransition();
     const [isDragging, setIsDragging] = useState(false);
-
 
     const loadData = useCallback(async (id: string) => {
         const groupRes = await getGroup(id);
@@ -79,6 +95,8 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
             setUserData(session);
             loadData(groupId);
         });
+
+        // Логика расчета итогов посещаемости
         if (attendanceStudents.length > 0) {
             const total = attendanceStudents.reduce((acc, curr) => ({
                 fullDaysTotal: acc.fullDaysTotal + curr.fullDaysTotal,
@@ -91,7 +109,6 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
         } else setAttendanceTotal(null);
     }, [groupId, loadData, router, attendanceStudents]);
 
-    // Проверка прав
     const isOwner = userData?.uid === group?.fk_user;
 
     // Функция экпорта посещаемости в Word
@@ -153,28 +170,23 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
             }],
         });
         const blob = await Packer.toBlob(doc);
-        saveAs(blob, `Отчет_${group?.name}.docx`);
+        saveAs(blob, `Отчет_Посещаемость_${group?.name}.docx`);
     };
 
     // Функция импорта посещаемости из файла
     const handleAttendanceFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!isOwner) return;
-
         const file = e.target.files?.[0];
         if (!file) return;
-
         const reader = new FileReader();
         reader.onload = (event) => {
             const parser = new DOMParser();
             const doc = parser.parseFromString(event.target?.result as string, 'text/html');
             const table = doc.querySelector('table.marks');
-
             if (!table) return setNotify({ message: "Таблица не найдена", type: 'error' });
-
             const data: AttendanceStudent[] = Array.from(table.querySelectorAll('tr')).map(row => {
                 const cells = Array.from(row.cells);
                 if (cells.length < 7 || !/^\d+$/.test(cells[0].textContent?.trim() || '')) return null;
-
                 return {
                     number: cells[0].textContent?.trim() || '',
                     fullName: cells[1].textContent?.trim() || '',
@@ -209,45 +221,189 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
         setAttendanceStudents(updated);
     };
 
-    // Функции DRAG эффекта для поля импорта посещаемости
+    // Функция загрузки успеваемости из файла
+    const handleGradesFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!isOwner) return;
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(event.target?.result as string, 'text/html');
+
+            // Берём первую таблицу (оценки), вторая - это сводка успеваемости
+            const table = doc.querySelector('table.grid.gridLines.vam.marks.print_A4') ||
+                doc.querySelector('table');
+            if (!table) return setNotify({ message: "Таблица успеваемости не найдена", type: 'error' });
+
+            const rows = Array.from(table.querySelectorAll('tr'));
+
+            // Находим строку заголовка
+            const headerRowIndex = rows.findIndex(r =>
+                r.textContent?.includes('Фамилия') && r.textContent?.includes('Имя')
+            );
+            if (headerRowIndex === -1) {
+                return setNotify({ message: "Неверный формат файла (не найдена шапка)", type: 'error' });
+            }
+
+            const headerCells = Array.from(rows[headerRowIndex].cells);
+            const subjectsList = headerCells.slice(2, -2).map(cell => {
+                let name = cell.textContent || '';
+                name = name.replace(/[\n\r]+/g, ' ');   // br → пробел
+                return name.replace(/\s+/g, ' ').trim();
+            });
+
+            const data: GradeStudent[] = rows
+                .slice(headerRowIndex + 1)
+                .map(row => {
+                    const cells = Array.from(row.cells);
+                    const numText = cells[0]?.textContent?.trim() || '';
+
+                    // Пропускаем строки итогов
+                    if (!/^\d+$/.test(numText) || cells.length < 2 + subjectsList.length) {
+                        return null;
+                    }
+
+                    const fullName = (cells[1]?.textContent || '')
+                        .replace(/[\n\r]+/g, ' ')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+
+                    const subjects = subjectsList.map((name, idx) => ({
+                        name,
+                        grade: (cells[idx + 2]?.textContent || '').trim().replace(/\u00A0/g, '') // &nbsp;
+                    }));
+
+                    // Пересчёт среднего балла
+                    const validGrades = subjects
+                        .map(s => parseFloat(s.grade.replace(',', '.')))
+                        .filter(g => !isNaN(g) && g >= 2 && g <= 5);
+
+                    const averageScore = validGrades.length > 0
+                        ? parseFloat((validGrades.reduce((a, b) => a + b, 0) / validGrades.length).toFixed(2))
+                        : 0;
+
+                    return { fullName, subjects, averageScore };
+                })
+                .filter(Boolean) as GradeStudent[];
+
+            if (data.length === 0) {
+                return setNotify({ message: "Не удалось извлечь учеников", type: 'error' });
+            }
+
+            setGradesStudents(data);
+            setNotify({ message: `Загружено ${data.length} учеников`, type: 'success' });
+        };
+
+        reader.readAsText(file);
+    };
+
+    // Функция загрузки успеваемости из БД
+    const handleLoadGradesFromDB = async () => {
+        const result = await GetGrades(groupId);
+        if (result.success && result.data.length > 0) {
+            setGradesStudents(result.data);
+            setNotify({ message: "Успеваемость загружена", type: 'success' });
+        } else {
+            setNotify({ message: "Данные по успеваемости отсутствуют", type: 'warning' });
+        }
+    };
+
+    // Функция обновления полей оценок
+    const updateGradeField = (studentIndex: number, subjectIndex: number, value: string) => {
+        if (!isOwner) return;
+        const updated = [...gradesStudents];
+        updated[studentIndex].subjects[subjectIndex].grade = value;
+
+        // Пересчет среднего
+        const validGrades = updated[studentIndex].subjects.map(s => parseFloat(s.grade.replace(',', '.'))).filter(g => !isNaN(g));
+        updated[studentIndex].averageScore = validGrades.length > 0 ? parseFloat((validGrades.reduce((a, b) => a + b, 0) / validGrades.length).toFixed(2)) : 0;
+
+        setGradesStudents(updated);
+    };
+
+    // Функция экспорта успеваемости в word
+    const exportGradesToWord = async () => {
+        if (gradesStudents.length === 0) return;
+        const subjects = gradesStudents[0].subjects;
+
+        const doc = new Document({
+            sections: [{
+                children: [
+                    new Paragraph({
+                        text: `Отчет по успеваемости группы: ${group?.name || ""}`,
+                        heading: HeadingLevel.HEADING_1,
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 400 },
+                    }),
+                    new Table({
+                        width: { size: 100, type: WidthType.PERCENTAGE },
+                        rows: [
+                            new TableRow({
+                                children: [
+                                    new TableCell({ children: [new Paragraph("ФИО")] }),
+                                    ...subjects.map(s => new TableCell({ children: [new Paragraph({ text: s.name, alignment: AlignmentType.CENTER })] })),
+                                    new TableCell({ children: [new Paragraph("Ср. балл")] }),
+                                ],
+                            }),
+                            ...gradesStudents.map(s => new TableRow({
+                                children: [
+                                    new TableCell({ children: [new Paragraph(s.fullName)] }),
+                                    ...s.subjects.map(sub => new TableCell({ children: [new Paragraph({ text: sub.grade, alignment: AlignmentType.CENTER })] })),
+                                    new TableCell({ children: [new Paragraph({ text: s.averageScore.toString(), alignment: AlignmentType.CENTER })] }),
+                                ],
+                            }))
+                        ],
+                    }),
+                ],
+            }],
+        });
+        const blob = await Packer.toBlob(doc);
+        saveAs(blob, `Успеваемость_${group?.name}.docx`);
+    };
+
+    // Универсальные drag & drop ф-ии
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        if (isOwner) setIsDragging(true);
+        if (isOwner) {
+            if (activeTab === 'attendance') setIsDragging(true);
+            else setIsDraggingGrades(true);
+        }
     };
 
     const handleDragLeave = (e: React.DragEvent) => {
         e.preventDefault();
         e.stopPropagation();
         setIsDragging(false);
+        setIsDraggingGrades(false);
     };
 
     const handleDrop = (e: React.DragEvent) => {
         e.preventDefault();
         e.stopPropagation();
         setIsDragging(false);
+        setIsDraggingGrades(false);
 
         if (!isOwner) return;
 
         const files = e.dataTransfer.files;
         if (files && files.length > 0) {
-            const mockEvent = {
-                target: { files: files }
-            } as unknown as React.ChangeEvent<HTMLInputElement>;
-
-            handleAttendanceFileUpload(mockEvent);
+            const mockEvent = { target: { files: files } } as unknown as React.ChangeEvent<HTMLInputElement>;
+            if (activeTab === 'attendance') handleAttendanceFileUpload(mockEvent);
+            else handleGradesFileUpload(mockEvent);
         }
     };
 
     if (!group) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-blue-600" /></div>;
 
     return (
-        <div className="w-full space-y-6 max-w-7xl mx-auto pb-10">
+        <div className="w-full space-y-5 sm:space-y-6 px-3 sm:px-4 md:px-6 pb-8 sm:pb-10">
             {notify.message && <ErrorMessage message={notify.message} type={notify.type} onClose={() => setNotify({ message: '', type: '' })} />}
 
             <div className="bg-white dark:bg-zinc-800 py-4 px-2 rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm">
                 <div className="flex flex-col md:flex-row justify-between items-center">
-                    {/* Блок с информацией о группе */}
                     <div className="flex items-center gap-5 w-full md:w-auto">
                         <Link href="/profile/groups" className="p-3 bg-gray-50 dark:bg-zinc-900 text-gray-400 rounded-lg border border-transparent hover:bg-blue-500 hover:text-white transition-all">
                             <ArrowLeft size={22} />
@@ -263,15 +419,8 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                 />
                                 <div className="flex justify-between items-center xl:items-start gap-2 mt-2">
                                     <div className='flex gap-2'>
-                                        {isOwner && (
-                                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-blue-600 text-white rounded shadow-sm">
-                                            Ваша группа
-                                        </span>
-                                        )}
-
-                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-gray-100 dark:bg-zinc-700 rounded text-gray-500">
-                                            ID: {group.id}
-                                        </span>
+                                        {isOwner && <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-blue-600 text-white rounded shadow-sm">Ваша группа</span>}
+                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-gray-100 dark:bg-zinc-700 rounded text-gray-500">ID: {group.id}</span>
                                     </div>
                                 </div>
                                 {isOwner && (
@@ -283,7 +432,6 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                         </div>
                     </div>
 
-                    {/* Блок с кнопками управления группой */}
                     {isOwner && (
                         <div className="flex items-center gap-3 w-full md:w-auto border-t md:border-t-0 pt-4 md:pt-0 border-gray-100">
                             <Dialog>
@@ -308,127 +456,197 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                 </div>
             </div>
 
-            {/* Блок с посещаемостью */}
-            <div className="bg-white dark:bg-zinc-800 rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm p-6 overflow-hidden">
-                <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
-                    <div className="flex items-center gap-3">
-                        <div className="p-3 bg-purple-50 text-purple-600 rounded-lg"><FileText size={20}/></div>
-                        <h2 className="text-lg font-bold">Ведомость посещаемости</h2>
-                    </div>
-                    {/* Блок с кнопками управления посещаемостью */}
-                    <div className="flex items-center gap-2 w-full sm:w-auto">
-                        {attendanceStudents.length > 0 ? (
-                            <>
-                                <button onClick={exportToWord} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-600 hover:text-white transition-all">
-                                    <Download size={16}/> Word
-                                </button>
-                                {isOwner && (
-                                    <>
-                                        <button onClick={() => SaveAttendance(groupId, attendanceStudents).then(() => setNotify({message: "Сохранено", type: "success"}))} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-50 text-green-500 font-semibold rounded-lg text-sm  hover:bg-green-500 hover:text-white transition-all">
-                                            <Database size={16}/> В базу
-                                        </button>
-                                        <button onClick={() => setAttendanceStudents([])} className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-colors">
-                                            <Trash2 size={18}/>
-                                        </button>
-                                    </>
-                                )}
-                            </>
-                        ) : (
-                            <button onClick={handleLoadFromDB} className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-all">
-                                <Database size={16}/> Загрузить из БД
-                            </button>
-                        )}
-                    </div>
-                </div>
-
-                {/* Блок с полем загрузки посещаемости */}
-                {attendanceStudents.length === 0 ? (
-                    isOwner ? (
-                        <label
-                            onDragOver={handleDragOver}
-                            onDragLeave={handleDragLeave}
-                            onDrop={handleDrop}
-                            className={`flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-3xl cursor-pointer transition-all group ${
-                                isDragging
-                                    ? "border-purple-500 bg-purple-50/50"
-                                    : "border-gray-100 dark:border-zinc-700 hover:bg-purple-50/20"
-                            }`}
-                        >
-                            <Upload
-                                className={`${isDragging ? "text-purple-500 scale-110" : "text-gray-300 group-hover:text-purple-500"} transition-all mb-4`}
-                                size={40}
-                            />
-                            <span className="text-sm font-medium text-gray-500">
-                                {isDragging ? "Отпустите файл здесь" : "Загрузить отчет из Дневник.ру или перетащите файл"}
-                            </span>
-                            <input
-                                type="file"
-                                className="hidden"
-                                accept=".xls, .xlsx, text/html"
-                                onChange={handleAttendanceFileUpload}
-                            />
-                        </label>
-                    ) : (
-                        <div className="py-20 text-center text-gray-400">Нет данных для отображения</div>
-                    )
-                ) : (
-                    /* Блок с выводом посещаемости */
-                    <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-zinc-700">
-                        <table className="w-full text-sm border-collapse">
-                            <thead className="bg-gray-50/50 dark:bg-zinc-900/50 text-[10px] font-bold uppercase text-gray-400">
-                            <tr className="divide-x divide-gray-100 dark:divide-zinc-700 border-b dark:border-zinc-700">
-                                <th rowSpan={2} className="py-4 w-10">ID</th>
-                                <th rowSpan={2} className="py-4">ФИО</th>
-                                <th colSpan={2} className="py-2 bg-gray-100/30 border-b dark:border-zinc-700">Дни</th>
-                                <th colSpan={2} className="py-2 border-b dark:border-zinc-700">Уроки</th>
-                                <th rowSpan={2} className="py-4 bg-red-50/30 pr-3">Опозд.</th>
-                            </tr>
-                            <tr className="divide-x divide-gray-100 dark:divide-zinc-700 border-b dark:border-zinc-700">
-                                <th className="py-2 bg-gray-100/30 pr-3">Всего</th>
-                                <th className="py-2 bg-gray-100/30 text-amber-600 pr-3">Болезнь</th>
-                                <th className="py-2 pr-3">Всего</th>
-                                <th className="py-2 text-amber-600 pr-3">Болезнь</th>
-                            </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-50 dark:divide-zinc-700">
-                            {attendanceStudents.map((s, i) => (
-                                <tr key={i} className="divide-x divide-gray-50 dark:divide-zinc-700 hover:bg-blue-50/10 transition-colors">
-                                    <td className="py-3 text-center text-gray-400 font-mono text-[10px]">{s.number}</td>
-                                    <td className="px-2 font-medium py-1 hover:bg-gray-100">
-                                        <input disabled={!isOwner} value={s.fullName} onChange={e => updateAttendanceField(i, 'fullName', e.target.value)} className="w-full bg-transparent outline-none focus:text-blue-600 disabled:text-gray-700 dark:disabled:text-gray-300" />
-                                    </td>
-                                    <td className=" py-3 bg-gray-50/20 hover:bg-gray-100">
-                                        <input disabled={!isOwner} min={0} type="number" value={s.fullDaysTotal} onChange={e => updateAttendanceField(i, 'fullDaysTotal', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" />
-                                    </td>
-                                    <td className=" py-3 bg-gray-50/20 font-bold text-amber-600 hover:bg-gray-100">
-                                        <input disabled={!isOwner} min={0} type="number" value={s.fullDaysSick} onChange={e => updateAttendanceField(i, 'fullDaysSick', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" />
-                                    </td>
-                                    <td className=" py-3 hover:bg-gray-100">
-                                        <input disabled={!isOwner} min={0} type="number" value={s.lessonsTotal} onChange={e => updateAttendanceField(i, 'lessonsTotal', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center"/>
-                                    </td>
-                                    <td className=" py-3 font-bold text-amber-600 hover:bg-gray-100">
-                                        <input disabled={!isOwner} min={0} type="number" value={s.lessonsSick} onChange={e => updateAttendanceField(i, 'lessonsSick', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center"/>
-                                    </td>
-                                    <td className=" py-3 bg-red-50/10 font-bold text-red-600 hover:bg-gray-100">
-                                        <input disabled={!isOwner} min={0} type="number" value={s.late} onChange={e => updateAttendanceField(i, 'late', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" />
-                                    </td>
-                                </tr>
-                            ))}
-                            {attendanceTotal && (
-                                <tr className="divide-x divide-gray-100 bg-gray-50 dark:bg-zinc-900 font-bold border-t-2">
-                                    <td colSpan={2} className="px-4 py-4 text-[11px] uppercase text-gray-400">Итого:</td>
-                                    <td className="px-2 py-4 text-center pr-5">{attendanceTotal.fullDaysTotal}</td>
-                                    <td className="px-2 py-4 text-amber-600 text-center pr-5">{attendanceTotal.fullDaysSick}</td>
-                                    <td className="px-2 py-4 text-center pr-5">{attendanceTotal.lessonsTotal}</td>
-                                    <td className="px-2 py-4 text-amber-600 text-center pr-5">{attendanceTotal.lessonsSick}</td>
-                                    <td className="px-2 py-4 bg-red-50 text-red-600 text-center pr-5">{attendanceTotal.late}</td>
-                                </tr>
-                            )}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+            <div className="flex gap-4 border-b dark:border-zinc-700">
+                <button
+                    onClick={() => setActiveTab('attendance')}
+                    className={`pb-3 px-4 flex items-center gap-2 font-bold text-sm transition-all ${activeTab === 'attendance' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-400'}`}
+                >
+                    <ClipboardCheck size={18} /> Посещаемость
+                </button>
+                <button
+                    onClick={() => setActiveTab('grades')}
+                    className={`pb-3 px-4 flex items-center gap-2 font-bold text-sm transition-all ${activeTab === 'grades' ? 'border-b-2 border-purple-500 text-purple-600' : 'text-gray-400'}`}
+                >
+                    <GraduationCap size={18} /> Успеваемость
+                </button>
             </div>
+
+            {activeTab === 'attendance' && (
+                <div className="bg-white dark:bg-zinc-800 rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm p-6 overflow-hidden">
+                    <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
+                        <div className="flex items-center gap-3">
+                            <div className="p-3 bg-blue-50 text-blue-600 rounded-lg"><FileText size={20}/></div>
+                            <h2 className="text-lg font-bold">Ведомость посещаемости</h2>
+                        </div>
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                            {attendanceStudents.length > 0 ? (
+                                <>
+                                    <button onClick={exportToWord} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-600 hover:text-white transition-all">
+                                        <Download size={16}/> Word
+                                    </button>
+                                    {isOwner && (
+                                        <>
+                                            <button onClick={() => SaveAttendance(groupId, attendanceStudents).then(() => setNotify({message: "Сохранено", type: "success"}))} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-50 text-green-500 font-semibold rounded-lg text-sm  hover:bg-green-500 hover:text-white transition-all">
+                                                <Database size={16}/> В базу
+                                            </button>
+                                            <button onClick={() => setAttendanceStudents([])} className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-colors">
+                                                <Trash2 size={18}/>
+                                            </button>
+                                        </>
+                                    )}
+                                </>
+                            ) : (
+                                <button onClick={handleLoadFromDB} className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-all">
+                                    <Database size={16}/> Загрузить из БД
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {attendanceStudents.length === 0 ? (
+                        isOwner ? (
+                            <label onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} className={`flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-3xl cursor-pointer transition-all group ${isDragging ? "border-blue-500 bg-blue-50/50" : "border-gray-100 dark:border-zinc-700 hover:bg-blue-50/20"}`}>
+                                <Upload className={`${isDragging ? "text-blue-500 scale-110" : "text-gray-300 group-hover:text-blue-500"} transition-all mb-4`} size={40} />
+                                <span className="text-sm font-medium text-gray-500">{isDragging ? "Отпустите файл здесь" : "Загрузить отчет по посещаемости или перетащите файл"}</span>
+                                <input type="file" className="hidden" accept=".xls, .xlsx, text/html" onChange={handleAttendanceFileUpload} />
+                            </label>
+                        ) : (
+                            <div className="py-20 text-center text-gray-400">Нет данных для отображения</div>
+                        )
+                    ) : (
+                        <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-zinc-700">
+                            <table className="w-full text-sm border-collapse">
+                                <thead className="bg-gray-50/50 dark:bg-zinc-900/50 text-[10px] font-bold uppercase text-gray-400">
+                                <tr className="divide-x divide-gray-100 dark:divide-zinc-700 border-b dark:border-zinc-700">
+                                    <th rowSpan={2} className="py-4 w-10">ID</th>
+                                    <th rowSpan={2} className="py-4">ФИО</th>
+                                    <th colSpan={2} className="py-2 bg-gray-100/30 border-b dark:border-zinc-700">Дни</th>
+                                    <th colSpan={2} className="py-2 border-b dark:border-zinc-700">Уроки</th>
+                                    <th rowSpan={2} className="py-4 bg-red-50/30 pr-3">Опозд.</th>
+                                </tr>
+                                <tr className="divide-x divide-gray-100 dark:divide-zinc-700 border-b dark:border-zinc-700">
+                                    <th className="py-2 bg-gray-100/30 pr-3">Всего</th>
+                                    <th className="py-2 bg-gray-100/30 text-amber-600 pr-3">Болезнь</th>
+                                    <th className="py-2 pr-3">Всего</th>
+                                    <th className="py-2 text-amber-600 pr-3">Болезнь</th>
+                                </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-50 dark:divide-zinc-700">
+                                {attendanceStudents.map((s, i) => (
+                                    <tr key={i} className="divide-x divide-gray-50 dark:divide-zinc-700 hover:bg-blue-50/10 transition-colors">
+                                        <td className="py-3 text-center text-gray-400 font-mono text-[10px]">{s.number}</td>
+                                        <td className="px-2 font-medium py-1 hover:bg-gray-100">
+                                            <input disabled={!isOwner} value={s.fullName} onChange={e => updateAttendanceField(i, 'fullName', e.target.value)} className="w-full bg-transparent outline-none focus:text-blue-600 disabled:text-gray-700 dark:disabled:text-gray-300" />
+                                        </td>
+                                        <td className=" py-3 bg-gray-50/20 hover:bg-gray-100"><input disabled={!isOwner} min={0} type="number" value={s.fullDaysTotal} onChange={e => updateAttendanceField(i, 'fullDaysTotal', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" /></td>
+                                        <td className=" py-3 bg-gray-50/20 font-bold text-amber-600 hover:bg-gray-100"><input disabled={!isOwner} min={0} type="number" value={s.fullDaysSick} onChange={e => updateAttendanceField(i, 'fullDaysSick', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" /></td>
+                                        <td className=" py-3 hover:bg-gray-100"><input disabled={!isOwner} min={0} type="number" value={s.lessonsTotal} onChange={e => updateAttendanceField(i, 'lessonsTotal', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center"/></td>
+                                        <td className=" py-3 font-bold text-amber-600 hover:bg-gray-100"><input disabled={!isOwner} min={0} type="number" value={s.lessonsSick} onChange={e => updateAttendanceField(i, 'lessonsSick', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center"/></td>
+                                        <td className=" py-3 bg-red-50/10 font-bold text-red-600 hover:bg-gray-100"><input disabled={!isOwner} min={0} type="number" value={s.late} onChange={e => updateAttendanceField(i, 'late', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" /></td>
+                                    </tr>
+                                ))}
+                                {attendanceTotal && (
+                                    <tr className="divide-x divide-gray-100 bg-gray-50 dark:bg-zinc-900 font-bold border-t-2">
+                                        <td colSpan={2} className="px-4 py-4 text-[11px] uppercase text-gray-400">Итого:</td>
+                                        <td className="px-2 py-4 text-center pr-5">{attendanceTotal.fullDaysTotal}</td>
+                                        <td className="px-2 py-4 text-amber-600 text-center pr-5">{attendanceTotal.fullDaysSick}</td>
+                                        <td className="px-2 py-4 text-center pr-5">{attendanceTotal.lessonsTotal}</td>
+                                        <td className="px-2 py-4 text-amber-600 text-center pr-5">{attendanceTotal.lessonsSick}</td>
+                                        <td className="px-2 py-4 bg-red-50 text-red-600 text-center pr-5">{attendanceTotal.late}</td>
+                                    </tr>
+                                )}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {activeTab === 'grades' && (
+                <div className="w-full bg-white dark:bg-zinc-800 rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm p-6 overflow-hidden">                    <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
+                        <div className="flex items-center gap-3">
+                            <div className="p-3 bg-purple-50 text-purple-600 rounded-lg"><GraduationCap size={20}/></div>
+                            <h2 className="text-lg font-bold">Журнал успеваемости</h2>
+                        </div>
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                            {gradesStudents.length > 0 ? (
+                                <>
+                                    <button onClick={exportGradesToWord} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-purple-50 text-purple-600 rounded-lg text-sm font-semibold hover:bg-purple-600 hover:text-white transition-all">
+                                        <Download size={16}/> Word
+                                    </button>
+                                    {isOwner && (
+                                        <>
+                                            <button onClick={() => SaveGrades(groupId, gradesStudents).then(() => setNotify({message: "Успеваемость сохранена", type: "success"}))} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-50 text-green-500 font-semibold rounded-lg text-sm  hover:bg-green-500 hover:text-white transition-all">
+                                                <Database size={16}/> В базу
+                                            </button>
+                                            <button onClick={() => setGradesStudents([])} className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-colors">
+                                                <Trash2 size={18}/>
+                                            </button>
+                                        </>
+                                    )}
+                                </>
+                            ) : (
+                                <button onClick={handleLoadGradesFromDB} className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-all">
+                                    <Database size={16}/> Из базы
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {gradesStudents.length === 0 ? (
+                        isOwner ? (
+                            <label onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} className={`flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-3xl cursor-pointer transition-all group ${isDraggingGrades ? "border-purple-500 bg-purple-50/50" : "border-gray-100 dark:border-zinc-700 hover:bg-purple-50/20"}`}>
+                                <Upload className={`${isDraggingGrades ? "text-purple-500 scale-110" : "text-gray-300 group-hover:text-purple-500"} transition-all mb-4`} size={40} />
+                                <span className="text-sm font-medium text-gray-500">{isDraggingGrades ? "Отпустите файл здесь" : "Загрузить отчет по успеваемости (Дневник.ру)"}</span>
+                                <input type="file" className="hidden" accept=".xls, .xlsx, text/html" onChange={handleGradesFileUpload} />
+                            </label>
+                        ) : (
+                            <div className="py-20 text-center text-gray-400">Данные об успеваемости отсутствуют</div>
+                        )
+                    ) : (
+                        <div className="w-full overflow-x-auto border border-gray-100 dark:border-zinc-700 rounded-lg">
+                            <table className="text-sm table-auto">
+                                <thead className="bg-gray-50/50 dark:bg-zinc-900/50 text-[10px] font-bold uppercase text-gray-400">
+                                <tr className="divide-x divide-gray-100 dark:divide-zinc-700 border-b dark:border-zinc-700">
+                                    <th className="py-4 w-10">№</th>
+                                    <th className="py-4 min-w-[260px]">ФИО Студента</th>
+                                    {gradesStudents[0].subjects.map((sub, idx) => (
+                                        <th key={idx} className="py-4 px-2 text-center truncate max-w-[100px]" title={sub.name}>
+                                            {sub.name}
+                                        </th>                                    ))}
+                                    <th className="py-4 px-4 bg-purple-50 text-purple-600">Средний</th>
+                                </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-50 dark:divide-zinc-700">
+                                {gradesStudents.map((student, sIdx) => (
+                                    <tr key={sIdx} className="divide-x divide-gray-50 dark:divide-zinc-700 hover:bg-purple-50/10 transition-colors">
+                                        <td className="p-4 text-center text-gray-400 text-[10px]">{sIdx + 1}</td>
+                                        <td className="px-2 font-medium py-1">
+                                            <input disabled={!isOwner} value={student.fullName} onChange={e => {
+                                                const updated = [...gradesStudents];
+                                                updated[sIdx].fullName = e.target.value;
+                                                setGradesStudents(updated);
+                                            }} className="w-full bg-transparent outline-none disabled:text-gray-700" />
+                                        </td>
+                                        {student.subjects.map((sub, subIdx) => (
+                                            <td key={subIdx} className="p-0 hover:bg-gray-100">
+                                                <input
+                                                    disabled={!isOwner}
+                                                    value={sub.grade}
+                                                    onChange={(e) => updateGradeField(sIdx, subIdx, e.target.value)}
+                                                    className="w-full h-full py-3 text-center bg-transparent outline-none font-bold"
+                                                />
+                                            </td>
+                                        ))}
+                                        <td className="py-3 text-center font-bold text-purple-600 bg-purple-50/20">{student.averageScore}</td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }
