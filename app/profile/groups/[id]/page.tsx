@@ -5,7 +5,7 @@ import {
     Loader2, Trash2,
     ArrowLeft, ShieldAlert, Save,
     Upload, FileText, Database, Download,
-    GraduationCap, ClipboardCheck
+    GraduationCap, ClipboardCheck, Calendar, UserStar
 } from "lucide-react";
 import {
     Dialog, DialogTrigger, DialogContent, DialogHeader,
@@ -24,7 +24,7 @@ import {
 } from "docx";
 import { saveAs } from "file-saver";
 
-interface Group { id: number; name: string; fk_user: number; }
+interface Group { id: number; name: string; fk_user: number; leader: string; created_by: string; }
 interface UserListItem { id: number; full_name: string; }
 interface Notify { message: string; type: 'success' | 'warning' | 'error' | ''; }
 
@@ -429,10 +429,21 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                     onChange={e => setUpdateFormData({...updateFormData, name: e.target.value})}
                                     className="text-2xl font-bold bg-transparent border-b-2 border-blue-500 outline-none w-full pb-1 transition-all disabled:opacity-80"
                                 />
-                                <div className="flex justify-between items-center xl:items-start gap-2 mt-2">
+                                <div className="flex flex-col justify-between items-center xl:items-start gap-2 mt-2">
                                     <div className='flex gap-2'>
                                         {isOwner && <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-blue-600 text-white rounded shadow-sm">Ваша группа</span>}
                                         <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-gray-100 dark:bg-zinc-700 rounded text-gray-500">ID: {group.id}</span>
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 gap-2">
+                                            <Calendar className="w-4 h-4" />
+                                            <span>{new Date(group.created_by).toLocaleDateString("ru-RU", { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                                        </div>
+
+                                        <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 gap-2">
+                                            <UserStar className="w-4 h-4" />
+                                            <span>{group.leader}</span>
+                                        </div>
                                     </div>
                                 </div>
                                 {isOwner && (

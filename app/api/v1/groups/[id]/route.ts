@@ -14,7 +14,7 @@ export async function GET(_request: NextRequest, {params}: { params: Promise<{ i
 
         const {id} = await params;
         const group = await queryOne(
-            'SELECT * FROM groups WHERE id = ?', [id]
+            'SELECT groups.id, name, groups.created_by, fk_user, users.full_name AS leader FROM groups JOIN users ON fk_user = users.id WHERE groups.id = ?', [id]
         );
         if (!group) {
             return NextResponse.json({ success: false, message: `Группа с айди ${id} не найдена` }, {status:404})

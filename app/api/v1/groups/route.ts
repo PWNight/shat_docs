@@ -13,7 +13,7 @@ export async function GET() {
         }
 
         const groups = await query(
-            'SELECT * FROM groups',
+            'SELECT groups.id, name, groups.created_by, fk_user, users.full_name AS leader FROM groups JOIN users ON fk_user = users.id',
         );
         return NextResponse.json({ success: true, data: groups }, {status:200})
     } catch (error) {

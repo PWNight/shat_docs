@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { getSession } from "@/utils/session";
 import {getAllGroups} from "@/utils/handlers";
 import ErrorMessage from "@/components/NotifyAlert";
-import { Loader2, SearchX, Plus, Users, Calendar, ArrowRight } from "lucide-react";
+import {Loader2, SearchX, Plus, Users, Calendar, ArrowRight, UserStar} from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -21,6 +21,7 @@ interface Group {
     name: string;
     fk_user: string;
     created_by: string;
+    leader: string;
 }
 interface Notify {
     message: string;
@@ -191,9 +192,14 @@ export default function ProfileGroups() {
                                     {group.name}
                                 </h3>
 
-                                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-6 gap-2">
+                                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 gap-2">
                                     <Calendar className="w-4 h-4" />
                                     <span>{new Date(group.created_by).toLocaleDateString("ru-RU", { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                                </div>
+
+                                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-6 gap-2">
+                                    <UserStar className="w-4 h-4" />
+                                    <span>{group.leader}</span>
                                 </div>
 
                                 <Link
