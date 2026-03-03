@@ -284,3 +284,26 @@ export async function getUsersList() {
     }
 }
 
+export async function SaveGrades(groupId: string, students: any[]) {
+    try {
+        const response = await fetch(`/api/v1/groups/${groupId}/grades`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ groupId, students }),
+        });
+        return await handleApiResponse(response);
+    } catch (error) {
+        return { success: false, message: "Ошибка сохранения успеваемости" };
+    }
+}
+
+export async function GetGrades(groupId: string) {
+    try {
+        const response = await fetch(`/api/v1/groups/${groupId}/grades`, {
+            method: 'GET',
+        });
+        return await handleApiResponse(response);
+    } catch (error) {
+        return { success: false, message: "Ошибка загрузки успеваемости" };
+    }
+}
