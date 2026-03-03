@@ -534,13 +534,13 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                     <th rowSpan={2} className="py-4">ФИО</th>
                                     <th colSpan={2} className="py-2 bg-gray-100/30 border-b dark:border-zinc-700">Дни</th>
                                     <th colSpan={2} className="py-2 border-b dark:border-zinc-700">Уроки</th>
-                                    <th rowSpan={2} className="py-4 bg-red-50/30 pr-3">Опозд.</th>
+                                    <th rowSpan={2} className="py-4 bg-red-50/30">Опозд.</th>
                                 </tr>
                                 <tr className="divide-x divide-gray-100 dark:divide-zinc-700 border-b dark:border-zinc-700">
-                                    <th className="py-2 bg-gray-100/30 pr-3">Всего</th>
-                                    <th className="py-2 bg-gray-100/30 text-amber-600 pr-3">Болезнь</th>
-                                    <th className="py-2 pr-3">Всего</th>
-                                    <th className="py-2 text-amber-600 pr-3">Болезнь</th>
+                                    <th className="py-2 bg-gray-100/30">Всего</th>
+                                    <th className="py-2 bg-gray-100/30 text-amber-600">Болезнь</th>
+                                    <th className="py-2">Всего</th>
+                                    <th className="py-2 text-amber-600">Болезнь</th>
                                 </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50 dark:divide-zinc-700">
@@ -550,21 +550,21 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                         <td className="px-2 font-medium py-1 hover:bg-gray-100">
                                             <input disabled={!isOwner} value={s.fullName} onChange={e => updateAttendanceField(i, 'fullName', e.target.value)} className="w-full bg-transparent outline-none focus:text-blue-600 disabled:text-gray-700 dark:disabled:text-gray-300" />
                                         </td>
-                                        <td className=" py-3 bg-gray-50/20 hover:bg-gray-100"><input disabled={!isOwner} min={0} type="number" value={s.fullDaysTotal} onChange={e => updateAttendanceField(i, 'fullDaysTotal', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" /></td>
-                                        <td className=" py-3 bg-gray-50/20 font-bold text-amber-600 hover:bg-gray-100"><input disabled={!isOwner} min={0} type="number" value={s.fullDaysSick} onChange={e => updateAttendanceField(i, 'fullDaysSick', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" /></td>
-                                        <td className=" py-3 hover:bg-gray-100"><input disabled={!isOwner} min={0} type="number" value={s.lessonsTotal} onChange={e => updateAttendanceField(i, 'lessonsTotal', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center"/></td>
-                                        <td className=" py-3 font-bold text-amber-600 hover:bg-gray-100"><input disabled={!isOwner} min={0} type="number" value={s.lessonsSick} onChange={e => updateAttendanceField(i, 'lessonsSick', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center"/></td>
-                                        <td className=" py-3 bg-red-50/10 font-bold text-red-600 hover:bg-gray-100"><input disabled={!isOwner} min={0} type="number" value={s.late} onChange={e => updateAttendanceField(i, 'late', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" /></td>
+                                        <td className="py-3 bg-gray-50/20 hover:bg-gray-100"><input disabled={!isOwner} value={s.fullDaysTotal} onChange={e => updateAttendanceField(i, 'fullDaysTotal', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" /></td>
+                                        <td className="py-3 bg-gray-50/20 font-bold text-amber-600 hover:bg-gray-100"><input disabled={!isOwner} value={s.fullDaysSick} onChange={e => updateAttendanceField(i, 'fullDaysSick', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" /></td>
+                                        <td className="py-3 hover:bg-gray-100"><input disabled={!isOwner} value={s.lessonsTotal} onChange={e => updateAttendanceField(i, 'lessonsTotal', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center"/></td>
+                                        <td className="py-3 font-bold text-amber-600 hover:bg-gray-100"><input disabled={!isOwner} value={s.lessonsSick} onChange={e => updateAttendanceField(i, 'lessonsSick', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center"/></td>
+                                        <td className="py-3 bg-red-50/10 font-bold text-red-600 hover:bg-gray-100"><input disabled={!isOwner} value={s.late} onChange={e => updateAttendanceField(i, 'late', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" /></td>
                                     </tr>
                                 ))}
                                 {attendanceTotal && (
                                     <tr className="divide-x divide-gray-100 bg-gray-50 dark:bg-zinc-900 font-bold border-t-2">
                                         <td colSpan={2} className="px-4 py-4 text-[11px] uppercase text-gray-400">Итого:</td>
-                                        <td className="px-2 py-4 text-center pr-5">{attendanceTotal.fullDaysTotal}</td>
-                                        <td className="px-2 py-4 text-amber-600 text-center pr-5">{attendanceTotal.fullDaysSick}</td>
-                                        <td className="px-2 py-4 text-center pr-5">{attendanceTotal.lessonsTotal}</td>
-                                        <td className="px-2 py-4 text-amber-600 text-center pr-5">{attendanceTotal.lessonsSick}</td>
-                                        <td className="px-2 py-4 bg-red-50 text-red-600 text-center pr-5">{attendanceTotal.late}</td>
+                                        <td className="px-2 py-4 text-center">{attendanceTotal.fullDaysTotal}</td>
+                                        <td className="px-2 py-4 text-amber-600 text-center">{attendanceTotal.fullDaysSick}</td>
+                                        <td className="px-2 py-4 text-center">{attendanceTotal.lessonsTotal}</td>
+                                        <td className="px-2 py-4 text-amber-600 text-center">{attendanceTotal.lessonsSick}</td>
+                                        <td className="px-2 py-4 bg-red-50 text-red-600 text-center">{attendanceTotal.late}</td>
                                     </tr>
                                 )}
                                 </tbody>
@@ -621,12 +621,12 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                 <thead className="bg-gray-50/50 dark:bg-zinc-900/50 text-[10px] font-bold uppercase text-gray-400">
                                 <tr className="divide-x divide-gray-100 dark:divide-zinc-700 border-b dark:border-zinc-700">
                                     <th className="py-4 w-10">№</th>
-                                    <th className="py-4 min-w-[260px]">ФИО Студента</th>
+                                    <th className="px-2 min-w-[260px] text-left">ФИО Студента</th>
                                     {gradesStudents[0].subjects.map((sub, idx) => (
                                         <th key={idx} className="py-4 px-2 text-center truncate max-w-[100px]" title={sub.name}>
                                             {sub.name}
                                         </th>                                    ))}
-                                    <th className="py-4 px-4 bg-purple-50 text-purple-600">Средний</th>
+                                    <th className="py-4 px-4 bg-purple-50 text-gray-400">Средний</th>
                                 </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50 dark:divide-zinc-700">
@@ -650,17 +650,17 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                                 />
                                             </td>
                                         ))}
-                                        <td className="py-3 text-center font-bold text-purple-600 bg-purple-50/20">{student.averageScore}</td>
+                                        <td className="py-3 text-center font-bold bg-purple-50/20 border-purple-100 border-l-2">{student.averageScore}</td>
                                     </tr>
                                 ))}
                                 {gradesStudents.length > 0 && (
                                     <tr className="divide-x divide-gray-100 dark:divide-zinc-700 bg-purple-50/30 font-bold border-t-2 border-purple-100 dark:border-zinc-700">
                                         <td className="p-4 text-center text-purple-500 text-[10px]"></td>
-                                        <td className="px-2 py-3 text-purple-500 uppercase text-[11px] tracking-wider">
+                                        <td className="px-2 py-3 text-gray-400 uppercase text-[11px] tracking-wider">
                                             Средний балл по предмету
                                         </td>
                                         {subjectAverages.map((avg, idx) => (
-                                            <td key={`avg-${idx}`} className="py-3 text-center text-purple-500">
+                                            <td key={`avg-${idx}`} className="py-3 text-center">
                                                 {avg}
                                             </td>
                                         ))}
