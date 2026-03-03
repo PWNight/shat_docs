@@ -398,6 +398,18 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
 
     if (!group) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-blue-600" /></div>;
 
+    const subjectAverages = gradesStudents.length > 0
+        ? gradesStudents[0].subjects.map((_, subIdx) => {
+            const grades = gradesStudents
+                .map(s => parseFloat(s.subjects[subIdx].grade.replace(',', '.')))
+                .filter(g => !isNaN(g) && g >= 2 && g <= 5); // Учитываем только оценки 2-5
+
+            return grades.length > 0
+                ? (grades.reduce((a, b) => a + b, 0) / grades.length).toFixed(2)
+                : '-';
+        })
+        : [];
+
     return (
         <div className="w-full space-y-5 sm:space-y-6 px-3 sm:px-4 md:px-6 pb-8 sm:pb-10">
             {notify.message && <ErrorMessage message={notify.message} type={notify.type} onClose={() => setNotify({ message: '', type: '' })} />}
@@ -641,6 +653,19 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                         <td className="py-3 text-center font-bold text-purple-600 bg-purple-50/20">{student.averageScore}</td>
                                     </tr>
                                 ))}
+                                {gradesStudents.length > 0 && (
+                                    <tr className="divide-x divide-gray-100 dark:divide-zinc-700 bg-purple-50/30 font-bold border-t-2 border-purple-100 dark:border-zinc-700">
+                                        <td className="p-4 text-center text-purple-500 text-[10px]"></td>
+                                        <td className="px-2 py-3 text-purple-500 uppercase text-[11px] tracking-wider">
+                                            Средний балл по предмету
+                                        </td>
+                                        {subjectAverages.map((avg, idx) => (
+                                            <td key={`avg-${idx}`} className="py-3 text-center text-purple-500">
+                                                {avg}
+                                            </td>
+                                        ))}
+                                    </tr>
+                                )}
                                 </tbody>
                             </table>
                         </div>
