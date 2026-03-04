@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/Dialog";
 import { CreateGroup } from "@/utils/handlers";
 import Link from "next/link";
+import { GroupFormState } from "@/utils/definitions";
 
 // Интерфейсы
 interface Group {
@@ -23,6 +24,7 @@ interface Group {
     created_by: string;
     leader: string;
 }
+
 interface Notify {
     message: string;
     type: 'success' | 'warning' | 'error' | '';
@@ -31,8 +33,15 @@ interface Notify {
 export default function ProfileGroups() {
     // Технические переменные
     const router = useRouter();
-    const [state, action, pending] = useActionState(CreateGroup, undefined);
-
+    const [state, dispatch, pending] = useActionState(
+        async (prevState: GroupFormState, formData: FormData | null) => {
+            if (formData === null) {
+                return undefined;
+            }
+            return CreateGroup(prevState, formData);
+        },
+        undefined
+    );
     // Информационные переменные
     const [userData, setUserData] = useState(Object);
     const [groups, setGroups] = useState([]);
@@ -40,6 +49,7 @@ export default function ProfileGroups() {
     // Переменные состояний
     const [pageLoaded, setPageLoaded] = useState(false);
     const [notify, setNotify] = useState<Notify>({ message: '', type: '' });
+    const [open, setOpen] = useState(false);
 
     // Функция загрузки данных
     const loadData = async () => {
@@ -51,6 +61,14 @@ export default function ProfileGroups() {
         }
         setGroups(response.data);
     };
+
+    useEffect(() => {
+        if (state?.success) {
+            loadData()
+            setOpen(false);
+            setNotify({ message: "Группа создана", type: "success" });
+        }
+    }, [state]);
 
     // Событие при загрузке страницы
     useEffect(() => {
@@ -78,14 +96,6 @@ export default function ProfileGroups() {
 
     // Форма создания группы
     const GroupCreateForm = () => {
-        const [open, setOpen] = useState(false);
-
-        useEffect(() => {
-            if (state?.success){
-            loadData().then(() => setOpen(false));
-            }
-        }, []);
-
         return (
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
@@ -98,7 +108,7 @@ export default function ProfileGroups() {
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-bold">Новая группа</DialogTitle>
                     </DialogHeader>
-                    <form action={action} className="space-y-4 mt-4">
+                    <form action={dispatch} className="space-y-4 mt-4">
                         <div className="space-y-2">
                             <label htmlFor="name" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                                 Название группы
