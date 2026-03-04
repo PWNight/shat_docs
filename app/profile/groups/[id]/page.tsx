@@ -447,7 +447,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                     </div>
                                 </div>
                                 {isOwner && (
-                                    <button onClick={() => startTransition(async () => { await UpdateGroup(groupId, updateFormData); setNotify({message: "Сохранено", type: 'success'}); loadData(groupId); })} className="absolute right-0 top-1 text-blue-600 hover:scale-110 transition-all">
+                                    <button onClick={() => startTransition(async () => { await UpdateGroup(groupId, updateFormData); setNotify({message: "Сохранено", type: 'success'}); await loadData(groupId); })} className="absolute right-0 top-1 text-blue-600 hover:scale-110 transition-all">
                                         {isPending ? <Loader2 className="animate-spin" size={18}/> : <Save size={20}/>}
                                     </button>
                                 )}
@@ -632,9 +632,9 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                 <thead className="bg-gray-50/50 dark:bg-zinc-900/50 text-[10px] font-bold uppercase text-gray-400">
                                 <tr className="divide-x divide-gray-100 dark:divide-zinc-700 border-b dark:border-zinc-700">
                                     <th className="py-4 w-10">№</th>
-                                    <th className="px-2 min-w-[260px] text-left">ФИО Студента</th>
+                                    <th className="px-2 min-w-65 text-left">ФИО Студента</th>
                                     {gradesStudents[0].subjects.map((sub, idx) => (
-                                        <th key={idx} className="py-4 px-2 text-center truncate max-w-[100px]" title={sub.name}>
+                                        <th key={idx} className="py-4 px-2 text-center truncate max-w-25" title={sub.name}>
                                             {sub.name}
                                         </th>                                    ))}
                                     <th className="py-4 px-4 bg-purple-50 text-gray-400">Средний</th>

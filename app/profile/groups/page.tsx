@@ -104,7 +104,7 @@ export default function ProfileGroups() {
                         Создать группу
                     </button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="sm:max-w-106.25">
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-bold">Новая группа</DialogTitle>
                     </DialogHeader>
