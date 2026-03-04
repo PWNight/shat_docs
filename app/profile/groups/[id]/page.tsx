@@ -16,45 +16,11 @@ import { getSession, SessionPayload } from "@/utils/session";
 import {getGroup, getUsersList, SaveGrades, GetGrades} from "@/utils/handlers";
 import {UpdateGroup, DeleteGroup, SaveAttendance, GetAttendance} from "@/utils/handlers";
 import Link from "next/link";
+import {exportGradesToWord, exportToWord} from "@/utils/functions";
 import {
-    Document, Packer, Paragraph,
-    Table, TableCell, TableRow,
-    WidthType, AlignmentType, HeadingLevel,
-    VerticalAlign, TextRun
-} from "docx";
-import { saveAs } from "file-saver";
-
-interface Group { id: number; name: string; fk_user: number; leader: string; created_by: string; }
+    AttendanceStudent, AttendanceTotal, Group, Notify, GradeStudent
+} from "@/utils/interfaces";
 interface UserListItem { id: number; full_name: string; }
-interface Notify { message: string; type: 'success' | 'warning' | 'error' | ''; }
-
-// Интерфейсы
-interface AttendanceStudent {
-    number: string;
-    fullName: string;
-    fullDaysTotal: number;
-    fullDaysSick: number;
-    lessonsTotal: number;
-    lessonsSick: number;
-    late: number;
-}
-interface AttendanceTotal {
-    fullDaysTotal: number;
-    fullDaysSick: number;
-    lessonsTotal: number;
-    lessonsSick: number;
-    late: number;
-}
-
-interface SubjectGrade {
-    name: string;
-    grade: string;
-}
-interface GradeStudent {
-    fullName: string;
-    subjects: SubjectGrade[];
-    averageScore: number;
-}
 
 export default function MyGroup({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = use(params);
@@ -66,7 +32,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
     const [users, setUsers] = useState<UserListItem[]>([]);
 
     const [attendanceStudents, setAttendanceStudents] = useState<AttendanceStudent[]>([]);
-    const [attendanceTotal, setAttendanceTotal] = useState<AttendanceTotal | null>(null);
+    const [attendanceTotal, setAttendanceTotal] = useState<AttendanceTotal>(Object);
 
     const [activeTab, setActiveTab] = useState<'attendance' | 'grades'>('attendance');
     const [gradesStudents, setGradesStudents] = useState<GradeStudent[]>([]);
@@ -97,81 +63,17 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
         });
 
         // Логика расчета итогов посещаемости
-        if (attendanceStudents.length > 0) {
-            const total = attendanceStudents.reduce((acc, curr) => ({
-                fullDaysTotal: acc.fullDaysTotal + curr.fullDaysTotal,
-                fullDaysSick: acc.fullDaysSick + curr.fullDaysSick,
-                lessonsTotal: acc.lessonsTotal + curr.lessonsTotal,
-                lessonsSick: acc.lessonsSick + curr.lessonsSick,
-                late: acc.late + curr.late,
-            }), { fullDaysTotal: 0, fullDaysSick: 0, lessonsTotal: 0, lessonsSick: 0, late: 0 });
-            setAttendanceTotal(total);
-        } else setAttendanceTotal(null);
+        const total = attendanceStudents.reduce((acc, curr) => ({
+            fullDaysTotal: acc.fullDaysTotal + curr.fullDaysTotal,
+            fullDaysSick: acc.fullDaysSick + curr.fullDaysSick,
+            lessonsTotal: acc.lessonsTotal + curr.lessonsTotal,
+            lessonsSick: acc.lessonsSick + curr.lessonsSick,
+            late: acc.late + curr.late,
+        }), { fullDaysTotal: 0, fullDaysSick: 0, lessonsTotal: 0, lessonsSick: 0, late: 0 });
+        setAttendanceTotal(total);
     }, [groupId, loadData, router, attendanceStudents]);
 
     const isOwner = userData?.uid === group?.fk_user;
-
-    // Функция экпорта посещаемости в Word
-    const exportToWord = async () => {
-        if (attendanceStudents.length === 0) return;
-        const doc = new Document({
-            sections: [{
-                children: [
-                    new Paragraph({
-                        text: `Отчет по посещаемости группы: ${group?.name || ""}`,
-                        heading: HeadingLevel.HEADING_1,
-                        alignment: AlignmentType.CENTER,
-                        spacing: { after: 400 },
-                    }),
-                    new Table({
-                        width: { size: 100, type: WidthType.PERCENTAGE },
-                        rows: [
-                            new TableRow({
-                                children: [
-                                    new TableCell({ children: [new Paragraph("ID")], rowSpan: 2, verticalAlign: VerticalAlign.CENTER }),
-                                    new TableCell({ children: [new Paragraph("ФИО")], rowSpan: 2, verticalAlign: VerticalAlign.CENTER }),
-                                    new TableCell({ children: [new Paragraph({ text: "Дни", alignment: AlignmentType.CENTER })], columnSpan: 2 }),
-                                    new TableCell({ children: [new Paragraph({ text: "Уроки", alignment: AlignmentType.CENTER })], columnSpan: 2 }),
-                                    new TableCell({ children: [new Paragraph("Опозд.")], rowSpan: 2, verticalAlign: VerticalAlign.CENTER }),
-                                ],
-                            }),
-                            new TableRow({
-                                children: [
-                                    new TableCell({ children: [new Paragraph("Всего")] }),
-                                    new TableCell({ children: [new Paragraph("Болезнь")] }),
-                                    new TableCell({ children: [new Paragraph("Всего")] }),
-                                    new TableCell({ children: [new Paragraph("Болезнь")] }),
-                                ],
-                            }),
-                            ...attendanceStudents.map(s => new TableRow({
-                                children: [
-                                    new TableCell({ children: [new Paragraph(s.number)] }),
-                                    new TableCell({ children: [new Paragraph(s.fullName)] }),
-                                    new TableCell({ children: [new Paragraph(s.fullDaysTotal.toString())] }),
-                                    new TableCell({ children: [new Paragraph(s.fullDaysSick.toString())] }),
-                                    new TableCell({ children: [new Paragraph(s.lessonsTotal.toString())] }),
-                                    new TableCell({ children: [new Paragraph(s.lessonsSick.toString())] }),
-                                    new TableCell({ children: [new Paragraph(s.late.toString())] }),
-                                ],
-                            })),
-                            ...(attendanceTotal ? [new TableRow({
-                                children: [
-                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ИТОГО", bold: true })] })], columnSpan: 2 }),
-                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: attendanceTotal.fullDaysTotal.toString(), bold: true })] })] }),
-                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: attendanceTotal.fullDaysSick.toString(), bold: true })] })] }),
-                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: attendanceTotal.lessonsTotal.toString(), bold: true })] })] }),
-                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: attendanceTotal.lessonsSick.toString(), bold: true })] })] }),
-                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: attendanceTotal.late.toString(), bold: true })] })] }),
-                                ],
-                            })] : [])
-                        ],
-                    }),
-                ],
-            }],
-        });
-        const blob = await Packer.toBlob(doc);
-        saveAs(blob, `Отчет_Посещаемость_${group?.name}.docx`);
-    };
 
     // Функция импорта посещаемости из файла
     const handleAttendanceFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -323,46 +225,6 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
         setGradesStudents(updated);
     };
 
-    // Функция экспорта успеваемости в word
-    const exportGradesToWord = async () => {
-        if (gradesStudents.length === 0) return;
-        const subjects = gradesStudents[0].subjects;
-
-        const doc = new Document({
-            sections: [{
-                children: [
-                    new Paragraph({
-                        text: `Отчет по успеваемости группы: ${group?.name || ""}`,
-                        heading: HeadingLevel.HEADING_1,
-                        alignment: AlignmentType.CENTER,
-                        spacing: { after: 400 },
-                    }),
-                    new Table({
-                        width: { size: 100, type: WidthType.PERCENTAGE },
-                        rows: [
-                            new TableRow({
-                                children: [
-                                    new TableCell({ children: [new Paragraph("ФИО")] }),
-                                    ...subjects.map(s => new TableCell({ children: [new Paragraph({ text: s.name, alignment: AlignmentType.CENTER })] })),
-                                    new TableCell({ children: [new Paragraph("Ср. балл")] }),
-                                ],
-                            }),
-                            ...gradesStudents.map(s => new TableRow({
-                                children: [
-                                    new TableCell({ children: [new Paragraph(s.fullName)] }),
-                                    ...s.subjects.map(sub => new TableCell({ children: [new Paragraph({ text: sub.grade, alignment: AlignmentType.CENTER })] })),
-                                    new TableCell({ children: [new Paragraph({ text: s.averageScore.toString(), alignment: AlignmentType.CENTER })] }),
-                                ],
-                            }))
-                        ],
-                    }),
-                ],
-            }],
-        });
-        const blob = await Packer.toBlob(doc);
-        saveAs(blob, `Успеваемость_${group?.name}.docx`);
-    };
-
     // Универсальные drag & drop ф-ии
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
@@ -504,7 +366,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                         <div className="flex items-center gap-2 w-full sm:w-auto">
                             {attendanceStudents.length > 0 ? (
                                 <>
-                                    <button onClick={exportToWord} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-600 hover:text-white transition-all">
+                                    <button onClick={() => exportToWord(attendanceStudents, attendanceTotal, group)} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-600 hover:text-white transition-all">
                                         <Download size={16}/> Word
                                     </button>
                                     {isOwner && (
@@ -594,7 +456,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                         <div className="flex items-center gap-2 w-full sm:w-auto">
                             {gradesStudents.length > 0 ? (
                                 <>
-                                    <button onClick={exportGradesToWord} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-purple-50 text-purple-600 rounded-lg text-sm font-semibold hover:bg-purple-600 hover:text-white transition-all">
+                                    <button onClick={() => exportGradesToWord(gradesStudents, group)} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-purple-50 text-purple-600 rounded-lg text-sm font-semibold hover:bg-purple-600 hover:text-white transition-all">
                                         <Download size={16}/> Word
                                     </button>
                                     {isOwner && (
