@@ -37,11 +37,12 @@ export async function Login(_prevState: LoginFormState, formData: FormData): Pro
         const { data } = await handleApiResponse(loginResponse);
 
         // Создаём сессию
-        await fetch('/api/v1/auth/create-session', {
+        const response = await fetch('/api/v1/auth/create-session', {
             method: 'POST',
             body: JSON.stringify({ uid: data.uid, email, full_name: data.full_name }),
             headers: { 'Content-Type': 'application/json' }
         });
+        await handleApiResponse(response);
 
         // Возвращаем успех
         return { success: true };
@@ -89,11 +90,12 @@ export async function Register(_prevState: RegisterFormState, formData: FormData
     const { data } = await handleApiResponse(registerResponse);
 
     // Создаём сессию
-    await fetch('/api/v1/auth/create-session', {
+    const response = await fetch('/api/v1/auth/create-session', {
         method: 'POST',
         body: JSON.stringify({ uid: data.uid, email, full_name }),
         headers: { 'Content-Type': 'application/json' }
     });
+    await handleApiResponse(response);
 
     // Возвращаем успех
     return { success: true };
@@ -124,17 +126,18 @@ export async function CreateGroup(_state: GroupFormState, formData: FormData) {
         const { name, fk_user } = parsed.data;
 
         // Отправляем POST запрос в авторизацию
-        await fetch('/api/v1/groups', {
+        const response = await fetch('/api/v1/groups', {
             method: 'POST',
             body: JSON.stringify({ name, fk_user }),
             headers: { 'Content-Type': 'application/json' }
         });
+        await handleApiResponse(response);
 
         // Возвращаем успех и redirectTo
         return { success: true };
     } catch (error) {
         console.log( error )
-        return { message: error instanceof Error ? error.message : 'Произошла ошибка' };
+        return { success: false, message: error instanceof Error ? error.message : 'Произошла ошибка' };
     }
 }
 
