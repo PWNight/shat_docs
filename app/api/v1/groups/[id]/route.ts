@@ -14,7 +14,7 @@ export async function GET(_request: NextRequest, {params}: { params: Promise<{ i
 
         const {id} = await params;
         const group = await queryOne(
-            'SELECT groups.id, name, groups.created_by, fk_user, users.full_name AS leader FROM groups JOIN users ON fk_user = users.id WHERE groups.id = ?', [id]
+            'SELECT `groups`.id, name, `groups`.created_by, fk_user, users.full_name AS leader FROM `groups` JOIN users ON fk_user = users.id WHERE `groups`.id = ?', [id]
         );
         if (!group) {
             return NextResponse.json({ success: false, message: `Группа с айди ${id} не найдена` }, {status:404})
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest, {params}: { params: Promise<{ i
 
         const {id} = await params;
         const group = await queryOne(
-            'SELECT * FROM groups WHERE id = ?', [id]
+            'SELECT * FROM `groups` WHERE id = ?', [id]
         );
         if (!group) {
             return NextResponse.json({ success: false, message: `Группа с айди ${id} не найдена` }, {status:404})
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest, {params}: { params: Promise<{ i
         }
 
         values.push(id);
-        await execute(`UPDATE groups SET ${updates.join(', ')} WHERE id = ?`, values)
+        await execute("UPDATE `groups` SET ${updates.join(', ')} WHERE id = ?", values)
         return NextResponse.json({ success: true, message: "Группа успешно обновлена" }, { status: 200 });
     } catch (error) {
         console.error("Ошибка работы API", error);
@@ -118,7 +118,7 @@ export async function DELETE(request: NextRequest, {params}: { params: Promise<{
 
         const {id} = await params;
         const group = await queryOne(
-            'SELECT * FROM groups WHERE id = ? LIMIT 1', [id]
+            'SELECT * FROM `groups` WHERE id = ? LIMIT 1', [id]
         );
         if (!group) {
             return NextResponse.json({ success: false, message: `Группа с айди ${id} не найдена` }, {status:404})
@@ -128,7 +128,7 @@ export async function DELETE(request: NextRequest, {params}: { params: Promise<{
             return NextResponse.json({ success: false, message: `Вы не можете удалить эту группу` }, {status:403})
         }
 
-        await execute("DELETE FROM groups WHERE id = ?", [id]);
+        await execute("DELETE FROM `groups` WHERE id = ?", [id]);
         return NextResponse.json({ success: true, message: `Группа с айди ${id} успешно удалена` }, {status:200})
     } catch (error) {
         console.error("Ошибка работы API", error);

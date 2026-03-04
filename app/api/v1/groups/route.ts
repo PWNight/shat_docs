@@ -13,7 +13,7 @@ export async function GET() {
         }
 
         const groups = await query(
-            'SELECT groups.id, name, groups.created_by, fk_user, users.full_name AS leader FROM groups JOIN users ON fk_user = users.id',
+            'SELECT `groups`.id, name, `groups`.created_by, fk_user, users.full_name AS leader FROM `groups` JOIN users ON fk_user = users.id',
         );
         return NextResponse.json({ success: true, data: groups }, {status:200})
     } catch (error) {
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
 
         // Получаем группу из базы данных
         const group = await queryOne(
-            'SELECT * FROM groups WHERE name = ? LIMIT 1',
+            'SELECT * FROM `groups` WHERE name = ? LIMIT 1',
             [name]
         );
         if (group) {
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
         // TODO: Проверка наличия закреплённой за преподавателем группы (добавить новую группу может только администратор или свободный преподаватель)
 
         await execute(
-            'INSERT INTO groups (name, fk_user) VALUES (?, ?)',
+            'INSERT INTO `groups` (name, fk_user) VALUES (?, ?)',
             [name, fk_user]
         );
 
