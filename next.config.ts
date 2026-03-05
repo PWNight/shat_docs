@@ -1,5 +1,6 @@
 import {version} from "./package.json"
 const nextConfig = {
+    output: "standalone",
     env: {
         APP_VERSION: version,
     },
