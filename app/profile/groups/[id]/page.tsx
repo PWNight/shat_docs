@@ -59,18 +59,18 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
         getSession().then(session => {
             if (!session) return router.replace(`/login?to=profile/groups/${groupId}`);
             setUserData(session);
-            loadData(groupId);
+            loadData(groupId).then(() => {
+                // Логика расчета итогов посещаемости
+                const total = attendanceStudents.reduce((acc, curr) => ({
+                    fullDaysTotal: acc.fullDaysTotal + curr.fullDaysTotal,
+                    fullDaysSick: acc.fullDaysSick + curr.fullDaysSick,
+                    lessonsTotal: acc.lessonsTotal + curr.lessonsTotal,
+                    lessonsSick: acc.lessonsSick + curr.lessonsSick,
+                    late: acc.late + curr.late,
+                }), { fullDaysTotal: 0, fullDaysSick: 0, lessonsTotal: 0, lessonsSick: 0, late: 0 });
+                setAttendanceTotal(total);
+            });
         });
-
-        // Логика расчета итогов посещаемости
-        const total = attendanceStudents.reduce((acc, curr) => ({
-            fullDaysTotal: acc.fullDaysTotal + curr.fullDaysTotal,
-            fullDaysSick: acc.fullDaysSick + curr.fullDaysSick,
-            lessonsTotal: acc.lessonsTotal + curr.lessonsTotal,
-            lessonsSick: acc.lessonsSick + curr.lessonsSick,
-            late: acc.late + curr.late,
-        }), { fullDaysTotal: 0, fullDaysSick: 0, lessonsTotal: 0, lessonsSick: 0, late: 0 });
-        setAttendanceTotal(total);
     }, [groupId, loadData, router, attendanceStudents]);
 
     const isOwner = userData?.uid === group?.fk_user;
@@ -116,7 +116,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
     };
 
     // Функция обновления поля в таблице посещаемости
-    const updateAttendanceField = (index: number, field: keyof AttendanceStudent, value: any) => {
+    const updateAttendanceField = (index: number, field: keyof AttendanceStudent, value: string) => {
         if (!isOwner) return;
         const updated = [...attendanceStudents];
         updated[index] = { ...updated[index], [field]: (field === 'fullName' || field === 'number') ? value : (parseInt(value) || 0) };
