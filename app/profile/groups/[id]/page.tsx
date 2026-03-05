@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import {
     Dialog, DialogTrigger, DialogContent, DialogHeader,
-    DialogTitle, DialogFooter
+    DialogTitle, DialogFooter, DialogDescription, DialogClose
 } from "@/components/ui/Dialog";
 import ErrorMessage from "@/components/NotifyAlert";
 import { getSession, SessionPayload } from "@/utils/session";
@@ -20,6 +20,7 @@ import {exportGradesToWord, exportToWord} from "@/utils/functions";
 import {
     AttendanceStudent, AttendanceTotal, Group, Notify, GradeStudent
 } from "@/utils/interfaces";
+
 interface UserListItem { id: number; full_name: string; }
 
 export default function MyGroup({ params }: { params: Promise<{ id: string }> }) {
@@ -60,7 +61,6 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
             if (!session) return router.replace(`/login?to=profile/groups/${groupId}`);
             setUserData(session);
             loadData(groupId).then(() => {
-                // Логика расчета итогов посещаемости
                 const total = attendanceStudents.reduce((acc, curr) => ({
                     fullDaysTotal: acc.fullDaysTotal + curr.fullDaysTotal,
                     fullDaysSick: acc.fullDaysSick + curr.fullDaysSick,
@@ -75,7 +75,6 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
 
     const isOwner = userData?.uid === group?.fk_user;
 
-    // Функция импорта посещаемости из файла
     const handleAttendanceFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!isOwner) return;
         const file = e.target.files?.[0];
@@ -104,7 +103,6 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
         reader.readAsText(file);
     };
 
-    // Функция загрузки посещаемости из БД
     const handleLoadFromDB = async () => {
         const result = await GetAttendance(groupId);
         if (result.success && result.data.length > 0) {
@@ -115,7 +113,6 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
         }
     };
 
-    // Функция обновления поля в таблице посещаемости
     const updateAttendanceField = (index: number, field: keyof AttendanceStudent, value: string) => {
         if (!isOwner) return;
         const updated = [...attendanceStudents];
@@ -123,7 +120,6 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
         setAttendanceStudents(updated);
     };
 
-    // Функция загрузки успеваемости из файла
     const handleGradesFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!isOwner) return;
         const file = e.target.files?.[0];
@@ -134,14 +130,12 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
             const parser = new DOMParser();
             const doc = parser.parseFromString(event.target?.result as string, 'text/html');
 
-            // Берём первую таблицу (оценки), вторая - это сводка успеваемости
             const table = doc.querySelector('table.grid.gridLines.vam.marks.print_A4') ||
                 doc.querySelector('table');
             if (!table) return setNotify({ message: "Таблица успеваемости не найдена", type: 'error' });
 
             const rows = Array.from(table.querySelectorAll('tr'));
 
-            // Находим строку заголовка
             const headerRowIndex = rows.findIndex(r =>
                 r.textContent?.includes('Фамилия') && r.textContent?.includes('Имя')
             );
@@ -152,7 +146,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
             const headerCells = Array.from(rows[headerRowIndex].cells);
             const subjectsList = headerCells.slice(2, -2).map(cell => {
                 let name = cell.textContent || '';
-                name = name.replace(/[\n\r]+/g, ' ');   // br → пробел
+                name = name.replace(/[\n\r]+/g, ' ');
                 return name.replace(/\s+/g, ' ').trim();
             });
 
@@ -162,7 +156,6 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                     const cells = Array.from(row.cells);
                     const numText = cells[0]?.textContent?.trim() || '';
 
-                    // Пропускаем строки итогов
                     if (!/^\d+$/.test(numText) || cells.length < 2 + subjectsList.length) {
                         return null;
                     }
@@ -174,10 +167,9 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
 
                     const subjects = subjectsList.map((name, idx) => ({
                         name,
-                        grade: (cells[idx + 2]?.textContent || '').trim().replace(/\u00A0/g, '') // &nbsp;
+                        grade: (cells[idx + 2]?.textContent || '').trim().replace(/\u00A0/g, '')
                     }));
 
-                    // Пересчёт среднего балла
                     const validGrades = subjects
                         .map(s => parseFloat(s.grade.replace(',', '.')))
                         .filter(g => !isNaN(g) && g >= 2 && g <= 5);
@@ -201,7 +193,6 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
         reader.readAsText(file);
     };
 
-    // Функция загрузки успеваемости из БД
     const handleLoadGradesFromDB = async () => {
         const result = await GetGrades(groupId);
         if (result.success && result.data.length > 0) {
@@ -212,20 +203,17 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
         }
     };
 
-    // Функция обновления полей оценок
     const updateGradeField = (studentIndex: number, subjectIndex: number, value: string) => {
         if (!isOwner) return;
         const updated = [...gradesStudents];
         updated[studentIndex].subjects[subjectIndex].grade = value;
 
-        // Пересчет среднего
         const validGrades = updated[studentIndex].subjects.map(s => parseFloat(s.grade.replace(',', '.'))).filter(g => !isNaN(g));
         updated[studentIndex].averageScore = validGrades.length > 0 ? parseFloat((validGrades.reduce((a, b) => a + b, 0) / validGrades.length).toFixed(2)) : 0;
 
         setGradesStudents(updated);
     };
 
-    // Универсальные drag & drop ф-ии
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
         e.stopPropagation();
@@ -259,18 +247,6 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
     };
 
     if (!group) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-blue-600" /></div>;
-
-    const subjectAverages = gradesStudents.length > 0
-        ? gradesStudents[0].subjects.map((_, subIdx) => {
-            const grades = gradesStudents
-                .map(s => parseFloat(s.subjects[subIdx].grade.replace(',', '.')))
-                .filter(g => !isNaN(g) && g >= 2 && g <= 5); // Учитываем только оценки 2-5
-
-            return grades.length > 0
-                ? (grades.reduce((a, b) => a + b, 0) / grades.length).toFixed(2)
-                : '-';
-        })
-        : [];
 
     return (
         <div className="w-full space-y-5 sm:space-y-6 px-3 sm:px-4 md:px-6 pb-8 sm:pb-10">
@@ -326,16 +302,79 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                     </button>
                                 </DialogTrigger>
                                 <DialogContent>
-                                    <DialogHeader><DialogTitle>Передать права</DialogTitle></DialogHeader>
-                                    <select className="w-full p-3 mt-4 rounded-lg border dark:bg-zinc-900 outline-none" value={updateFormData.fk_user} onChange={e => setUpdateFormData({...updateFormData, fk_user: e.target.value})}>
-                                        {users.map(u => <option key={u.id} value={u.id}>{u.full_name}</option>)}
+                                    <DialogHeader>
+                                        <DialogTitle>Передать права</DialogTitle>
+                                    </DialogHeader>
+                                    <select
+                                        className="w-full p-3 mt-4 rounded-lg border dark:bg-zinc-900 outline-none"
+                                        value={updateFormData.fk_user}
+                                        onChange={e => setUpdateFormData({...updateFormData, fk_user: e.target.value})}
+                                    >
+                                        <option value="" disabled>Выберите нового владельца</option>
+                                        {users
+                                            .filter(u => u.id !== userData?.uid)
+                                            .map(u => (
+                                                <option key={u.id} value={String(u.id)}>
+                                                    {u.full_name}
+                                                </option>
+                                            ))
+                                        }
                                     </select>
-                                    <DialogFooter><button onClick={() => startTransition(async () => { await UpdateGroup(groupId, updateFormData); router.push('/profile/groups'); })} className="w-full bg-amber-600 text-white py-3 rounded-lg font-bold">Подтвердить</button></DialogFooter>
+                                    <DialogFooter className="gap-3">
+                                        <button
+                                            onClick={() => {
+                                                if (!updateFormData.fk_user) return;
+                                                startTransition(async () => {
+                                                    await UpdateGroup(groupId, updateFormData);
+                                                    router.push('/profile/groups');
+                                                });
+                                            }}
+                                            className="flex-1 bg-amber-600 text-white py-3 rounded-lg font-bold"
+                                            disabled={!updateFormData.fk_user}
+                                        >
+                                            Подтвердить
+                                        </button>
+                                        <DialogClose asChild>
+                                            <button className="flex-1 bg-gray-200 dark:bg-zinc-700 py-3 rounded-lg font-medium">
+                                                Отмена
+                                            </button>
+                                        </DialogClose>
+                                    </DialogFooter>
                                 </DialogContent>
                             </Dialog>
-                            <button onClick={() => {if(confirm("Удалить?")) DeleteGroup(groupId).then(() => router.push('/profile/groups'))}} className="flex-1 md:flex-none flex items-center gap-2 px-4 py-2.5 bg-red-50 text-red-600 hover:bg-red-500 hover:text-white rounded-lg font-semibold text-sm transition-colors">
-                                <Trash2 size={18}/> Удалить
-                            </button>
+
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <button className="flex-1 md:flex-none flex items-center gap-2 px-4 py-2.5 bg-red-50 text-red-600 hover:bg-red-500 hover:text-white rounded-lg font-semibold text-sm transition-colors">
+                                        <Trash2 size={18}/> Удалить
+                                    </button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Удаление группы</DialogTitle>
+                                        <DialogDescription className="pt-2">
+                                            Вы действительно хотите удалить группу «{group.name}»?<br/>
+                                            Это действие нельзя отменить.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <DialogFooter className="gap-3 sm:gap-4">
+                                        <button
+                                            onClick={() => startTransition(async () => {
+                                                await DeleteGroup(groupId);
+                                                router.push('/profile/groups');
+                                            })}
+                                            className="flex-1 bg-red-600 text-white py-3 rounded-lg font-bold"
+                                        >
+                                            Да, удалить
+                                        </button>
+                                        <DialogClose asChild>
+                                            <button className="flex-1 bg-gray-200 dark:bg-zinc-700 py-3 rounded-lg font-medium">
+                                                Отмена
+                                            </button>
+                                        </DialogClose>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
                         </div>
                     )}
                 </div>
@@ -448,7 +487,8 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
             )}
 
             {activeTab === 'grades' && (
-                <div className="w-full bg-white dark:bg-zinc-800 rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm p-6 overflow-hidden">                    <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
+                <div className="w-full bg-white dark:bg-zinc-800 rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm p-6 overflow-hidden">
+                    <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-purple-50 text-purple-600 rounded-lg"><GraduationCap size={20}/></div>
                             <h2 className="text-lg font-bold">Журнал успеваемости</h2>
@@ -498,7 +538,8 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                     {gradesStudents[0].subjects.map((sub, idx) => (
                                         <th key={idx} className="py-4 px-2 text-center truncate max-w-25" title={sub.name}>
                                             {sub.name}
-                                        </th>                                    ))}
+                                        </th>
+                                    ))}
                                     <th className="py-4 px-4 bg-purple-50 text-gray-400">Средний</th>
                                 </tr>
                                 </thead>
@@ -526,19 +567,6 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                         <td className="py-3 text-center font-bold bg-purple-50/20 border-purple-100 border-l-2">{student.averageScore}</td>
                                     </tr>
                                 ))}
-                                {gradesStudents.length > 0 && (
-                                    <tr className="divide-x divide-gray-100 dark:divide-zinc-700 bg-purple-50/30 font-bold border-t-2 border-purple-100 dark:border-zinc-700">
-                                        <td className="p-4 text-center text-purple-500 text-[10px]"></td>
-                                        <td className="px-2 py-3 text-gray-400 uppercase text-[11px] tracking-wider">
-                                            Средний балл по предмету
-                                        </td>
-                                        {subjectAverages.map((avg, idx) => (
-                                            <td key={`avg-${idx}`} className="py-3 text-center">
-                                                {avg}
-                                            </td>
-                                        ))}
-                                    </tr>
-                                )}
                                 </tbody>
                             </table>
                         </div>
