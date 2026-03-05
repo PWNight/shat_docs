@@ -1,47 +1,82 @@
 "use client"
-import React, { useActionState, useEffect, useState } from "react";
+import React, {useActionState, useCallback, useEffect, useState} from "react";
 import { useRouter } from "next/navigation";
 import { getSession } from "@/utils/session";
 import {getAllGroups} from "@/utils/handlers";
 import ErrorMessage from "@/components/NotifyAlert";
 import {Loader2, SearchX, Plus, Users, Calendar, ArrowRight, UserStar} from "lucide-react";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger
-} from "@/components/ui/Dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/Dialog";
 import { CreateGroup } from "@/utils/handlers";
 import Link from "next/link";
 import { GroupFormState } from "@/utils/definitions";
+import { CreateFormProps, Group, Notify } from "@/utils/interfaces";
 
-// Интерфейсы
-interface Group {
-    id: string;
-    name: string;
-    fk_user: string;
-    created_by: string;
-    leader: string;
-}
+// Форма создания группы
+const GroupCreateForm = ({ open, setOpen, dispatch, pending, state, userData }: CreateFormProps) => {
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm active:scale-95">
+                    <Plus className="w-5 h-5" />
+                    Создать группу
+                </button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-106.25">
+                <DialogHeader>
+                    <DialogTitle className="text-2xl font-bold">Новая группа</DialogTitle>
+                </DialogHeader>
+                <form action={dispatch} className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                        <label htmlFor="name" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                            Название группы
+                        </label>
+                        <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            required
+                            className="mt-1 w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                            placeholder=""
+                        />
+                        <input type="hidden" name="fk_user" defaultValue={userData?.uid} />
 
-interface Notify {
-    message: string;
-    type: 'success' | 'warning' | 'error' | '';
-}
+                        {state?.fieldErrors?.name && (
+                            <p className="text-red-500 text-xs font-medium">{state.fieldErrors.name}</p>
+                        )}
+                        {state?.fieldErrors?.fk_user && (
+                            <p className="text-red-500 text-xs font-medium">{state.fieldErrors.fk_user}</p>
+                        )}
+                    </div>
+
+                    {state?.message && !state.success && (
+                        <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm">
+                            {state.message}
+                        </div>
+                    )}
+
+                    <button
+                        type="submit"
+                        disabled={pending}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                        {pending ? <Loader2 className="h-5 w-5 animate-spin" /> : "Создать группу"}
+                    </button>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+};
 
 export default function ProfileGroups() {
     // Технические переменные
     const router = useRouter();
     const [state, dispatch, pending] = useActionState(
-        async (prevState: GroupFormState, formData: FormData | null) => {
-            if (formData === null) {
-                return undefined;
-            }
+        async (prevState: GroupFormState, formData: FormData) => {
             return CreateGroup(prevState, formData);
         },
         undefined
     );
+
     // Информационные переменные
     const [userData, setUserData] = useState(Object);
     const [groups, setGroups] = useState([]);
@@ -52,38 +87,34 @@ export default function ProfileGroups() {
     const [open, setOpen] = useState(false);
 
     // Функция загрузки данных
-    const loadData = async () => {
+    const loadData = useCallback(async () => {
         const response = await getAllGroups();
         if (!response.success) {
-            setNotify({ message: response.message || "Ошибка", type: 'error' });
-            setPageLoaded(true);
-            return;
+            setNotify({ message: response.message || "Ошибка загрузки", type: 'error' });
+        } else {
+            setGroups(response.data);
         }
-        setGroups(response.data);
-    };
+    }, []);
 
+    // Инициализация страницы
     useEffect(() => {
-        if (state?.success) {
-            loadData()
-            setOpen(false);
-            setNotify({ message: "Группа создана", type: "success" });
-        }
-    }, [state]);
+        let isMounted = true;
 
-    // Событие при загрузке страницы
-    useEffect(() => {
-        // Получаем сессию
-        getSession().then(async session => {
+        getSession().then(async (session) => {
+            if (!isMounted) return;
+
             if (!session) {
                 router.push("/login?to=profile/groups");
                 return;
             }
-            setUserData({ email: session.email, uid: session.uid });
 
-            await loadData()
+            setUserData({ email: session.email, uid: session.uid });
+            await loadData();
             setPageLoaded(true);
         });
-    }, [router]);
+
+        return () => { isMounted = false; };
+    }, [router, loadData]);
 
     // Выводим окно загрузки, пока не получим все данные
     if (!pageLoaded) {
@@ -93,62 +124,6 @@ export default function ProfileGroups() {
             </div>
         );
     }
-
-    // Форма создания группы
-    const GroupCreateForm = () => {
-        return (
-            <Dialog open={open} onOpenChange={setOpen}>
-                <DialogTrigger asChild>
-                    <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm active:scale-95">
-                        <Plus className="w-5 h-5" />
-                        Создать группу
-                    </button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-106.25">
-                    <DialogHeader>
-                        <DialogTitle className="text-2xl font-bold">Новая группа</DialogTitle>
-                    </DialogHeader>
-                    <form action={dispatch} className="space-y-4 mt-4">
-                        <div className="space-y-2">
-                            <label htmlFor="name" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                Название группы
-                            </label>
-                            <input
-                                type="text"
-                                id="name"
-                                name="name"
-                                required
-                                className="mt-1 w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                placeholder=""
-                            />
-                            <input type="hidden" name="fk_user" defaultValue={userData?.uid} />
-
-                            {state?.fieldErrors?.name && (
-                                <p className="text-red-500 text-xs font-medium">{state.fieldErrors.name}</p>
-                            )}
-                            {state?.fieldErrors?.fk_user && (
-                                <p className="text-red-500 text-xs font-medium">{state.fieldErrors.fk_user}</p>
-                            )}
-                        </div>
-
-                        {state?.message && !state.success && (
-                            <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm">
-                                {state.message}
-                            </div>
-                        )}
-
-                        <button
-                            type="submit"
-                            disabled={pending}
-                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                        >
-                            {pending ? <Loader2 className="h-5 w-5 animate-spin" /> : "Создать группу"}
-                        </button>
-                    </form>
-                </DialogContent>
-            </Dialog>
-        );
-    };
 
     return (
         <div>
@@ -168,7 +143,14 @@ export default function ProfileGroups() {
                         Управление учебными коллективами и участниками
                     </p>
                 </div>
-                <GroupCreateForm />
+                <GroupCreateForm
+                    open={open}
+                    setOpen={setOpen}
+                    dispatch={dispatch}
+                    pending={pending}
+                    state={state}
+                    userData={userData}
+                />
             </div>
 
             {groups.length > 0 ? (

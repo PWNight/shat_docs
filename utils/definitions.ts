@@ -80,6 +80,7 @@ export type GroupFormState =
         fk_user?: string[]
     }
     message?: string
+    success?: boolean
 }
     | undefined
 

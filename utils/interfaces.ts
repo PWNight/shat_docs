@@ -1,3 +1,5 @@
+import {GroupFormState} from "@/utils/definitions";
+
 export interface AttendanceStudent {
     number: string;
     fullName: string;
@@ -29,6 +31,14 @@ export interface Group {
     fk_user: number;
     leader: string;
     created_by: string;
+}
+export interface CreateFormProps {
+    open: boolean;
+    setOpen: (open: boolean) => void;
+    dispatch: (payload: FormData) => void;
+    pending: boolean;
+    state: GroupFormState | undefined;
+    userData: { uid?: string };
 }
 export interface Notify {
     message: string;
