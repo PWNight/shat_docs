@@ -1,11 +1,11 @@
 import {
     GroupFormSchema, GroupFormState,
     LoginFormSchema, LoginFormState,
-    RegisterFormSchema, RegisterFormState,
-    StudentFormSchema
+    RegisterFormSchema, RegisterFormState
 } from "@/utils/definitions";
 import { handleApiResponse } from "@/utils/functions";
 import {z} from "zod";
+import {AttendanceStudent, GradeStudent} from "@/utils/interfaces";
 
 // Код авторизации
 export async function Login(_prevState: LoginFormState, formData: FormData): Promise<LoginFormState> {
@@ -167,47 +167,7 @@ export async function DeleteGroup(id: string) {
     }
 }
 
-// Код сохранения (создания/редактирования) студента
-export async function SaveStudent(studentId: string | undefined, data: object) {
-    try {
-        // Валидация на стороне клиента перед отправкой
-        const parsed = StudentFormSchema.safeParse(data);
-        if (!parsed.success) {
-            return {
-                success: false,
-                message: "Ошибка валидации",
-                fieldErrors: z.flattenError(parsed.error).fieldErrors
-            };
-        }
-
-        const url = studentId ? `/api/v1/students/${studentId}` : `/api/v1/students`;
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(parsed.data),
-        });
-
-        return await handleApiResponse(response);
-    } catch (error) {
-        console.log(error);
-        return { success: false, message: error instanceof Error ? error.message : 'Ошибка сохранения' };
-    }
-}
-
-export async function DeleteStudent(id: number) {
-    try {
-        const response = await fetch(`/api/v1/students/${id}`, {
-            method: 'DELETE',
-        });
-
-        return await handleApiResponse(response);
-    } catch (error) {
-        console.log( error )
-        return { success: false, message: error instanceof Error ? error.message : 'Ошибка удаления' };
-    }
-}
-
-export async function SaveAttendance(groupId: string, students: any[]) {
+export async function SaveAttendance(groupId: string, students: AttendanceStudent[]) {
     try {
         const response = await fetch(`/api/v1/groups/${groupId}/attendance`, {
             method: 'POST',
@@ -216,7 +176,10 @@ export async function SaveAttendance(groupId: string, students: any[]) {
         });
         return await handleApiResponse(response);
     } catch (error) {
-        return { success: false, message: "Ошибка синхронизации с БД" };
+        const errorMessage =
+            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
+
+        return { success: false, message: errorMessage };
     }
 }
 
@@ -227,7 +190,10 @@ export async function GetAttendance(groupId: string) {
         });
         return await handleApiResponse(response);
     } catch (error) {
-        return { success: false, message: "Ошибка загрузки из БД" };
+        const errorMessage =
+            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
+
+        return { success: false, message: errorMessage };
     }
 }
 
@@ -259,20 +225,6 @@ export async function getGroup(id: string){
     }
 }
 
-export async function getStudentsByGroup(groupId: string) {
-    try {
-        const response = await fetch(`/api/v1/groups/${groupId}/students`);
-        const { data } = await handleApiResponse(response);
-
-        return { success: true, data};
-    } catch (error) {
-        const errorMessage =
-            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
-
-        return { success: false, message: errorMessage };
-    }
-}
-
 export async function getUsersList() {
     try {
         const response = await fetch('/api/v1/users');
@@ -287,7 +239,7 @@ export async function getUsersList() {
     }
 }
 
-export async function SaveGrades(groupId: string, students: any[]) {
+export async function SaveGrades(groupId: string, students: GradeStudent[]) {
     try {
         const response = await fetch(`/api/v1/groups/${groupId}/grades`, {
             method: 'POST',
@@ -296,7 +248,10 @@ export async function SaveGrades(groupId: string, students: any[]) {
         });
         return await handleApiResponse(response);
     } catch (error) {
-        return { success: false, message: "Ошибка сохранения успеваемости" };
+        const errorMessage =
+            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
+
+        return { success: false, message: errorMessage };
     }
 }
 
@@ -307,6 +262,9 @@ export async function GetGrades(groupId: string) {
         });
         return await handleApiResponse(response);
     } catch (error) {
-        return { success: false, message: "Ошибка загрузки успеваемости" };
+        const errorMessage =
+            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
+
+        return { success: false, message: errorMessage };
     }
 }

@@ -83,11 +83,3 @@ export type GroupFormState =
     success?: boolean
 }
     | undefined
-
-export type StudentFormState = {
-    fieldErrors?: {
-        full_name?: string[];
-        fk_group?: string[];
-    };
-    message?: string;
-} | undefined;
