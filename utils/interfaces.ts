@@ -38,7 +38,7 @@ export interface CreateFormProps {
     dispatch: (payload: FormData) => void;
     pending: boolean;
     state: GroupFormState | undefined;
-    userData: { uid?: string };
+    userData: { email: string; uid: number; };
 }
 export interface Notify {
     message: string;
