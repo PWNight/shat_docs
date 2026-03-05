@@ -88,7 +88,13 @@ export async function POST(request: NextRequest, {params}: { params: Promise<{ i
         }
 
         values.push(id);
-        await execute("UPDATE `groups` SET ${updates.join(', ')} WHERE id = ?", values)
+        const sql = `
+            UPDATE \`groups\`
+            SET ${updates.join(', ')}
+            WHERE id = ?
+        `;
+        await execute(sql, values);
+
         return NextResponse.json({ success: true, message: "Группа успешно обновлена" }, { status: 200 });
     } catch (error) {
         console.error("Ошибка работы API", error);
