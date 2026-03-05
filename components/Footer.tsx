@@ -8,7 +8,7 @@ export function Footer() {
     const appVersion = process.env.APP_VERSION;
 
     return (
-        <footer className="w-full p-2 px-6 border-t bg-muted/10 flex flex-col sm:flex-row justify-between gap-4">
+        <footer className="w-full p-2 px-6 border-t bg-muted/10 flex flex-row justify-between gap-4">
             <div className="flex items-center gap-3">
                 <Image
                     src="/logo.png"
@@ -16,7 +16,7 @@ export function Footer() {
                     width={36}
                     height={36}
                     quality={100}
-                    className="flex-shrink-0 transition-transform hover:scale-105"
+                    className="shrink-0 transition-transform hover:scale-105"
                 />
                 <div className="">
                     <p className="text-sm opacity-90">SHAT Docs © 2025-{new Date().getFullYear()}</p>

@@ -249,15 +249,12 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
     if (!group) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-blue-600" /></div>;
 
     return (
-        <div className="w-full space-y-5 sm:space-y-6 px-3 sm:px-4 md:px-6 pb-8 sm:pb-10">
+        <div className="w-full space-y-5 sm:space-y-6 pb-8 sm:pb-10">
             {notify.message && <ErrorMessage message={notify.message} type={notify.type} onClose={() => setNotify({ message: '', type: '' })} />}
 
-            <div className="bg-white dark:bg-zinc-800 py-4 px-2 rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm">
-                <div className="flex flex-col md:flex-row justify-between items-center">
-                    <div className="flex items-center gap-5 w-full md:w-auto">
-                        <Link href="/profile/groups" className="p-3 bg-gray-50 dark:bg-zinc-900 text-gray-400 rounded-lg border border-transparent hover:bg-blue-500 hover:text-white transition-all">
-                            <ArrowLeft size={22} />
-                        </Link>
+            <div className="bg-white dark:bg-zinc-800 rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm">
+                <div className="flex flex-col md:flex-row justify-between items-center py-4 px-6">
+                    <div className="flex items-center gap-5 w-full md:w-auto mb-2">
                         <div className="flex-1">
                             <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 px-1">Название группы</label>
                             <div className="relative group max-w-sm">
@@ -267,7 +264,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                     onChange={e => setUpdateFormData({...updateFormData, name: e.target.value})}
                                     className="text-2xl font-bold bg-transparent border-b-2 border-blue-500 outline-none w-full pb-1 transition-all disabled:opacity-80"
                                 />
-                                <div className="flex flex-col justify-between items-center xl:items-start gap-2 mt-2">
+                                <div className="flex lg:flex-col justify-between items-center xl:items-start gap-2 mt-2">
                                     <div className='flex gap-2'>
                                         {isOwner && <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-blue-600 text-white rounded shadow-sm">Ваша группа</span>}
                                         <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-gray-100 dark:bg-zinc-700 rounded text-gray-500">ID: {group.id}</span>
@@ -380,7 +377,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                 </div>
             </div>
 
-            <div className="flex gap-4 border-b dark:border-zinc-700">
+            <div className="flex gap-4 lg:justify-start justify-between border-b dark:border-zinc-700">
                 <button
                     onClick={() => setActiveTab('attendance')}
                     className={`pb-3 px-4 flex items-center gap-2 font-bold text-sm transition-all ${activeTab === 'attendance' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-400'}`}
@@ -397,7 +394,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
 
             {activeTab === 'attendance' && (
                 <div className="bg-white dark:bg-zinc-800 rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm p-6 overflow-hidden">
-                    <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
+                    <div className="flex flex-col sm:flex-row lg:items-center justify-between mb-6 gap-4">
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-blue-50 text-blue-600 rounded-lg"><FileText size={20}/></div>
                             <h2 className="text-lg font-bold">Ведомость посещаемости</h2>
@@ -431,7 +428,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                         isOwner ? (
                             <label onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} className={`flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-3xl cursor-pointer transition-all group ${isDragging ? "border-blue-500 bg-blue-50/50" : "border-gray-100 dark:border-zinc-700 hover:bg-blue-50/20"}`}>
                                 <Upload className={`${isDragging ? "text-blue-500 scale-110" : "text-gray-300 group-hover:text-blue-500"} transition-all mb-4`} size={40} />
-                                <span className="text-sm font-medium text-gray-500">{isDragging ? "Отпустите файл здесь" : "Загрузить отчет по посещаемости или перетащите файл"}</span>
+                                <span className="text-sm lg:text-left text-center font-medium text-gray-500">{isDragging ? "Отпустите файл здесь" : "Загрузить отчет по посещаемости или перетащите файл"}</span>
                                 <input type="file" className="hidden" accept=".xls, .xlsx, text/html" onChange={handleAttendanceFileUpload} />
                             </label>
                         ) : (
@@ -488,7 +485,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
 
             {activeTab === 'grades' && (
                 <div className="w-full bg-white dark:bg-zinc-800 rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm p-6 overflow-hidden">
-                    <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
+                    <div className="flex flex-col sm:flex-row lg:items-center justify-between mb-6 gap-4">
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-purple-50 text-purple-600 rounded-lg"><GraduationCap size={20}/></div>
                             <h2 className="text-lg font-bold">Журнал успеваемости</h2>
@@ -512,7 +509,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                 </>
                             ) : (
                                 <button onClick={handleLoadGradesFromDB} className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-all">
-                                    <Database size={16}/> Из базы
+                                    <Database size={16}/> Загрузить из БД
                                 </button>
                             )}
                         </div>
@@ -522,7 +519,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                         isOwner ? (
                             <label onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} className={`flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-3xl cursor-pointer transition-all group ${isDraggingGrades ? "border-purple-500 bg-purple-50/50" : "border-gray-100 dark:border-zinc-700 hover:bg-purple-50/20"}`}>
                                 <Upload className={`${isDraggingGrades ? "text-purple-500 scale-110" : "text-gray-300 group-hover:text-purple-500"} transition-all mb-4`} size={40} />
-                                <span className="text-sm font-medium text-gray-500">{isDraggingGrades ? "Отпустите файл здесь" : "Загрузить отчет по успеваемости (Дневник.ру)"}</span>
+                                <span className="text-sm lg:text-left text-center font-medium text-gray-500">{isDraggingGrades ? "Отпустите файл здесь" : "Загрузить отчет по успеваемости (Дневник.ру)"}</span>
                                 <input type="file" className="hidden" accept=".xls, .xlsx, text/html" onChange={handleGradesFileUpload} />
                             </label>
                         ) : (
