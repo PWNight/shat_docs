@@ -1,15 +1,14 @@
 "use client"
 import React, {useActionState, useCallback, useEffect, useState} from "react";
-import { useRouter } from "next/navigation";
-import { getSession } from "@/utils/session";
-import {getAllGroups} from "@/utils/handlers";
+import {useRouter} from "next/navigation";
+import {getSession} from "@/utils/session";
+import {CreateGroup, getAllGroups} from "@/utils/handlers";
 import ErrorMessage from "@/components/NotifyAlert";
-import {Loader2, SearchX, Plus, Users, Calendar, ArrowRight, UserStar} from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/Dialog";
-import { CreateGroup } from "@/utils/handlers";
+import {ArrowRight, Calendar, Loader2, Plus, SearchX, Users, UserStar} from "lucide-react";
+import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger} from "@/components/ui/Dialog";
 import Link from "next/link";
-import { GroupFormState } from "@/utils/definitions";
-import { CreateFormProps, Group, Notify } from "@/utils/interfaces";
+import {GroupFormState} from "@/utils/definitions";
+import {CreateFormProps, Group, Notify} from "@/utils/interfaces";
 
 // Форма создания группы
 const GroupCreateForm = ({ open, setOpen, dispatch, pending, state, userData }: CreateFormProps) => {
@@ -68,35 +67,41 @@ const GroupCreateForm = ({ open, setOpen, dispatch, pending, state, userData }: 
 };
 
 export default function ProfileGroups() {
-    // Технические переменные
     const router = useRouter();
-    const [state, dispatch, pending] = useActionState(
-        async (prevState: GroupFormState, formData: FormData) => {
-            return CreateGroup(prevState, formData);
-        },
-        undefined
-    );
 
-    // Информационные переменные
-    const [userData, setUserData] = useState(Object);
-    const [groups, setGroups] = useState([]);
-
-    // Переменные состояний
+    const [userData, setUserData] = useState<{ email: string; uid: number }>(Object);
+    const [groups, setGroups] = useState<Group[]>([]);
     const [pageLoaded, setPageLoaded] = useState(false);
     const [notify, setNotify] = useState<Notify>({ message: '', type: '' });
     const [open, setOpen] = useState(false);
 
-    // Функция загрузки данных
+    // Функция загрузки списка групп
     const loadData = useCallback(async () => {
         const response = await getAllGroups();
         if (!response.success) {
-            setNotify({ message: response.message || "Ошибка загрузки", type: 'error' });
+            setNotify({ message: response.message || "Ошибка загрузки групп", type: 'error' });
         } else {
-            setGroups(response.data);
+            setGroups(response.data || []);
         }
     }, []);
 
-    // Инициализация страницы
+    // useActionState для создания группы
+    const [state, dispatch, pending] = useActionState<GroupFormState, FormData>(
+        async (prevState: GroupFormState, formData: FormData) => {
+            const result = await CreateGroup(prevState, formData);
+
+            if (result.success) {
+                setOpen(false);
+                setNotify({ message: "Группа успешно создана", type: "success" });
+                await loadData();
+            }
+
+            return result;
+        },
+        { success: false, message: "", fieldErrors: {} }
+    );
+
+    // Инициализация при монтировании
     useEffect(() => {
         let isMounted = true;
 
@@ -113,10 +118,11 @@ export default function ProfileGroups() {
             setPageLoaded(true);
         });
 
-        return () => { isMounted = false; };
+        return () => {
+            isMounted = false;
+        };
     }, [router, loadData]);
 
-    // Выводим окно загрузки, пока не получим все данные
     if (!pageLoaded) {
         return (
             <div className="flex h-[60vh] w-full items-center justify-center">
@@ -134,6 +140,7 @@ export default function ProfileGroups() {
                     onClose={() => setNotify({ message: '', type: '' })}
                 />
             )}
+
             <div className="flex flex-col xl:flex-row xl:items-center items-start justify-between gap-4 mb-4">
                 <div>
                     <h1 className="text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
@@ -143,6 +150,7 @@ export default function ProfileGroups() {
                         Управление учебными коллективами и участниками
                     </p>
                 </div>
+
                 <GroupCreateForm
                     open={open}
                     setOpen={setOpen}
@@ -156,7 +164,6 @@ export default function ProfileGroups() {
             {groups.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                     {groups.map((group: Group) => {
-                        // Проверяем, является ли текущий пользователь владельцем группы
                         const isOwner = group.fk_user === userData?.uid;
                         return (
                             <div
@@ -170,10 +177,9 @@ export default function ProfileGroups() {
                                     <div className='flex gap-2'>
                                         {isOwner && (
                                             <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-blue-600 text-white rounded shadow-sm">
-                                            Ваша группа
-                                        </span>
+                                                Ваша группа
+                                            </span>
                                         )}
-
                                         <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-gray-100 dark:bg-zinc-700 rounded text-gray-500">
                                             ID: {group.id}
                                         </span>
@@ -202,7 +208,7 @@ export default function ProfileGroups() {
                                     <ArrowRight className="w-4 h-4" />
                                 </Link>
                             </div>
-                        )
+                        );
                     })}
                 </div>
             ) : (
