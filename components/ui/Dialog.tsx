@@ -69,7 +69,7 @@ const DialogFooter = ({
                       }: React.HTMLAttributes<HTMLDivElement>) => (
     <div
         className={cn(
-            "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
+            "flex flex-col sm:flex-row sm:justify-end sm:space-x-2",
             className
         )}
         {...props}
@@ -104,6 +104,21 @@ const DialogDescription = React.forwardRef<
 ));
 DialogDescription.displayName = DialogPrimitive.Description.displayName;
 
+const DialogClose = React.forwardRef<
+    React.ComponentRef<typeof DialogPrimitive.Close>,
+    React.ComponentPropsWithoutRef<typeof DialogPrimitive.Close>
+>(({ className, ...props }, ref) => (
+    <DialogPrimitive.Close
+        ref={ref}
+        className={cn(
+            "rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground",
+            className
+        )}
+        {...props}
+    />
+));
+DialogClose.displayName = DialogPrimitive.Close.displayName;
+
 export {
     Dialog,
     DialogPortal,
@@ -114,4 +129,5 @@ export {
     DialogFooter,
     DialogTitle,
     DialogDescription,
+    DialogClose,
 };
