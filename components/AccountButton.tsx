@@ -32,8 +32,8 @@ export async function AuthButton() {
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl transition-all duration-200 font-semibold shadow-sm hover:shadow-md bg-blue-600 hover:bg-blue-700 text-white"
             >
                 <UserCircle className="w-4 h-4" />
-                <span className="max-w-[150px] truncate">
-                    {session.full_name || "Личный кабинет"}
+                <span className="text-sm truncate">
+                    Профиль
                 </span>
             </Anchor>
 
