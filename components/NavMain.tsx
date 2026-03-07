@@ -21,9 +21,9 @@ export const NAVLINKS = [
 
 export async function Navbar() {
     return (
-        <nav className="w-full border-b max-h-16 p-2 px-4 lg:px-10 flex items-center shadow-md bg-gray-200/10 dark:bg-gray-900/10 text-gray-900 dark:text-white">
+        <nav className="w-full border-b max-h-16 p-2 lg:px-10 flex items-center shadow-md bg-gray-200/10 dark:bg-gray-900/10 text-gray-900 dark:text-white">
             <div className="w-full h-full flex items-center justify-between gap-2">
-                <div className="flex items-center h-full gap-6">
+                <div className="flex items-center h-full lg:gap-6 gap-2">
                     <div className="sm:text-2xl text-lg">
                         <Logo />
                     </div>
