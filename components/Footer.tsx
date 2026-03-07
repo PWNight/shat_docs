@@ -2,7 +2,7 @@ import Link from "next/link";
 import { buttonVariants } from "./ui/Button";
 import React from "react";
 import Image from "next/image";
-import {Github, GithubIcon, LifeBuoy} from "lucide-react";
+import {LifeBuoy} from "lucide-react";
 
 export function Footer() {
     const appVersion = process.env.APP_VERSION;
