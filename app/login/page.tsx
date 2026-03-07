@@ -37,10 +37,10 @@ function LoginForm() {
 
     return (
         <form
-            className="w-full max-w-md mx-auto bg-white rounded-2xl p-8 shadow-lg text-gray-900"
+            className="w-full max-w-md mx-auto bg-white rounded-2xl p-8 shadow-lg text-gray-900 my-6"
             action={action}
         >
-            <h1 className="text-3xl font-bold mb-4 select-none">Вход в систему</h1>
+            <h1 className="text-3xl font-bold mb-4 select-none">Авторизация</h1>
             <input type="hidden" name="redirectTo" value={redirectTo} />
 
             <div className="mb-2">
@@ -61,7 +61,7 @@ function LoginForm() {
                 )}
             </div>
 
-            <div className="mb-2">
+            <div className="mb-6">
                 <label htmlFor="password" className="block mb-1 font-medium text-sm">
                     Пароль
                 </label>
@@ -72,13 +72,13 @@ function LoginForm() {
                         id="password"
                         name="password"
                         className="shadow-lg w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
-                        placeholder="🞄🞄🞄🞄🞄🞄🞄🞄"
+                        placeholder="********"
                     />
                     {state?.fieldErrors?.password && (
                         <p className="text-red-400 text-sm mt-2">{state.fieldErrors.password}</p>
                     )}
                 </div>
-                <div className="flex justify-between items-center mt-6 text-sm">
+                <div className="flex justify-between items-center mt-2 text-sm">
                     <label className="flex items-center gap-2 select-none">
                         <input
                             id="show-password"
@@ -123,7 +123,7 @@ function LoginForm() {
                         href="/register"
                         className="text-blue-400 hover:text-blue-500 flex items-center gap-2 transition-colors"
                     >
-                        Создать аккаунт
+                        Зарегистрируйтесь
                         <UserPlusIcon className="h-4 w-4" />
                     </Link>
                 </p>

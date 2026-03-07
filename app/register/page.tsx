@@ -37,10 +37,10 @@ function RegisterForm() {
 
     return (
         <form
-            className="w-full max-w-md mx-auto bg-white rounded-2xl p-8 shadow-lg text-gray-900"
+            className="w-full max-w-md mx-auto bg-white rounded-2xl p-8 shadow-lg text-gray-900 my-6"
             action={action}
         >
-            <h1 className="text-3xl font-bold mb-4 select-none">Регистрация в системе</h1>
+            <h1 className="text-3xl font-bold mb-4 select-none">Регистрация</h1>
 
             <input type="hidden" name="redirectTo" value={redirectTo} />
 
@@ -91,24 +91,23 @@ function RegisterForm() {
                         id="password"
                         name="password"
                         className="shadow-lg w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
-                        placeholder="🞄🞄🞄🞄🞄🞄🞄🞄"
+                        placeholder="********"
                     />
                     {state?.fieldErrors?.password && (
                         <p className="text-red-400 text-sm mt-2">{state.fieldErrors.password}</p>
                     )}
                 </div>
-            </div>
-
-            <div className="flex justify-between items-center mb-2 text-sm">
-                <label className="flex items-center gap-2 select-none">
-                    <input
-                        id="show-password"
-                        type="checkbox"
-                        className="h-4 w-4 text-blue-400 focus:ring-blue-400 border-gray-300 rounded"
-                        onChange={togglePasswordVisibility}
-                    />
-                    Показать пароль
-                </label>
+                <div className="flex justify-between items-center mt-2 text-sm">
+                    <label className="flex items-center gap-2 select-none">
+                        <input
+                            id="show-password"
+                            type="checkbox"
+                            className="h-4 w-4 text-blue-400 focus:ring-blue-400 border-gray-200 rounded"
+                            onChange={togglePasswordVisibility}
+                        />
+                        Показать пароль
+                    </label>
+                </div>
             </div>
 
             {state?.message && (
@@ -136,7 +135,7 @@ function RegisterForm() {
                         href="/login"
                         className="text-blue-400 hover:text-blue-500 flex items-center gap-2 transition-colors"
                     >
-                        Войти
+                        Авторизуйтесь
                         <User className="h-4 w-4" />
                     </Link>
                 </p>
