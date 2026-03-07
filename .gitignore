@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+storage.json
+storage.json-shm
+storage.json-wal
+qodana.yaml
