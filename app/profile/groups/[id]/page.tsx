@@ -252,7 +252,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
             {notify.message && <ErrorMessage message={notify.message} type={notify.type} onClose={() => setNotify({ message: '', type: '' })} />}
 
             <div className="bg-white dark:bg-zinc-800 rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm">
-                <div className="flex flex-col md:flex-row justify-between items-center py-4 px-6">
+                <div className="flex flex-col md:flex-row justify-between items-center lg:p-6 p-4">
                     <div className="flex items-center gap-5 w-full md:w-auto mb-2">
                         <div className="flex-1">
                             <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 px-1">Название группы</label>
@@ -392,7 +392,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
             </div>
 
             {activeTab === 'attendance' && (
-                <div className="bg-white dark:bg-zinc-800 rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm p-6 overflow-hidden">
+                <div className="w-full bg-white dark:bg-zinc-800 rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm p-6 overflow-hidden">
                     <div className="flex flex-col sm:flex-row lg:items-center justify-between mb-6 gap-4">
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-blue-50 text-blue-600 rounded-lg"><FileText size={20}/></div>
@@ -434,21 +434,21 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                             <div className="py-20 text-center text-gray-400">Нет данных для отображения</div>
                         )
                     ) : (
-                        <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-zinc-700">
-                            <table className="w-full text-sm border-collapse">
+                        <div className="w-full overflow-x-auto border border-gray-100 dark:border-zinc-700 rounded-lg">
+                            <table className="text-sm table-auto w-full min-w-150">
                                 <thead className="bg-gray-50/50 dark:bg-zinc-900/50 text-[10px] font-bold uppercase text-gray-400">
                                 <tr className="divide-x divide-gray-100 dark:divide-zinc-700 border-b dark:border-zinc-700">
-                                    <th rowSpan={2} className="py-4 w-10">ID</th>
-                                    <th rowSpan={2} className="py-4">ФИО</th>
-                                    <th colSpan={2} className="py-2 bg-gray-100/30 border-b dark:border-zinc-700">Дни</th>
-                                    <th colSpan={2} className="py-2 border-b dark:border-zinc-700">Уроки</th>
-                                    <th rowSpan={2} className="py-4 bg-red-50/30">Опозд.</th>
+                                    <th rowSpan={2} className="py-4 w-12 text-center">ID</th>
+                                    <th rowSpan={2} className="py-4 px-4 text-left">ФИО</th>
+                                    <th colSpan={2} className="py-2 bg-gray-100/30 border-b dark:border-zinc-700 text-center">Дни</th>
+                                    <th colSpan={2} className="py-2 border-b dark:border-zinc-700 text-center">Уроки</th>
+                                    <th rowSpan={2} className="py-4 bg-red-50/30 text-center w-20">Опозд.</th>
                                 </tr>
                                 <tr className="divide-x divide-gray-100 dark:divide-zinc-700 border-b dark:border-zinc-700">
-                                    <th className="py-2 bg-gray-100/30">Всего</th>
-                                    <th className="py-2 bg-gray-100/30 text-amber-600">Болезнь</th>
-                                    <th className="py-2">Всего</th>
-                                    <th className="py-2 text-amber-600">Болезнь</th>
+                                    <th className="py-2 bg-gray-100/30 text-center w-20">Всего</th>
+                                    <th className="py-2 bg-gray-100/30 text-amber-600 text-center w-20">Болезнь</th>
+                                    <th className="py-2 text-center w-20">Всего</th>
+                                    <th className="py-2 text-amber-600 text-center w-20">Болезнь</th>
                                 </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50 dark:divide-zinc-700">
@@ -456,13 +456,28 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                     <tr key={i} className="divide-x divide-gray-50 dark:divide-zinc-700 hover:bg-blue-50/10 transition-colors">
                                         <td className="py-3 text-center text-gray-400 font-mono text-[10px]">{s.number}</td>
                                         <td className="px-2 font-medium py-1 hover:bg-gray-100">
-                                            <input disabled={!isOwner} value={s.fullName} onChange={e => updateAttendanceField(i, 'fullName', e.target.value)} className="w-full bg-transparent outline-none focus:text-blue-600 disabled:text-gray-700 dark:disabled:text-gray-300" />
+                                            <input
+                                                disabled={!isOwner}
+                                                value={s.fullName}
+                                                onChange={e => updateAttendanceField(i, 'fullName', e.target.value)}
+                                                className="w-full bg-transparent outline-none focus:text-blue-600 disabled:text-gray-700 dark:disabled:text-gray-300"
+                                            />
                                         </td>
-                                        <td className="py-3 bg-gray-50/20 hover:bg-gray-100"><input disabled={!isOwner} value={s.fullDaysTotal} onChange={e => updateAttendanceField(i, 'fullDaysTotal', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" /></td>
-                                        <td className="py-3 bg-gray-50/20 font-bold text-amber-600 hover:bg-gray-100"><input disabled={!isOwner} value={s.fullDaysSick} onChange={e => updateAttendanceField(i, 'fullDaysSick', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" /></td>
-                                        <td className="py-3 hover:bg-gray-100"><input disabled={!isOwner} value={s.lessonsTotal} onChange={e => updateAttendanceField(i, 'lessonsTotal', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center"/></td>
-                                        <td className="py-3 font-bold text-amber-600 hover:bg-gray-100"><input disabled={!isOwner} value={s.lessonsSick} onChange={e => updateAttendanceField(i, 'lessonsSick', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center"/></td>
-                                        <td className="py-3 bg-red-50/10 font-bold text-red-600 hover:bg-gray-100"><input disabled={!isOwner} value={s.late} onChange={e => updateAttendanceField(i, 'late', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" /></td>
+                                        <td className="py-3 bg-gray-50/20 hover:bg-gray-100">
+                                            <input disabled={!isOwner} value={s.fullDaysTotal} onChange={e => updateAttendanceField(i, 'fullDaysTotal', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" />
+                                        </td>
+                                        <td className="py-3 bg-gray-50/20 font-bold text-amber-600 hover:bg-gray-100">
+                                            <input disabled={!isOwner} value={s.fullDaysSick} onChange={e => updateAttendanceField(i, 'fullDaysSick', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" />
+                                        </td>
+                                        <td className="py-3 hover:bg-gray-100">
+                                            <input disabled={!isOwner} value={s.lessonsTotal} onChange={e => updateAttendanceField(i, 'lessonsTotal', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center"/>
+                                        </td>
+                                        <td className="py-3 font-bold text-amber-600 hover:bg-gray-100">
+                                            <input disabled={!isOwner} value={s.lessonsSick} onChange={e => updateAttendanceField(i, 'lessonsSick', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center"/>
+                                        </td>
+                                        <td className="py-3 bg-red-50/10 font-bold text-red-600 hover:bg-gray-100">
+                                            <input disabled={!isOwner} value={s.late} onChange={e => updateAttendanceField(i, 'late', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" />
+                                        </td>
                                     </tr>
                                 ))}
                                 {attendanceTotal && (
