@@ -263,7 +263,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                     onChange={e => setUpdateFormData({...updateFormData, name: e.target.value})}
                                     className="text-2xl font-bold bg-transparent border-b-2 border-blue-500 outline-none w-full pb-1 transition-all disabled:opacity-80"
                                 />
-                                <div className="flex lg:flex-col justify-between items-center xl:items-start gap-2 mt-2">
+                                <div className="flex flex-row justify-between items-center xl:items-start gap-2 mt-2">
                                     <div className='flex gap-2 flex-col h-full'>
                                         {isOwner && <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-blue-600 text-white rounded shadow-sm">Ваша группа</span>}
                                         <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-gray-100 dark:bg-zinc-700 rounded text-gray-500">ID: {group.id}</span>
