@@ -265,10 +265,6 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                 />
                                 <div className="flex flex-row justify-between items-center xl:items-start gap-2 mt-2">
                                     <div className='flex gap-2 flex-col h-full'>
-                                        {isOwner && <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-blue-600 text-white rounded shadow-sm">Ваша группа</span>}
-                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-gray-100 dark:bg-zinc-700 rounded text-gray-500">ID: {group.id}</span>
-                                    </div>
-                                    <div className='flex gap-3 flex-col h-full'>
                                         <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 gap-2">
                                             <Calendar className="w-5 h-5" />
                                             <span>{new Date(group.created_by).toLocaleDateString("ru-RU", { day: 'numeric', month: 'long', year: 'numeric' })}</span>
@@ -278,6 +274,10 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                             <UserStar className="w-5 h-5" />
                                             <span>{group.leader}</span>
                                         </div>
+                                    </div>
+                                    <div className='flex gap-2 flex-col h-full'>
+                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-gray-100 dark:bg-zinc-700 rounded text-gray-500">ID: {group.id}</span>
+                                        {isOwner && <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-blue-600 text-white rounded shadow-sm">Ваша группа</span>}
                                     </div>
                                 </div>
                                 {isOwner && (
