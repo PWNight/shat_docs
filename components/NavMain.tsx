@@ -3,8 +3,8 @@ import Anchor from "@/components/ui/Anchor";
 import { SheetLeftbar } from "./LeftBar";
 import Image from "next/image";
 import { Home, BookOpen } from "lucide-react";
-import {SheetClose} from "@/components/ui/Sheet";
-import {AuthButton} from "@/components/AccountButton";
+import { AuthButton } from "@/components/AccountButton";
+import { ModeToggle } from "@/components/theme-toggle";
 
 export const NAVLINKS = [
     {
@@ -21,20 +21,21 @@ export const NAVLINKS = [
 
 export async function Navbar() {
     return (
-        <nav className="w-full border-b max-h-16 p-2 lg:px-10 flex items-center shadow-md bg-gray-200/10 dark:bg-gray-900/10 text-gray-900 dark:text-white">
-            <div className="w-full h-full flex items-center justify-between gap-2">
-                <div className="flex items-center h-full lg:gap-6 gap-2">
-                    <div className="sm:text-2xl text-lg">
-                        <Logo />
+        <nav className="sticky top-0 z-50 w-full border-b border-border backdrop-blur-md bg-background/80 px-2 sm:px-4 lg:px-10 h-16 flex items-center shadow-sm">
+            <div className="w-full flex items-center justify-between gap-1">
+                <div className="flex items-center gap-2">
+                    <Logo />
+                    <div className="lg:hidden">
+                        <SheetLeftbar />
                     </div>
-                    <SheetLeftbar />
-                    <div className="lg:flex hidden items-center gap-6 h-full select-none">
+                    <div className="hidden lg:flex items-center gap-6 ml-4">
                         <NavMenu />
                     </div>
                 </div>
 
-                <div className="flex items-center">
-                    <AuthButton/>
+                <div className="hidden min-[400px]:flex items-center gap-2">
+                    <ModeToggle />
+                    <AuthButton />
                 </div>
             </div>
         </nav>
@@ -43,46 +44,50 @@ export async function Navbar() {
 
 export function Logo() {
     return (
-        <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
+        <Link href="/" className="flex items-center gap-2 shrink-0">
             <Image
                 src="/logo.png"
                 alt="logo"
-                width={50}
-                height={50}
-                quality={100}
-                className="w-10 h-10 drop-shadow-md"
+                width={32}
+                height={32}
+                className="w-8 h-8 min-w-8"
             />
-            <h2 className="font-bold text-blue-500 mb-1 sm:text-xl text-sm">SHAT Docs</h2>
+            <h2 className="font-bold text-blue-500 text-sm sm:text-lg hidden min-[280px]:block">
+                SHAT Docs
+            </h2>
         </Link>
     );
 }
 
 export function NavMenu({ isSheet = false }) {
     return (
-        <>
-            {NAVLINKS.map((item) => {
-                const Comp = (
-                    <Anchor
-                        key={item.title + item.href}
-                        activeClassName="text-blue-500 font-semibold rounded-md"
-                        absolute
-                        className="flex items-center gap-2 py-1.5 hover:text-blue-500 transition-all duration-200 group"
-                        href={item.href}
-                    >
-            <span className="group-[.active]:text-blue-500 transition-colors duration-200">
-              {item.icon}
-            </span>
-                        {item.title}
-                    </Anchor>
-                );
-                return isSheet ? (
-                    <SheetClose key={item.title + item.href} asChild>
-                        {Comp}
-                    </SheetClose>
-                ) : (
-                    Comp
-                );
-            })}
-        </>
+        <div className={isSheet ? "flex flex-col w-full" : "flex items-center"}>
+            {NAVLINKS.map((item) => (
+                <Anchor
+                    key={item.title + item.href}
+                    activeClassName="bg-accent text-accent-foreground font-medium"
+                    absolute
+                    className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+                        isSheet ? "w-full text-base" : "text-sm hover:text-blue-500"
+                    }`}
+                    href={item.href}
+                >
+                    {item.icon}
+                    {item.title}
+                </Anchor>
+            ))}
+
+            {isSheet && (
+                <div className="flex flex-col gap-4 mt-6 pt-6 border-t border-border">
+                    <div className="flex items-center justify-between px-2 text-muted-foreground">
+                        <span className="text-sm font-medium">Сменить тему</span>
+                        <ModeToggle />
+                    </div>
+                    <div className="w-full pt-2">
+                        <AuthButton />
+                    </div>
+                </div>
+            )}
+        </div>
     );
 }
