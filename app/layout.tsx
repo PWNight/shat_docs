@@ -4,6 +4,7 @@ import "./globals.css";
 import React from "react";
 import {Navbar} from "@/components/NavMain";
 import {Footer} from "@/components/Footer";
+import {ThemeProvider} from "@/components/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,21 +22,28 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({
-  children,
+ children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+      <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-gray-100 grid grid-rows-[64px_1fr_64px]`}
+          className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground flex flex-col`}
+      >
+      <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
       >
         <Navbar />
-        <main className={'sm:w-full lg:w-[98%] w-[90%] mx-auto'}>
+        <main className='flex-1 w-[95%] lg:w-[98%] mx-auto py-4'>
           {children}
         </main>
         <Footer/>
+      </ThemeProvider>
       </body>
-    </html>
+      </html>
   );
 }
