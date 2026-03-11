@@ -6,7 +6,7 @@ import { Check, ChevronRight, Circle } from "lucide-react"
 
 import { cn } from "@/utils/functions"
 
-/*const DropdownMenu = DropdownMenuPrimitive.Root
+const DropdownMenu = DropdownMenuPrimitive.Root
 
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger
 
@@ -17,7 +17,6 @@ const DropdownMenuPortal = DropdownMenuPrimitive.Portal
 const DropdownMenuSub = DropdownMenuPrimitive.Sub
 
 const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup
- */
 
 const DropdownMenuSubTrigger = React.forwardRef<
   React.ComponentRef<typeof DropdownMenuPrimitive.SubTrigger>,
@@ -183,13 +182,19 @@ const DropdownMenuShortcut = ({
 DropdownMenuShortcut.displayName = "DropdownMenuShortcut"
 
 export {
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuCheckboxItem,
-  DropdownMenuRadioItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuGroup,
+    DropdownMenuPortal,
+    DropdownMenuSub,
+    DropdownMenuRadioGroup,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuCheckboxItem,
+    DropdownMenuRadioItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuShortcut,
+    DropdownMenuSubContent,
+    DropdownMenuSubTrigger,
 }
