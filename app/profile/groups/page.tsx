@@ -180,7 +180,7 @@ export default function ProfileGroups() {
                                                 Ваша группа
                                             </span>
                                         )}
-                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-gray-100 dark:bg-zinc-700 rounded text-gray-500">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-gray-100 dark:bg-zinc-600 rounded text-gray-300">
                                             ID: {group.id}
                                         </span>
                                     </div>
