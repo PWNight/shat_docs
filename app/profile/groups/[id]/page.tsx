@@ -276,7 +276,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                         </div>
                                     </div>
                                     <div className='flex gap-2 flex-col h-full'>
-                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-gray-100 dark:bg-zinc-700 rounded text-gray-300">ID: {group.id}</span>
+                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-gray-100 dark:bg-zinc-700 rounded dark:text-gray-300">ID: {group.id}</span>
                                         {isOwner && <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-blue-600 text-white rounded shadow-sm">Ваша группа</span>}
                                     </div>
                                 </div>
