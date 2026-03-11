@@ -1,29 +1,30 @@
 import Anchor from "@/components/ui/Anchor";
-import {House, GraduationCap} from "lucide-react";
+import { House, GraduationCap } from "lucide-react";
 
 export function NavProfile() {
     const navItems = [
-        { href: "/profile", label: "Главная страница", icon: House },
+        { href: "/profile", label: "Главная", icon: House }, // Сократил для узких экранов
         { href: "/profile/groups", label: "Группы", icon: GraduationCap },
     ];
 
     return (
-        <div className="h-fit bg-white rounded-xl shadow-sm border border-neutral-200/70 dark:bg-neutral-800 dark:border-neutral-700 p-5 sm:p-6">
-            <h1 className="text-center text-xl sm:text-2xl font-bold text-neutral-900 dark:text-neutral-100 pb-4 border-b border-neutral-200 dark:border-neutral-700">
+        <div className="dark:bg-zinc-800 h-fit bg-card text-card-foreground rounded-xl shadow-sm border border-border p-3 sm:p-6 transition-colors">
+            <h1 className="text-center text-lg sm:text-2xl font-bold pb-4 border-b border-border">
                 Навигация
             </h1>
 
-            <nav className="mt-5 space-y-1">
+            <nav className="mt-4 space-y-1.5">
                 {navItems.map(({ href, label, icon: Icon }) => (
                     <Anchor
                         key={href}
                         href={href}
                         absolute
-                        className="group flex items-center gap-3 w-full px-4 py-3 rounded-lg text-neutral-700 hover:bg-blue-500 hover:text-white transition-all duration-200 font-medium text-base"
-                        activeClassName="bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md hover:from-blue-600 hover:to-blue-700"
+                        // px-2 для 250px, px-4 для стандартных экранов
+                        className="group flex items-center gap-2 sm:gap-3 w-full px-2 sm:px-4 py-2.5 rounded-lg text-muted-foreground hover:bg-blue-600 hover:text-white transition-all duration-200 font-medium text-sm sm:text-base overflow-hidden"
+                        activeClassName="bg-blue-600 text-white shadow-md"
                     >
-                        <Icon className="w-5 h-5 shrink-0 transition-colors duration-200 group-hover:text-white" />
-                        <span className="transition-colors duration-200">{label}</span>
+                        <Icon className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                        <span className="truncate">{label}</span>
                     </Anchor>
                 ))}
             </nav>
