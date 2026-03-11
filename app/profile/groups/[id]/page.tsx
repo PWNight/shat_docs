@@ -276,7 +276,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                         </div>
                                     </div>
                                     <div className='flex gap-2 flex-col h-full'>
-                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-gray-100 dark:bg-zinc-700 rounded text-gray-500">ID: {group.id}</span>
+                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-gray-100 dark:bg-zinc-700 rounded text-gray-300">ID: {group.id}</span>
                                         {isOwner && <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-blue-600 text-white rounded shadow-sm">Ваша группа</span>}
                                     </div>
                                 </div>
@@ -379,13 +379,13 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
             <div className="flex gap-4 lg:justify-start justify-between border-b dark:border-zinc-700">
                 <button
                     onClick={() => setActiveTab('attendance')}
-                    className={`pb-3 px-4 flex items-center gap-2 font-bold text-sm transition-all ${activeTab === 'attendance' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-400'}`}
+                    className={`pb-3 px-4 flex items-center gap-2 font-bold text-sm transition-all ${activeTab === 'attendance' ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400' : 'text-gray-400'}`}
                 >
                     <ClipboardCheck size={18} /> Посещаемость
                 </button>
                 <button
                     onClick={() => setActiveTab('grades')}
-                    className={`pb-3 px-4 flex items-center gap-2 font-bold text-sm transition-all ${activeTab === 'grades' ? 'border-b-2 border-purple-500 text-purple-600' : 'text-gray-400'}`}
+                    className={`pb-3 px-4 flex items-center gap-2 font-bold text-sm transition-all ${activeTab === 'grades' ? 'border-b-2 border-purple-500 text-purple-600 dark:text-purple-400' : 'text-gray-400'}`}
                 >
                     <GraduationCap size={18} /> Успеваемость
                 </button>
@@ -395,7 +395,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                 <div className="w-full bg-white dark:bg-zinc-800 rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm p-6 overflow-hidden">
                     <div className="flex flex-col sm:flex-row lg:items-center justify-between mb-6 gap-4">
                         <div className="flex items-center gap-3">
-                            <div className="p-3 bg-blue-50 text-blue-600 rounded-lg"><FileText size={20}/></div>
+                            <div className="p-3 bg-blue-50 dark:bg-zinc-700 text-blue-600 dark:text-blue-400 rounded-lg"><FileText size={20}/></div>
                             <h2 className="text-lg font-bold">Ведомость посещаемости</h2>
                         </div>
                         <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -501,7 +501,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                 <div className="w-full bg-white dark:bg-zinc-800 rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm p-6 overflow-hidden">
                     <div className="flex flex-col sm:flex-row lg:items-center justify-between mb-6 gap-4">
                         <div className="flex items-center gap-3">
-                            <div className="p-3 bg-purple-50 text-purple-600 rounded-lg"><GraduationCap size={20}/></div>
+                            <div className="p-3 bg-purple-50 text-purple-600 dark:bg-zinc-700 dark:text-purple-400 rounded-lg"><GraduationCap size={20}/></div>
                             <h2 className="text-lg font-bold">Журнал успеваемости</h2>
                         </div>
                         <div className="flex items-center gap-2 w-full sm:w-auto">
