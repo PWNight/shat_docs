@@ -37,7 +37,7 @@ function RegisterForm() {
 
     return (
         <form
-            className="w-full max-w-md mx-auto bg-white rounded-2xl p-8 shadow-lg text-gray-900 my-6"
+            className="w-full max-w-md mx-auto bg-white dark:bg-neutral-800 rounded-2xl p-8 shadow-lg text-gray-900 dark:text-white my-6"
             action={action}
         >
             <h1 className="text-3xl font-bold mb-4 select-none">Регистрация</h1>
@@ -54,7 +54,7 @@ function RegisterForm() {
                     id="email"
                     name="email"
                     defaultValue={state.values?.email ?? ""}
-                    className="shadow-lg w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
+                    className="shadow-lg w-full px-4 py-3 dark:bg-neutral-700 bg-gray-50 border dark:border-gray-500 rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
                     placeholder="test@test.com"
                 />
                 {state?.fieldErrors?.email && (
@@ -72,7 +72,7 @@ function RegisterForm() {
                     id="full_name"
                     name="full_name"
                     defaultValue={state.values?.full_name ?? ""}
-                    className="shadow-lg w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
+                    className="shadow-lg w-full px-4 py-3 dark:bg-neutral-700 bg-gray-50 border dark:border-gray-500 rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
                     placeholder="Иванов И.И."
                 />
                 {state?.fieldErrors?.full_name && (
@@ -90,7 +90,7 @@ function RegisterForm() {
                         autoComplete="current-password"
                         id="password"
                         name="password"
-                        className="shadow-lg w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
+                        className="shadow-lg w-full px-4 py-3 dark:bg-neutral-700 bg-gray-50 border dark:border-gray-500 rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
                         placeholder="********"
                     />
                     {state?.fieldErrors?.password && (
@@ -129,7 +129,7 @@ function RegisterForm() {
                 )}
             </button>
             <div className="mt-4 text-sm">
-                <p className="text-gray-600 flex items-center gap-2">
+                <p className="text-muted-foreground flex items-center gap-2">
                     Уже есть аккаунт?
                     <Link
                         href="/login"
