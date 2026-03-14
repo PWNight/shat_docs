@@ -37,7 +37,7 @@ function LoginForm() {
 
     return (
         <form
-            className="w-full max-w-md mx-auto bg-white rounded-2xl p-8 shadow-lg text-gray-900 my-6"
+            className="w-full max-w-md mx-auto bg-white dark:bg-neutral-800 rounded-2xl p-8 shadow-lg text-gray-900 dark:text-white my-6"
             action={action}
         >
             <h1 className="text-3xl font-bold mb-4 select-none">Авторизация</h1>
@@ -53,7 +53,7 @@ function LoginForm() {
                     id="email"
                     name="email"
                     defaultValue={state.values?.email ?? ""}
-                    className="shadow-lg w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
+                    className="shadow-lg w-full px-4 py-3 dark:bg-neutral-700 bg-gray-50 border dark:border-gray-500 border-gray-200 rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
                     placeholder="test@test.com"
                 />
                 {state?.fieldErrors?.email && (
@@ -71,7 +71,7 @@ function LoginForm() {
                         autoComplete="current-password"
                         id="password"
                         name="password"
-                        className="shadow-lg w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
+                        className="shadow-lg w-full px-4 py-3 dark:bg-neutral-700 bg-gray-50 border dark:border-gray-500 border-gray-200 rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
                         placeholder="********"
                     />
                     {state?.fieldErrors?.password && (
@@ -83,7 +83,7 @@ function LoginForm() {
                         <input
                             id="show-password"
                             type="checkbox"
-                            className="h-4 w-4 text-blue-400 focus:ring-blue-400 border-gray-300 rounded"
+                            className="h-4 w-4 text-blue-400 focus:ring-blue-400 border-gray-300 dark:bg-neutral-600 rounded"
                             onChange={togglePasswordVisibility}
                         />
                         Показать пароль
@@ -117,7 +117,7 @@ function LoginForm() {
             </button>
 
             <div className="mt-6 text-sm">
-                <p className="text-gray-600 flex items-center gap-2">
+                <p className="text-muted-foreground flex items-center gap-2">
                     Впервые здесь?
                     <Link
                         href="/register"
