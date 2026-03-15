@@ -17,7 +17,7 @@ export async function AuthButton() {
         return (
             <Anchor
                 href="/login"
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl transition-all duration-200 font-semibold shadow-sm hover:shadow-md hover:bg-blue-600! text-white bg-blue-500"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl transition-all duration-200 font-semibold shadow-sm hover:shadow-md hover:bg-blue-600 text-white bg-blue-500"
             >
                 <LogIn className="w-4 h-4" />
                 <span>Войти</span>
@@ -40,7 +40,7 @@ export async function AuthButton() {
             <form action={handleLogout}>
                 <button
                     type="submit"
-                    className="flex items-center justify-center p-2.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all duration-200 shadow-sm"
+                    className="flex items-center justify-center p-2.5 rounded-xl bg-red-50 dark:bg-neutral-800 text-red-600 hover:bg-red-600! hover:text-white transition-all duration-200 shadow-sm"
                     title="Выйти"
                 >
                     <LogOut className="w-5 h-5" />
