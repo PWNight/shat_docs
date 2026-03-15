@@ -8,7 +8,7 @@ export function NavProfile() {
     ];
 
     return (
-        <div className="dark:bg-zinc-800 h-fit bg-card text-card-foreground rounded-xl shadow-sm border border-border p-3 sm:p-6 transition-colors">
+        <div className="dark:bg-card h-fit bg-card text-card-foreground rounded-xl shadow-sm border border-border p-3 sm:p-6 transition-colors">
             <h1 className="text-center text-lg sm:text-2xl font-bold pb-4 border-b border-border">
                 Навигация
             </h1>
