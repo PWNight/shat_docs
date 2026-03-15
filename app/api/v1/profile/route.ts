@@ -73,7 +73,20 @@ export async function POST(req: Request) {
         });
 
     } catch (error) {
-        console.error("Profile Update Error:", error);
-        return NextResponse.json({ success: false, message: "Ошибка сервера при обновлении" }, { status: 500 });
+        console.error("Ошибка работы API", error);
+        const errorMessage =
+            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
+
+        return NextResponse.json(
+            {
+                success: false,
+                message: "Внутренняя ошибка сервера",
+                error: {
+                    message: errorMessage,
+                    code: "SERVER_ERROR",
+                },
+            },
+            { status: 500 }
+        );
     }
 }

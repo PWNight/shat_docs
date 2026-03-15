@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { query, queryOne } from "@/utils/mysql";
+import { queryOne } from "@/utils/mysql";
 import { getSession } from "@/utils/session";
 
 export async function GET() {
@@ -8,7 +8,7 @@ export async function GET() {
         if (!session) return NextResponse.json({ success: false }, { status: 401 });
 
         // 1. Считаем общее кол-во групп и студентов
-        const counts = await queryOne<any>(`
+        const counts = await queryOne(`
             SELECT 
                 COUNT(DISTINCT g.id) as groupsCount,
                 COUNT(DISTINCT s.id) as studentsCount
@@ -18,7 +18,7 @@ export async function GET() {
         `, [session.uid]);
 
         // 2. Считаем средний балл по всем управляемым группам
-        const grades = await queryOne<any>(`
+        const grades = await queryOne(`
             SELECT AVG(average_score) as avgGrade
             FROM grades gr
             JOIN \`groups\` g ON gr.fk_group = g.id
@@ -26,7 +26,7 @@ export async function GET() {
         `, [session.uid]);
 
         // 3. Считаем посещаемость
-        const attendance = await queryOne<any>(`
+        const attendance = await queryOne(`
             SELECT 
                 SUM(lessons_total) as total,
                 SUM(lessons_sick) as sick,
@@ -47,12 +47,26 @@ export async function GET() {
                     sick: attendance?.sick || 0,
                     late: attendance?.late || 0,
                     percent: attendance?.total > 0
-                        ? (((attendance.total - attendance.sick) / attendance.total) * 100).toFixed(1)
+                        ? (((attendance?.total - attendance?.sick) / attendance?.total) * 100).toFixed(1)
                         : 0
                 }
             }
         });
     } catch (error) {
-        return NextResponse.json({ success: false }, { status: 500 });
+        console.error("Ошибка работы API", error);
+        const errorMessage =
+            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
+
+        return NextResponse.json(
+            {
+                success: false,
+                message: "Внутренняя ошибка сервера",
+                error: {
+                    message: errorMessage,
+                    code: "SERVER_ERROR",
+                },
+            },
+            { status: 500 }
+        );
     }
 }
