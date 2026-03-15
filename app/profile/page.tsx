@@ -72,12 +72,12 @@ export default function ProfilePage() {
         <div className="max-w-6xl space-y-8 animate-in fade-in duration-500">
             {notify.message && <ErrorMessage message={notify.message} type={notify.type} onClose={() => setNotify({message:'', type:''})} />}
 
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-6">
+            <div className="sm:text-left text-center flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-6">
                 <div>
                     <h1 className="text-3xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">Личный кабинет</h1>
                     <p className="text-sm text-zinc-500 dark:text-zinc-400 font-medium mt-1">Управление профилем и обзор статистики групп</p>
                 </div>
-                <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm self-start md:self-center">
+                <div className="sm:mx-0 mx-auto flex items-center gap-2 px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm self-start md:self-center">
                     <Fingerprint className="w-4 h-4 text-zinc-400" />
                     <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">ID: {user?.uid}</span>
                 </div>
@@ -85,8 +85,8 @@ export default function ProfilePage() {
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatCard icon={<Users/>} label="Студентов" value={stats?.students} color="text-blue-600" bgColor="bg-blue-50 dark:bg-blue-900/20" borderColor="border-blue-100 dark:border-blue-900/30" />
-                <StatCard icon={<GraduationCap/>} label="Ср. балл" value={stats?.avgGrade} color="text-purple-600" bgColor="bg-purple-50 dark:bg-purple-900/20" borderColor="border-purple-100 dark:border-purple-900/30" />
-                <StatCard icon={<BarChart3/>} label="Посещ-ть" value={`${stats?.attendance?.percent}%`} color="text-emerald-600" bgColor="bg-emerald-50 dark:bg-emerald-900/20" borderColor="border-emerald-100 dark:border-emerald-900/30" />
+                <StatCard icon={<GraduationCap/>} label="Средний балл" value={stats?.avgGrade} color="text-purple-600" bgColor="bg-purple-50 dark:bg-purple-900/20" borderColor="border-purple-100 dark:border-purple-900/30" />
+                <StatCard icon={<BarChart3/>} label="Посещаемость" value={`${stats?.attendance?.percent}%`} color="text-emerald-600" bgColor="bg-emerald-50 dark:bg-emerald-900/20" borderColor="border-emerald-100 dark:border-emerald-900/30" />
                 <StatCard icon={<ShieldCheck/>} label="Опоздания" value={stats?.attendance?.late} color="text-orange-600" bgColor="bg-orange-50 dark:bg-orange-900/20" borderColor="border-orange-100 dark:border-orange-900/30" />
             </div>
 
@@ -206,7 +206,7 @@ const SubmitButton = ({ pending, color = "bg-zinc-900 dark:bg-zinc-100 dark:text
     <button
         disabled={pending}
         type="submit"
-        className={`${color} text-white px-8 py-4 rounded-2xl font-bold text-sm hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50 shadow-lg mt-4`}
+        className={`${color} text-white sm:px-8 sm:py-4 py-2 px-8 rounded-2xl font-bold text-sm hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50 shadow-lg mt-4`}
     >
         {pending ? <Loader2 className="animate-spin w-4 h-4"/> : <Save className="w-4 h-4"/>}
         Сохранить изменения
