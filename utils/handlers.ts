@@ -268,3 +268,22 @@ export async function GetGrades(groupId: string) {
         return { success: false, message: errorMessage };
     }
 }
+
+export async function UpdateProfile(data: any) {
+    const response = await fetch('/api/v1/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+    return await response.json();
+}
+
+// Получение статистики преподавателя
+export async function GetTeacherStats() {
+    try {
+        const response = await fetch('/api/v1/profile/stats');
+        return await handleApiResponse(response);
+    } catch (error) {
+        return { success: false, message: "Ошибка загрузки статистики" };
+    }
+}
