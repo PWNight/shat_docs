@@ -168,7 +168,7 @@ export default function ProfileGroups() {
                         return (
                             <div
                                 key={group.id}
-                                className="group relative flex flex-col p-6 rounded-2xl bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                                className="group relative flex flex-col p-6 rounded-2xl bg-white dark:bg-card border border-gray-100 dark:border-zinc-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                             >
                                 <div className="flex justify-between items-center xl:items-start gap-2 mb-4">
                                     <div className={`p-3 rounded-lg ${isOwner ? 'bg-blue-600 text-white' : 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'}`}>
@@ -202,7 +202,7 @@ export default function ProfileGroups() {
 
                                 <Link
                                     href={`/profile/groups/${group.id}`}
-                                    className="mt-auto flex items-center justify-center gap-2 w-full bg-gray-100 dark:bg-zinc-700/50 hover:bg-blue-600 hover:text-white text-gray-700 dark:text-gray-200 font-semibold py-3 rounded-xl transition-all"
+                                    className="mt-auto flex items-center justify-center gap-2 w-full bg-gray-100 dark:bg-zinc-700/50 hover:bg-blue-600! hover:text-white text-gray-700 dark:text-gray-200 font-semibold py-3 rounded-xl transition-all"
                                 >
                                     Управлять
                                     <ArrowRight className="w-4 h-4" />
