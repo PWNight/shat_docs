@@ -251,7 +251,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
         <div className="w-full space-y-5 sm:space-y-6 pb-8 sm:pb-10">
             {notify.message && <ErrorMessage message={notify.message} type={notify.type} onClose={() => setNotify({ message: '', type: '' })} />}
 
-            <div className="bg-white dark:bg-zinc-800 rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm">
+            <div className="bg-white dark:bg-card rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm">
                 <div className="flex flex-col md:flex-row justify-between items-center lg:p-6 p-4">
                     <div className="flex items-center gap-5 w-full md:w-auto mb-2">
                         <div className="flex-1">
@@ -293,7 +293,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                         <div className="flex items-center gap-3 w-full md:w-auto border-t md:border-t-0 pt-4 md:pt-0 border-gray-100">
                             <Dialog>
                                 <DialogTrigger asChild>
-                                    <button className="flex-1 md:flex-none flex items-center gap-2 px-4 py-2.5 bg-amber-50 text-amber-600 rounded-lg font-semibold text-sm hover:bg-amber-500 hover:text-white transition-colors">
+                                    <button className="flex-1 md:flex-none flex items-center gap-2 px-4 py-2.5 bg-amber-50 dark:bg-zinc-700/50 text-amber-600 rounded-lg font-semibold text-sm hover:bg-amber-500! hover:text-white transition-colors">
                                         <ShieldAlert size={18}/> Передать
                                     </button>
                                 </DialogTrigger>
@@ -341,7 +341,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
 
                             <Dialog>
                                 <DialogTrigger asChild>
-                                    <button className="flex-1 md:flex-none flex items-center gap-2 px-4 py-2.5 bg-red-50 text-red-600 hover:bg-red-500 hover:text-white rounded-lg font-semibold text-sm transition-colors">
+                                    <button className="flex-1 md:flex-none flex items-center gap-2 px-4 py-2.5 bg-red-50 dark:bg-zinc-700/50 text-red-600 hover:bg-red-500! hover:text-white rounded-lg font-semibold text-sm transition-colors">
                                         <Trash2 size={18}/> Удалить
                                     </button>
                                 </DialogTrigger>
@@ -392,7 +392,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
             </div>
 
             {activeTab === 'attendance' && (
-                <div className="w-full bg-white dark:bg-zinc-800 rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm p-6 overflow-hidden">
+                <div className="w-full bg-white dark:bg-card rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm p-6 overflow-hidden">
                     <div className="flex flex-col sm:flex-row lg:items-center justify-between mb-6 gap-4">
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-blue-50 dark:bg-zinc-700 text-blue-600 dark:text-blue-400 rounded-lg"><FileText size={20}/></div>
@@ -401,22 +401,22 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                         <div className="flex items-center gap-2 w-full sm:w-auto">
                             {attendanceStudents.length > 0 ? (
                                 <>
-                                    <button onClick={() => exportToWord(attendanceStudents, attendanceTotal, group)} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-600 hover:text-white transition-all">
+                                    <button onClick={() => exportToWord(attendanceStudents, attendanceTotal, group)} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 dark:bg-zinc-700/50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-600! hover:text-white transition-all">
                                         <Download size={16}/> Word
                                     </button>
                                     {isOwner && (
                                         <>
-                                            <button onClick={() => SaveAttendance(groupId, attendanceStudents).then(() => setNotify({message: "Сохранено", type: "success"}))} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-50 text-green-500 font-semibold rounded-lg text-sm  hover:bg-green-500 hover:text-white transition-all">
+                                            <button onClick={() => SaveAttendance(groupId, attendanceStudents).then(() => setNotify({message: "Сохранено", type: "success"}))} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-50 dark:bg-zinc-700/50 text-green-500 font-semibold rounded-lg text-sm  hover:bg-green-500! hover:text-white transition-all">
                                                 <Database size={16}/> В базу
                                             </button>
-                                            <button onClick={() => setAttendanceStudents([])} className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-colors">
+                                            <button onClick={() => setAttendanceStudents([])} className="p-2 bg-red-100 dark:bg-zinc-700/50 text-red-600 rounded-lg hover:bg-red-600! hover:text-white transition-colors">
                                                 <Trash2 size={18}/>
                                             </button>
                                         </>
                                     )}
                                 </>
                             ) : (
-                                <button onClick={handleLoadFromDB} className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-all">
+                                <button onClick={handleLoadFromDB} className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-zinc-700/50 dark:text-white dark:hover:bg-blue-600 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-all">
                                     <Database size={16}/> Загрузить из БД
                                 </button>
                             )}
@@ -440,13 +440,13 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                 <tr className="divide-x divide-gray-100 dark:divide-zinc-700 border-b dark:border-zinc-700">
                                     <th rowSpan={2} className="py-4 w-12 text-center">ID</th>
                                     <th rowSpan={2} className="py-4 px-4 text-left">ФИО</th>
-                                    <th colSpan={2} className="py-2 bg-gray-100/30 border-b dark:border-zinc-700 text-center">Дни</th>
-                                    <th colSpan={2} className="py-2 border-b dark:border-zinc-700 text-center">Уроки</th>
-                                    <th rowSpan={2} className="py-4 bg-red-50/30 text-center w-20">Опозд.</th>
+                                    <th colSpan={2} className="py-2 border-b text-center">Дни</th>
+                                    <th colSpan={2} className="py-2 border-b text-center">Уроки</th>
+                                    <th rowSpan={2} className="py-4 text-center w-20">Опозд.</th>
                                 </tr>
                                 <tr className="divide-x divide-gray-100 dark:divide-zinc-700 border-b dark:border-zinc-700">
-                                    <th className="py-2 bg-gray-100/30 text-center w-20">Всего</th>
-                                    <th className="py-2 bg-gray-100/30 text-amber-600 text-center w-20">Болезнь</th>
+                                    <th className="py-2 text-center w-20">Всего</th>
+                                    <th className="py-2 text-amber-600 text-center w-20">Болезнь</th>
                                     <th className="py-2 text-center w-20">Всего</th>
                                     <th className="py-2 text-amber-600 text-center w-20">Болезнь</th>
                                 </tr>
@@ -455,7 +455,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                 {attendanceStudents.map((s, i) => (
                                     <tr key={i} className="divide-x divide-gray-50 dark:divide-zinc-700 hover:bg-blue-50/10 transition-colors">
                                         <td className="py-3 text-center text-gray-400 font-mono text-[10px]">{s.number}</td>
-                                        <td className="px-2 font-medium py-1 hover:bg-gray-100">
+                                        <td className="px-2 font-medium py-1 hover:bg-gray-100 dark:hover:bg-neutral-600">
                                             <input
                                                 disabled={!isOwner}
                                                 value={s.fullName}
@@ -463,31 +463,31 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                                 className="w-full bg-transparent outline-none focus:text-blue-600 disabled:text-gray-700 dark:disabled:text-gray-300"
                                             />
                                         </td>
-                                        <td className="py-3 bg-gray-50/20 hover:bg-gray-100">
+                                        <td className="py-3 hover:bg-gray-100 dark:hover:bg-neutral-600">
                                             <input disabled={!isOwner} value={s.fullDaysTotal} onChange={e => updateAttendanceField(i, 'fullDaysTotal', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" />
                                         </td>
-                                        <td className="py-3 bg-gray-50/20 font-bold text-amber-600 hover:bg-gray-100">
+                                        <td className="py-3 font-bold text-amber-600 hover:bg-gray-100 dark:hover:bg-neutral-600">
                                             <input disabled={!isOwner} value={s.fullDaysSick} onChange={e => updateAttendanceField(i, 'fullDaysSick', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" />
                                         </td>
-                                        <td className="py-3 hover:bg-gray-100">
+                                        <td className="py-3 hover:bg-gray-100 dark:hover:bg-neutral-600">
                                             <input disabled={!isOwner} value={s.lessonsTotal} onChange={e => updateAttendanceField(i, 'lessonsTotal', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center"/>
                                         </td>
-                                        <td className="py-3 font-bold text-amber-600 hover:bg-gray-100">
+                                        <td className="py-3 font-bold text-amber-600 hover:bg-gray-100 dark:hover:bg-neutral-600">
                                             <input disabled={!isOwner} value={s.lessonsSick} onChange={e => updateAttendanceField(i, 'lessonsSick', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center"/>
                                         </td>
-                                        <td className="py-3 bg-red-50/10 font-bold text-red-600 hover:bg-gray-100">
+                                        <td className="py-3 font-bold text-red-600 hover:bg-gray-100 dark:hover:bg-neutral-600">
                                             <input disabled={!isOwner} value={s.late} onChange={e => updateAttendanceField(i, 'late', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" />
                                         </td>
                                     </tr>
                                 ))}
                                 {attendanceTotal && (
-                                    <tr className="divide-x divide-gray-100 bg-gray-50 dark:bg-zinc-900 font-bold border-t-2">
+                                    <tr className="divide-x divide-gray-100 dark:divide-zinc-700 bg-gray-50 dark:bg-zinc-900 font-bold border-t-2">
                                         <td colSpan={2} className="px-4 py-4 text-[11px] uppercase text-gray-400">Итого:</td>
                                         <td className="px-2 py-4 text-center">{attendanceTotal.fullDaysTotal}</td>
                                         <td className="px-2 py-4 text-amber-600 text-center">{attendanceTotal.fullDaysSick}</td>
                                         <td className="px-2 py-4 text-center">{attendanceTotal.lessonsTotal}</td>
                                         <td className="px-2 py-4 text-amber-600 text-center">{attendanceTotal.lessonsSick}</td>
-                                        <td className="px-2 py-4 bg-red-50 text-red-600 text-center">{attendanceTotal.late}</td>
+                                        <td className="px-2 py-4 text-red-600 text-center">{attendanceTotal.late}</td>
                                     </tr>
                                 )}
                                 </tbody>
@@ -498,7 +498,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
             )}
 
             {activeTab === 'grades' && (
-                <div className="w-full bg-white dark:bg-zinc-800 rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm p-6 overflow-hidden">
+                <div className="w-full bg-white dark:bg-card rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm p-6 overflow-hidden">
                     <div className="flex flex-col sm:flex-row lg:items-center justify-between mb-6 gap-4">
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-purple-50 text-purple-600 dark:bg-zinc-700 dark:text-purple-400 rounded-lg"><GraduationCap size={20}/></div>
@@ -507,22 +507,22 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                         <div className="flex items-center gap-2 w-full sm:w-auto">
                             {gradesStudents.length > 0 ? (
                                 <>
-                                    <button onClick={() => exportGradesToWord(gradesStudents, group)} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-purple-50 text-purple-600 rounded-lg text-sm font-semibold hover:bg-purple-600 hover:text-white transition-all">
+                                    <button onClick={() => exportGradesToWord(gradesStudents, group)} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-purple-50 dark:bg-zinc-700/50 text-purple-600 rounded-lg text-sm font-semibold hover:bg-purple-600! hover:text-white transition-all">
                                         <Download size={16}/> Word
                                     </button>
                                     {isOwner && (
                                         <>
-                                            <button onClick={() => SaveGrades(groupId, gradesStudents).then(() => setNotify({message: "Успеваемость сохранена", type: "success"}))} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-50 text-green-500 font-semibold rounded-lg text-sm  hover:bg-green-500 hover:text-white transition-all">
+                                            <button onClick={() => SaveGrades(groupId, gradesStudents).then(() => setNotify({message: "Успеваемость сохранена", type: "success"}))} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-50 dark:bg-zinc-700/50 text-green-500 font-semibold rounded-lg text-sm  hover:bg-green-500! hover:text-white transition-all">
                                                 <Database size={16}/> В базу
                                             </button>
-                                            <button onClick={() => setGradesStudents([])} className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-colors">
+                                            <button onClick={() => setGradesStudents([])} className="p-2 bg-red-100 dark:bg-zinc-700/50 text-red-600 rounded-lg hover:bg-red-600! hover:text-white transition-colors">
                                                 <Trash2 size={18}/>
                                             </button>
                                         </>
                                     )}
                                 </>
                             ) : (
-                                <button onClick={handleLoadGradesFromDB} className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-all">
+                                <button onClick={handleLoadGradesFromDB} className="flex items-center gap-2 px-4 py-2 dark:bg-zinc-700/50 dark:text-white dark:hover:bg-blue-600 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-all">
                                     <Database size={16}/> Загрузить из БД
                                 </button>
                             )}
@@ -551,7 +551,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                             {sub.name}
                                         </th>
                                     ))}
-                                    <th className="py-4 px-4 bg-purple-50 text-gray-400">Средний</th>
+                                    <th className="py-4 px-4 dark:bg-purple-500/50 bg-purple-50 dark:text-white text-gray-600">Средний</th>
                                 </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50 dark:divide-zinc-700">
@@ -566,7 +566,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                             }} className="w-full bg-transparent outline-none disabled:text-gray-700" />
                                         </td>
                                         {student.subjects.map((sub, subIdx) => (
-                                            <td key={subIdx} className="p-0 hover:bg-gray-100">
+                                            <td key={subIdx} className="p-0 hover:bg-gray-100 dark:hover:bg-neutral-700">
                                                 <input
                                                     disabled={!isOwner}
                                                     value={sub.grade}
@@ -575,7 +575,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                                 />
                                             </td>
                                         ))}
-                                        <td className="py-3 text-center font-bold bg-purple-50/20 border-purple-100 border-l-2">{student.averageScore}</td>
+                                        <td className="py-3 text-center font-bold dark:bg-purple-500/20 dark:border-purple-500 bg-purple-50/20 border-purple-100 border-l-2">{student.averageScore}</td>
                                     </tr>
                                 ))}
                                 </tbody>
