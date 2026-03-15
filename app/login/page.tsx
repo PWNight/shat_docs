@@ -37,7 +37,7 @@ function LoginForm() {
 
     return (
         <form
-            className="w-full max-w-md mx-auto bg-white dark:bg-neutral-800 rounded-2xl p-8 shadow-lg text-gray-900 dark:text-white my-6"
+            className="w-full max-w-md mx-auto bg-white dark:bg-card rounded-2xl p-8 shadow-lg text-gray-900 dark:text-white my-6"
             action={action}
         >
             <h1 className="text-3xl font-bold mb-4 select-none">Авторизация</h1>
