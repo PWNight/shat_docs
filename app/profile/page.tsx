@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { GetTeacherStats, UpdateProfile } from "@/utils/handlers";
 import { getSession } from "@/utils/session";
 import {
-    User, Mail, BarChart3, Users,
+    BarChart3, Users,
     GraduationCap, ShieldCheck, Save, Loader2,
     Info, CalendarDays, KeyRound, Fingerprint,
     UserCheck, AtSign
@@ -92,7 +92,7 @@ export default function ProfilePage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 <aside className="lg:col-span-4 space-y-6">
-                    <section className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-[2rem] shadow-sm">
+                    <section className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-xl shadow-sm">
                         <h2 className="text-xs font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
                             <Info className="w-4 h-4" /> Информация
                         </h2>
@@ -156,7 +156,7 @@ export default function ProfilePage() {
 }
 
 const StatCard = ({ icon, label, value, color, bgColor, borderColor }: any) => (
-    <div className={`bg-white dark:bg-zinc-900 p-5 rounded-[2rem] border ${borderColor} shadow-sm hover:scale-[1.02] transition-all duration-300 group`}>
+    <div className={`bg-white dark:bg-zinc-900 p-5 rounded-xl border ${borderColor} shadow-sm hover:scale-[1.02] transition-all duration-300 group`}>
         <div className={`${bgColor} ${color} w-10 h-10 rounded-2xl flex items-center justify-center mb-4 transition-transform group-hover:rotate-3`}>
             {React.cloneElement(icon, { size: 20, strokeWidth: 2.5 })}
         </div>
