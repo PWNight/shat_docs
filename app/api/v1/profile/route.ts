@@ -14,8 +14,8 @@ export async function POST(req: Request) {
         const userId = session.uid;
 
         // 1. Сбор данных для обновления профиля
-        let updateFields: string[] = [];
-        let params: any[] = [];
+        const updateFields: string[] = [];
+        const params: string[] = [];
 
         if (full_name) {
             updateFields.push("full_name = ?");
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
             params.push(email);
         }
 
-        // 2. Логика смены пароля (если заполнено поле нового пароля)
+        // 2. Логика смены пароля
         if (newPassword) {
             // Валидация совпадения
             if (newPassword !== confirmPassword) {
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
             }
 
             // Проверка текущего пароля
-            const user = await queryOne<any>("SELECT password_hash FROM users WHERE id = ?", [userId]);
+            const user = await queryOne("SELECT password_hash FROM users WHERE id = ?", [userId]);
             if (!user) {
                 return NextResponse.json({ success: false, message: "Пользователь не найден" }, { status: 404 });
             }
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
         }
 
         const sql = `UPDATE users SET ${updateFields.join(", ")} WHERE id = ?`;
-        params.push(userId);
+        params.push(String(userId));
 
         await execute(sql, params);
 
