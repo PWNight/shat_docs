@@ -1,42 +1,92 @@
 "use client"
-import React, { useEffect, useState } from "react";
-import { GetTeacherStats, UpdateProfile } from "@/utils/handlers";
+import React, {useCallback, useEffect, useState} from "react";
+import {GetTeacherStats, GetUser, UpdateProfile} from "@/utils/handlers";
+import {useRouter} from "next/navigation";
+
 import { getSession } from "@/utils/session";
 import {
     BarChart3, Users,
     GraduationCap, ShieldCheck, Save, Loader2,
-    Info, CalendarDays, KeyRound, Fingerprint,
+    Info, CalendarDays, Fingerprint,
     UserCheck, AtSign
 } from "lucide-react";
 import ErrorMessage from "@/components/NotifyAlert";
 import { Notify } from "@/utils/interfaces";
 
 type TabType = 'name' | 'email' | 'password';
+interface UserProfile {
+    id: string | number;
+    full_name: string;
+    email: string;
+    created_by?: string | null;
+}
+
+interface TeacherStats {
+    students: number;
+    avgGrade: number | string;
+    attendance: {
+        percent: number;
+        late: number;
+    };
+}
+
+interface UpdateProfileFormData {
+    full_name?: string;
+    email?: string;
+    currentPassword?: string;
+    newPassword?: string;
+    confirmPassword?: string;
+    [key: string]: string | undefined;
+}
 
 export default function ProfilePage() {
-    const [user, setUser] = useState<any>(null);
-    const [stats, setStats] = useState<any>(null);
+    const router = useRouter();
+
+    const [user, setUser] = useState<UserProfile | null>(null);
+    const [stats, setStats] = useState<TeacherStats | null>(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<TabType>('name');
-    const [notify, setNotify] = useState<Notify>({ message: '', type: '' });
+    const [activeTab, setActiveTab] = useState<TabType>("name");
+    const [notify, setNotify] = useState<Notify>({ message: "", type: "" });
     const [pending, setPending] = useState(false);
 
-    useEffect(() => {
-        async function load() {
-            const [s, st] = await Promise.all([getSession(), GetTeacherStats()]);
-            setUser(s);
-            if (st.success) setStats(st.data);
-            setLoading(false);
+    const loadData = useCallback(async () => {
+        const response = await GetTeacherStats();
+        if (!response.success) {
+            setNotify({ message: response.message || "Ошибка загрузки статистики", type: 'error' });
+        } else {
+            setStats(response.data);
         }
-        load();
     }, []);
 
-    const handleAction = async (e: React.FormEvent<HTMLFormElement>) => {
+    useEffect(() => {
+        let isMounted = true;
+
+        getSession().then(async (session) => {
+            if (!isMounted) return;
+
+            if (!session) {
+                router.push("/login?to=profile");
+                return;
+            }
+
+            const response = await GetUser(session.uid);
+            setUser(response.data)
+
+            await loadData();
+            setLoading(false);
+        });
+
+        return () => {
+            isMounted = false;
+        };
+    }, [router, loadData]);
+
+    const handleAction = async (e: React.ChangeEvent<HTMLFormElement>) => {
         e.preventDefault();
         setPending(true);
 
         const formData = new FormData(e.currentTarget);
-        const data = Object.fromEntries(formData);
+        const data = Object.fromEntries(formData) as UpdateProfileFormData;
 
         // Вызываем новый объединенный обработчик
         const res = await UpdateProfile(data);
@@ -47,16 +97,21 @@ export default function ProfilePage() {
         });
 
         if (res.success) {
-            // Если меняли имя или почту, обновляем локальное состояние, чтобы данные в блоке "Информация" изменились
             if (data.full_name || data.email) {
-                setUser((prev: any) => ({
-                    ...prev,
-                    full_name: data.full_name || prev.full_name,
-                    email: data.email || prev.email
-                }));
+                setUser((prev) => {
+                    if (!prev) return null;
+
+                    return {
+                        ...prev,
+                        full_name: data.full_name ?? prev.full_name,
+                        email: data.email ?? prev.email,
+                    };
+                });
             }
-            // Очищаем форму, если это был пароль
-            if (activeTab === 'password') (e.target as HTMLFormElement).reset();
+
+            if (activeTab === "password") {
+                (e.target as HTMLFormElement).reset();
+            }
         }
 
         setPending(false);
@@ -79,15 +134,43 @@ export default function ProfilePage() {
                 </div>
                 <div className="sm:mx-0 mx-auto flex items-center gap-2 px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm self-start md:self-center">
                     <Fingerprint className="w-4 h-4 text-zinc-400" />
-                    <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">ID: {user?.uid}</span>
+                    <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">ID: {user?.id}</span>
                 </div>
             </div>
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatCard icon={<Users/>} label="Студентов" value={stats?.students} color="text-blue-600" bgColor="bg-blue-50 dark:bg-blue-900/20" borderColor="border-blue-100 dark:border-blue-900/30" />
-                <StatCard icon={<GraduationCap/>} label="Средний балл" value={stats?.avgGrade} color="text-purple-600" bgColor="bg-purple-50 dark:bg-purple-900/20" borderColor="border-purple-100 dark:border-purple-900/30" />
-                <StatCard icon={<BarChart3/>} label="Посещаемость" value={`${stats?.attendance?.percent}%`} color="text-emerald-600" bgColor="bg-emerald-50 dark:bg-emerald-900/20" borderColor="border-emerald-100 dark:border-emerald-900/30" />
-                <StatCard icon={<ShieldCheck/>} label="Опоздания" value={stats?.attendance?.late} color="text-orange-600" bgColor="bg-orange-50 dark:bg-orange-900/20" borderColor="border-orange-100 dark:border-orange-900/30" />
+                <StatCard
+                    icon={<Users />}
+                    label="Студентов"
+                    value={stats?.students ?? 0}
+                    color="text-blue-600"
+                    bgColor="bg-blue-50 dark:bg-blue-900/20"
+                    borderColor="border-blue-100 dark:border-blue-900/30"
+                />
+                <StatCard
+                    icon={<GraduationCap />}
+                    label="Средний балл"
+                    value={stats?.avgGrade ?? "—"}
+                    color="text-purple-600"
+                    bgColor="bg-purple-50 dark:bg-purple-900/20"
+                    borderColor="border-purple-100 dark:border-purple-900/30"
+                />
+                <StatCard
+                    icon={<BarChart3 />}
+                    label="Посещаемость"
+                    value={stats?.attendance?.percent != null ? `${stats.attendance.percent}%` : "—"}
+                    color="text-emerald-600"
+                    bgColor="bg-emerald-50 dark:bg-emerald-900/20"
+                    borderColor="border-emerald-100 dark:border-emerald-900/30"
+                />
+                <StatCard
+                    icon={<ShieldCheck />}
+                    label="Опоздания"
+                    value={stats?.attendance?.late ?? 0}
+                    color="text-orange-600"
+                    bgColor="bg-orange-50 dark:bg-orange-900/20"
+                    borderColor="border-orange-100 dark:border-orange-900/30"
+                />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -99,7 +182,7 @@ export default function ProfilePage() {
                         <div className="space-y-8">
                             <InfoItem label="Полное имя" value={user?.full_name} icon={<UserCheck />} iconColor="text-blue-500" bgColor="bg-blue-50/50 dark:bg-blue-500/10" />
                             <InfoItem label="Email адрес" value={user?.email} icon={<AtSign />} iconColor="text-emerald-500" bgColor="bg-emerald-50/50 dark:bg-emerald-500/10" />
-                            <InfoItem label="Регистрация" value={user?.created_at ? new Date(user.created_at).toLocaleDateString() : '—'} icon={<CalendarDays />} iconColor="text-orange-500" bgColor="bg-orange-50/50 dark:bg-orange-500/10" />
+                            <InfoItem label="Регистрация" value={user?.created_by ? new Date(user.created_by).toLocaleDateString() : '—'} icon={<CalendarDays />} iconColor="text-orange-500" bgColor="bg-orange-50/50 dark:bg-orange-500/10" />
                         </div>
                     </section>
                 </aside>
@@ -136,16 +219,16 @@ export default function ProfilePage() {
 
                         {activeTab === 'password' && (
                             <form onSubmit={handleAction} className="space-y-8 animate-in slide-in-from-bottom-4 duration-300">
-                                <div className="flex items-center gap-3 text-orange-600 dark:text-orange-500">
-                                    <KeyRound className="w-5 h-5" />
-                                    <h3 className="text-xl font-bold">Смена пароля</h3>
+                                <div className="space-y-1">
+                                    <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Смена пароля</h3>
+                                    <p className="text-sm text-zinc-500 dark:text-zinc-400">Секретная фраза, благодаря которой вы входите в аккаунт</p>
                                 </div>
                                 <ProfileInput name="currentPassword" label="Текущий пароль" type="password" required />
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     <ProfileInput name="newPassword" label="Новый пароль" type="password" required />
                                     <ProfileInput name="confirmPassword" label="Подтверждение" type="password" required />
                                 </div>
-                                <SubmitButton pending={pending} color="bg-orange-600 hover:bg-orange-700 shadow-orange-500/20" />
+                                <SubmitButton pending={pending} />
                             </form>
                         )}
                     </div>
@@ -155,7 +238,18 @@ export default function ProfilePage() {
     );
 }
 
-const StatCard = ({ icon, label, value, color, bgColor, borderColor }: any) => (
+interface StatCardProps {
+    icon: React.ReactElement<{
+        size?: number | string;
+        strokeWidth?: number;
+    }>;
+    label: string;
+    value: string | number;
+    color: string;
+    bgColor: string;
+    borderColor: string;
+}
+const StatCard = ({ icon, label, value, color, bgColor, borderColor }: StatCardProps) => (
     <div className={`bg-white dark:bg-zinc-900 p-5 rounded-xl border ${borderColor} shadow-sm hover:scale-[1.02] transition-all duration-300 group`}>
         <div className={`${bgColor} ${color} w-10 h-10 rounded-2xl flex items-center justify-center mb-4 transition-transform group-hover:rotate-3`}>
             {React.cloneElement(icon, { size: 20, strokeWidth: 2.5 })}
@@ -167,7 +261,17 @@ const StatCard = ({ icon, label, value, color, bgColor, borderColor }: any) => (
     </div>
 );
 
-const InfoItem = ({ label, value, icon, iconColor, bgColor }: any) => (
+interface InfoItemProps {
+    label: string;
+    value: string | number | null | undefined;
+    icon: React.ReactElement<{
+        size?: number | string;
+        strokeWidth?: number;
+    }>;
+    iconColor: string;
+    bgColor: string;
+}
+const InfoItem = ({ label, value, icon, iconColor, bgColor }: InfoItemProps) => (
     <div className="flex items-center gap-4 group">
         <div className={`${bgColor} ${iconColor} p-3 rounded-2xl shrink-0 transition-transform group-hover:scale-110`}>
             {React.cloneElement(icon, { size: 20 })}
@@ -179,7 +283,12 @@ const InfoItem = ({ label, value, icon, iconColor, bgColor }: any) => (
     </div>
 );
 
-const TabButton = ({ active, onClick, label }: any) => (
+interface TabButtonProps {
+    active: boolean;
+    onClick: () => void;
+    label: string;
+}
+const TabButton = ({ active, onClick, label }: TabButtonProps) => (
     <button
         onClick={onClick}
         className={`px-6 py-2 rounded-xl text-sm font-bold transition-all duration-300 w-full sm:w-32 ${
@@ -192,7 +301,10 @@ const TabButton = ({ active, onClick, label }: any) => (
     </button>
 );
 
-const ProfileInput = ({ label, ...props }: any) => (
+interface ProfileInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+    label: string;
+}
+const ProfileInput = ({ label, ...props }: ProfileInputProps) => (
     <div className="space-y-2">
         <label className="text-xs font-black text-zinc-400 dark:text-zinc-500 ml-1 uppercase tracking-widest">{label}</label>
         <input
@@ -202,7 +314,11 @@ const ProfileInput = ({ label, ...props }: any) => (
     </div>
 );
 
-const SubmitButton = ({ pending, color = "bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 shadow-zinc-200 dark:shadow-none" }: any) => (
+interface SubmitButtonProps {
+    pending: boolean;
+    color?: string;
+}
+const SubmitButton = ({ pending, color = "bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 shadow-zinc-200 dark:shadow-none" }: SubmitButtonProps) => (
     <button
         disabled={pending}
         type="submit"
