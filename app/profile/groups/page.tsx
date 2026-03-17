@@ -162,13 +162,13 @@ export default function ProfileGroups() {
             </div>
 
             {groups.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 mb-8">
                     {groups.map((group: Group) => {
                         const isOwner = group.fk_user === userData?.uid;
                         return (
                             <div
                                 key={group.id}
-                                className="group relative flex flex-col p-6 rounded-2xl bg-white dark:bg-card border border-gray-100 dark:border-zinc-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                                className="group relative flex flex-col p-6 rounded-2xl bg-card dark:bg-card border border-gray-100 dark:border-zinc-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                             >
                                 <div className="flex justify-between items-center xl:items-start gap-2 mb-4">
                                     <div className={`p-3 rounded-lg ${isOwner ? 'bg-blue-600 text-white' : 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'}`}>

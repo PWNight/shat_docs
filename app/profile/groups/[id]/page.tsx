@@ -251,7 +251,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
         <div className="w-full space-y-5 sm:space-y-6 pb-8 sm:pb-10">
             {notify.message && <ErrorMessage message={notify.message} type={notify.type} onClose={() => setNotify({ message: '', type: '' })} />}
 
-            <div className="bg-white dark:bg-card rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm">
+            <div className="bg-card rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm">
                 <div className="flex flex-col md:flex-row justify-between items-center lg:p-6 p-4">
                     <div className="flex items-center gap-5 w-full md:w-auto mb-2">
                         <div className="flex-1">
@@ -392,7 +392,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
             </div>
 
             {activeTab === 'attendance' && (
-                <div className="w-full bg-white dark:bg-card rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm p-6 overflow-hidden">
+                <div className="w-full bg-card rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm p-6 overflow-hidden">
                     <div className="flex flex-col sm:flex-row lg:items-center justify-between mb-6 gap-4">
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-blue-50 dark:bg-zinc-700 text-blue-600 dark:text-blue-400 rounded-lg"><FileText size={20}/></div>
@@ -498,7 +498,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
             )}
 
             {activeTab === 'grades' && (
-                <div className="w-full bg-white dark:bg-card rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm p-6 overflow-hidden">
+                <div className="w-full bg-card rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm p-6 overflow-hidden">
                     <div className="flex flex-col sm:flex-row lg:items-center justify-between mb-6 gap-4">
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-purple-50 text-purple-600 dark:bg-zinc-700 dark:text-purple-400 rounded-lg"><GraduationCap size={20}/></div>
