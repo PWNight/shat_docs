@@ -14,7 +14,7 @@ export const NAVLINKS = [
     },
     {
         title: "Документация",
-        href: "/docs",
+        href: "/wiki",
         icon: <BookOpen className="w-4 h-4" />,
     }
 ];
