@@ -69,11 +69,7 @@ export function SheetLeftbar() {
               </section>
 
               <section>
-                <div className="flex items-center gap-2 px-2 mb-3 text-blue-500">
-                  <Book className="w-4 h-4" />
-                  <h2 className="text-[10px] font-bold uppercase tracking-[0.2em]">Документация</h2>
-                </div>
-                <div className="space-y-1 px-2">
+                <div className="space-y-1">
                   <WikiMenu isSheet />
                 </div>
               </section>
