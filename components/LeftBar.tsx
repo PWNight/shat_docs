@@ -79,7 +79,7 @@ export function SheetLeftbar() {
                   <Share2 className="w-4 h-4" />
                   <h2 className="text-[10px] font-bold uppercase tracking-[0.2em]">Сообщество</h2>
                 </div>
-                <div className="p-1 bg-muted/30 rounded-xl border border-border/50">
+                <div className="px-2">
                   <FooterButtons />
                 </div>
               </section>
