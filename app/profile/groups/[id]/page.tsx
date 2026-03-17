@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/Dialog";
 import ErrorMessage from "@/components/NotifyAlert";
 import { getSession, SessionPayload } from "@/utils/session";
-import {getGroup, getUsersList, SaveGrades, GetGrades} from "@/utils/handlers";
+import {GetGroup, GetUsersList, SaveGrades, GetGrades} from "@/utils/handlers";
 import {UpdateGroup, DeleteGroup, SaveAttendance, GetAttendance} from "@/utils/handlers";
 import {exportGradesToWord, exportToWord} from "@/utils/functions";
 import {
@@ -45,13 +45,13 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
     const [isDragging, setIsDragging] = useState(false);
 
     const loadData = useCallback(async (id: string) => {
-        const groupRes = await getGroup(id);
+        const groupRes = await GetGroup(id);
         if (!groupRes.success) return router.replace(`/profile/groups`);
 
         setGroup(groupRes.data);
         setUpdateFormData({ name: groupRes.data.name, fk_user: String(groupRes.data.fk_user) });
 
-        const usersRes = await getUsersList();
+        const usersRes = await GetUsersList();
         setUsers(usersRes.data ?? []);
     }, [router]);
 

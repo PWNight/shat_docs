@@ -197,7 +197,7 @@ export async function GetAttendance(groupId: string) {
     }
 }
 
-export async function getAllGroups(){
+export async function GetAllGroups(){
     try {
         const response = await fetch("/api/v1/groups/")
         const { data } = await handleApiResponse(response);
@@ -211,7 +211,7 @@ export async function getAllGroups(){
     }
 }
 
-export async function getGroup(id: string){
+export async function GetGroup(id: string){
     try {
         const response = await fetch(`/api/v1/groups/${id}`)
         const { data } = await handleApiResponse(response);
@@ -225,9 +225,23 @@ export async function getGroup(id: string){
     }
 }
 
-export async function getUsersList() {
+export async function GetUsersList() {
     try {
         const response = await fetch('/api/v1/users');
+        const { data } = await handleApiResponse(response);
+
+        return { success: true, data };
+    } catch (error) {
+        const errorMessage =
+            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
+
+        return { success: false, message: errorMessage };
+    }
+}
+
+export async function GetUser(id: number) {
+    try {
+        const response = await fetch(`/api/v1/users/${id}`);
         const { data } = await handleApiResponse(response);
 
         return { success: true, data };
@@ -271,7 +285,7 @@ export async function GetGrades(groupId: string) {
 
 export async function UpdateProfile(data: object) {
     try {
-        const response = await fetch('/api/v1/profile', {
+        const response = await fetch('/api/v1/users', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
@@ -288,7 +302,7 @@ export async function UpdateProfile(data: object) {
 // Получение статистики преподавателя
 export async function GetTeacherStats() {
     try {
-        const response = await fetch('/api/v1/profile/stats');
+        const response = await fetch('/api/v1/users/stats');
         return await handleApiResponse(response);
     } catch (error) {
         const errorMessage =

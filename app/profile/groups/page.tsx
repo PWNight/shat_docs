@@ -2,7 +2,7 @@
 import React, {useActionState, useCallback, useEffect, useState} from "react";
 import {useRouter} from "next/navigation";
 import {getSession} from "@/utils/session";
-import {CreateGroup, getAllGroups} from "@/utils/handlers";
+import {CreateGroup, GetAllGroups} from "@/utils/handlers";
 import ErrorMessage from "@/components/NotifyAlert";
 import {ArrowRight, Calendar, Loader2, Plus, SearchX, Users, UserStar} from "lucide-react";
 import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger} from "@/components/ui/Dialog";
@@ -77,7 +77,7 @@ export default function ProfileGroups() {
 
     // Функция загрузки списка групп
     const loadData = useCallback(async () => {
-        const response = await getAllGroups();
+        const response = await GetAllGroups();
         if (!response.success) {
             setNotify({ message: response.message || "Ошибка загрузки групп", type: 'error' });
         } else {
