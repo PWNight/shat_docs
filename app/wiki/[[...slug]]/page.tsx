@@ -65,7 +65,7 @@ export async function generateMetadata(props: PageProps) {
 
 export async function generateStaticParams() {
     const params = page_routes.map((route) => ({
-        slug: route.href.replace(/^\/docs\//, "").split("/").filter(Boolean),
+        slug: route.href.replace(/^\/wiki\//, "").split("/").filter(Boolean),
     }));
     return params;
 }
