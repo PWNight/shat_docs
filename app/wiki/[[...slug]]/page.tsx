@@ -1,10 +1,10 @@
 import Pagination from "@/components/wiki/pagination";
 import Toc from "@/components/wiki/toc";
-import { page_routes } from "@/utils/routes-config";
-import { notFound } from "next/navigation";
-import { getWikiForSlug } from "@/utils/markdown";
-import { Typography } from "@/components/wiki/typography";
-import { Info } from "lucide-react";
+import {page_routes} from "@/utils/routes-config";
+import {notFound} from "next/navigation";
+import {getWikiForSlug} from "@/utils/markdown";
+import {Typography} from "@/components/wiki/typography";
+import {Info} from "lucide-react";
 import WikiBreadcrumb from "@/components/wiki/wiki-breadcrumb";
 
 type PageProps = {
@@ -64,8 +64,7 @@ export async function generateMetadata(props: PageProps) {
 }
 
 export async function generateStaticParams() {
-    const params = page_routes.map((route) => ({
+    return page_routes.map((route) => ({
         slug: route.href.replace(/^\/wiki\//, "").split("/").filter(Boolean),
     }));
-    return params;
 }

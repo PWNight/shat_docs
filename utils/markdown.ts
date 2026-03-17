@@ -25,7 +25,6 @@ const components = {
     Table, TableHeader, TableHead, TableRow, TableBody, TableCell,
 };
 
-// can be used for other pages like blogs, Guides etc
 async function parseMdx<Frontmatter>(rawMdx: string) {
     return await compileMDX<Frontmatter>({
         source: rawMdx,
@@ -48,7 +47,6 @@ async function parseMdx<Frontmatter>(rawMdx: string) {
 }
 
 // logic for wiki
-
 export type BaseMdxFrontmatter = {
     title: string;
     description: string;
@@ -65,20 +63,10 @@ export async function getWikiForSlug(slug: string) {
     }
 }
 
-export async function getOtherForSlug(slug: string){
-    try{
-        const contentPath = path.join(process.cwd(), "/contents/", `${slug}/index.mdx`);
-        const rawMdx = await fs.readFile(contentPath, "utf-8");
-        return await parseMdx<BaseMdxFrontmatter>(rawMdx);
-    } catch (err) {
-        console.log(err);
-    }
-}
-
 export async function getWikiTocs(slug: string) {
     const contentPath = getWikiContentPath(slug);
     const rawMdx = await fs.readFile(contentPath, "utf-8");
-    // captures between ## - #### can modify accordingly
+
     const headingsRegex = /^(#{2,4})\s(.+)$/gm;
     let match;
     const extractedHeadings = [];
@@ -147,7 +135,6 @@ export async function getAllChilds(pathString: string) {
     );
 }
 
-// for copying the code in pre
 const preProcess = () => (tree: any) => {
     visit(tree, (node) => {
         if (node?.type === "element" && node?.tagName === "pre") {
