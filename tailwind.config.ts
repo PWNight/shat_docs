@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss';
+import typography from '@tailwindcss/typography';
 import animate from 'tailwindcss-animate';
 
 const config: Config = {
@@ -8,14 +9,14 @@ const config: Config = {
     './app/**/*.{ts,tsx,mdx}',
     './src/**/*.{ts,tsx,mdx}',
   ],
-  darkMode: 'class',
+  darkMode: 'class', // or 'media' or 'class', if you want dark mode
   prefix: '',
   theme: {
     container: {
       center: true,
       padding: '2rem',
       screens: {
-        '2xl': '1536px',
+        '2xl': '1536px', // Updated 2xl breakpoint to match Tailwind CSS v3 default
       },
     },
     extend: {
@@ -79,7 +80,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [animate],
+  plugins: [animate, typography],
 };
 
 export default config;
