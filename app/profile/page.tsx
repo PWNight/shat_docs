@@ -108,15 +108,15 @@ export default function ProfilePage() {
     );
 
     return (
-        <div className="max-w-6xl space-y-8 animate-in fade-in duration-500">
+        <div className="w-full space-y-8 animate-in fade-in duration-500">
             {notify.message && <ErrorMessage message={notify.message} type={notify.type} onClose={() => setNotify({message:'', type:''})} />}
 
             <div className="sm:text-left text-center flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-6">
                 <div>
-                    <h1 className="text-3xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">Личный кабинет</h1>
+                    <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Личный кабинет</h1>
                     <p className="text-sm text-zinc-500 dark:text-zinc-400 font-medium mt-1">Управление профилем и обзор статистики групп</p>
                 </div>
-                <div className="sm:mx-0 mx-auto flex items-center gap-2 px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm self-start md:self-center">
+                <div className="sm:mx-0 mx-auto flex items-center gap-2 px-4 py-2 bg-card dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm self-start md:self-center">
                     <Fingerprint className="w-4 h-4 text-zinc-400" />
                     <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">ID: {user?.id}</span>
                 </div>
@@ -159,10 +159,10 @@ export default function ProfilePage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 <aside className="lg:col-span-4 space-y-6">
-                    <section className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-xl shadow-sm">
-                        <h2 className="text-xs font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
+                    <section className="bg-card dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-xl shadow-sm">
+                        <h3 className="text-sm font-bold uppercase mb-8 flex items-center gap-2">
                             <Info className="w-4 h-4" /> Информация
-                        </h2>
+                        </h3>
                         <div className="space-y-8">
                             <InfoItem label="Полное имя" value={user?.full_name} icon={<UserCheck />} iconColor="text-blue-500" bgColor="bg-blue-50/50 dark:bg-blue-500/10" />
                             <InfoItem label="Email адрес" value={user?.email} icon={<AtSign />} iconColor="text-emerald-500" bgColor="bg-emerald-50/50 dark:bg-emerald-500/10" />
@@ -171,14 +171,14 @@ export default function ProfilePage() {
                     </section>
                 </aside>
 
-                <main className="lg:col-span-8 space-y-6">
+                <main className="lg:col-span-8 space-y-6 lg:max-w-2xl">
                     <div className="flex p-1.5 bg-zinc-100 dark:bg-zinc-800/50 rounded-2xl border border-zinc-200 dark:border-zinc-800 w-full sm:w-fit">
                         <TabButton active={activeTab === 'name'} onClick={() => setActiveTab('name')} label="Имя" />
                         <TabButton active={activeTab === 'email'} onClick={() => setActiveTab('email')} label="Почта" />
                         <TabButton active={activeTab === 'password'} onClick={() => setActiveTab('password')} label="Пароль" />
                     </div>
 
-                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-xl shadow-sm">
+                    <div className="bg-card dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-xl shadow-sm">
                         {activeTab === 'name' && (
                             <form onSubmit={handleAction} className="space-y-8 animate-in slide-in-from-bottom-4 duration-300">
                                 <div className="space-y-1">
@@ -223,13 +223,13 @@ export default function ProfilePage() {
 }
 
 const StatCard = ({ icon, label, value, color, bgColor, borderColor }: StatCardProps) => (
-    <div className={`bg-white dark:bg-zinc-900 p-5 rounded-xl border ${borderColor} shadow-sm hover:scale-[1.02] transition-all duration-300 group`}>
+    <div className={`bg-card dark:bg-zinc-900 p-5 rounded-xl border ${borderColor} shadow-sm hover:scale-[1.05] transition-all duration-300 group`}>
         <div className={`${bgColor} ${color} w-10 h-10 rounded-2xl flex items-center justify-center mb-4 transition-transform group-hover:rotate-3`}>
             {React.cloneElement(icon, { size: 20, strokeWidth: 2.5 })}
         </div>
         <div>
-            <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-black uppercase tracking-widest mb-1">{label}</p>
-            <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 leading-none">{value || 0}</p>
+            <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase mb-1">{label}</p>
+            <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 leading-none">{value || 0}</p>
         </div>
     </div>
 );
@@ -240,7 +240,7 @@ const InfoItem = ({ label, value, icon, iconColor, bgColor }: InfoItemProps) => 
             {React.cloneElement(icon, { size: 20 })}
         </div>
         <div className="min-w-0">
-            <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest leading-none mb-1.5">{label}</p>
+            <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest leading-none mb-1.5">{label}</p>
             <p className="text-[15px] font-bold text-zinc-700 dark:text-zinc-200 truncate leading-none">{value}</p>
         </div>
     </div>
@@ -251,7 +251,7 @@ const TabButton = ({ active, onClick, label }: TabButtonProps) => (
         onClick={onClick}
         className={`px-6 py-2 rounded-xl text-sm font-bold transition-all duration-300 w-full sm:w-32 ${
             active
-                ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-zinc-700'
+                ? 'bg-card dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-zinc-700'
                 : 'text-zinc-500 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300'
         }`}
     >
@@ -261,10 +261,10 @@ const TabButton = ({ active, onClick, label }: TabButtonProps) => (
 
 const ProfileInput = ({ label, ...props }: ProfileInputProps) => (
     <div className="space-y-2">
-        <label className="text-xs font-black text-zinc-400 dark:text-zinc-500 ml-1 uppercase tracking-widest">{label}</label>
+        <label className="text-[12px] font-bold ml-1 uppercase tracking-widest">{label}</label>
         <input
             {...props}
-            className="w-full px-5 py-3.5 bg-zinc-50 dark:bg-zinc-800/50 border-2 border-zinc-100 dark:border-zinc-700 focus:border-blue-500/50 dark:focus:border-blue-500/50 focus:bg-white dark:focus:bg-zinc-900 rounded-2xl outline-none transition-all text-sm font-semibold dark:text-zinc-100 shadow-inner"
+            className="w-full px-5 py-3.5 bg-zinc-50 dark:bg-zinc-800/50 border-2 border-zinc-100 dark:border-zinc-700 focus:border-blue-500/50 dark:focus:border-blue-500/50 focus:bg-card dark:focus:bg-zinc-900 rounded-2xl outline-none transition-all text-sm font-semibold dark:text-zinc-100 shadow-inner"
         />
     </div>
 );
