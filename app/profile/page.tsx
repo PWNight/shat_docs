@@ -11,33 +11,17 @@ import {
     UserCheck, AtSign
 } from "lucide-react";
 import ErrorMessage from "@/components/NotifyAlert";
-import { Notify } from "@/utils/interfaces";
+import {
+    InfoItemProps,
+    Notify,
+    ProfileInputProps, StatCardProps, SubmitButtonProps,
+    TabButtonProps,
+    TeacherStats,
+    UpdateProfileFormData,
+    UserProfile
+} from "@/utils/interfaces";
 
 type TabType = 'name' | 'email' | 'password';
-interface UserProfile {
-    id: string | number;
-    full_name: string;
-    email: string;
-    created_by?: string | null;
-}
-
-interface TeacherStats {
-    students: number;
-    avgGrade: number | string;
-    attendance: {
-        percent: number;
-        late: number;
-    };
-}
-
-interface UpdateProfileFormData {
-    full_name?: string;
-    email?: string;
-    currentPassword?: string;
-    newPassword?: string;
-    confirmPassword?: string;
-    [key: string]: string | undefined;
-}
 
 export default function ProfilePage() {
     const router = useRouter();
@@ -238,17 +222,6 @@ export default function ProfilePage() {
     );
 }
 
-interface StatCardProps {
-    icon: React.ReactElement<{
-        size?: number | string;
-        strokeWidth?: number;
-    }>;
-    label: string;
-    value: string | number;
-    color: string;
-    bgColor: string;
-    borderColor: string;
-}
 const StatCard = ({ icon, label, value, color, bgColor, borderColor }: StatCardProps) => (
     <div className={`bg-white dark:bg-zinc-900 p-5 rounded-xl border ${borderColor} shadow-sm hover:scale-[1.02] transition-all duration-300 group`}>
         <div className={`${bgColor} ${color} w-10 h-10 rounded-2xl flex items-center justify-center mb-4 transition-transform group-hover:rotate-3`}>
@@ -261,16 +234,6 @@ const StatCard = ({ icon, label, value, color, bgColor, borderColor }: StatCardP
     </div>
 );
 
-interface InfoItemProps {
-    label: string;
-    value: string | number | null | undefined;
-    icon: React.ReactElement<{
-        size?: number | string;
-        strokeWidth?: number;
-    }>;
-    iconColor: string;
-    bgColor: string;
-}
 const InfoItem = ({ label, value, icon, iconColor, bgColor }: InfoItemProps) => (
     <div className="flex items-center gap-4 group">
         <div className={`${bgColor} ${iconColor} p-3 rounded-2xl shrink-0 transition-transform group-hover:scale-110`}>
@@ -283,11 +246,6 @@ const InfoItem = ({ label, value, icon, iconColor, bgColor }: InfoItemProps) => 
     </div>
 );
 
-interface TabButtonProps {
-    active: boolean;
-    onClick: () => void;
-    label: string;
-}
 const TabButton = ({ active, onClick, label }: TabButtonProps) => (
     <button
         onClick={onClick}
@@ -301,9 +259,6 @@ const TabButton = ({ active, onClick, label }: TabButtonProps) => (
     </button>
 );
 
-interface ProfileInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-    label: string;
-}
 const ProfileInput = ({ label, ...props }: ProfileInputProps) => (
     <div className="space-y-2">
         <label className="text-xs font-black text-zinc-400 dark:text-zinc-500 ml-1 uppercase tracking-widest">{label}</label>
@@ -314,10 +269,6 @@ const ProfileInput = ({ label, ...props }: ProfileInputProps) => (
     </div>
 );
 
-interface SubmitButtonProps {
-    pending: boolean;
-    color?: string;
-}
 const SubmitButton = ({ pending, color = "bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 shadow-zinc-200 dark:shadow-none" }: SubmitButtonProps) => (
     <button
         disabled={pending}
