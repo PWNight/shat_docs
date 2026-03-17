@@ -76,18 +76,6 @@ export function NavMenu({ isSheet = false }) {
                     {item.title}
                 </Anchor>
             ))}
-
-            {isSheet && (
-                <div className="flex flex-col gap-4 mt-6 pt-6 border-t border-border">
-                    <div className="flex items-center justify-between px-2 text-muted-foreground">
-                        <span className="text-sm font-medium">Сменить тему</span>
-                        <ModeToggle />
-                    </div>
-                    <div className="w-full pt-2">
-                        <AuthButton />
-                    </div>
-                </div>
-            )}
         </div>
     );
 }
