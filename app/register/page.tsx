@@ -37,7 +37,7 @@ function RegisterForm() {
 
     return (
         <form
-            className="w-full max-w-md mx-auto bg-white dark:bg-card rounded-2xl p-8 shadow-lg text-gray-900 dark:text-white my-6"
+            className="w-full max-w-md bg-white dark:bg-card rounded-2xl p-8 shadow-lg text-gray-900 dark:text-white"
             action={action}
         >
             <h1 className="text-3xl font-bold mb-4 select-none">Регистрация</h1>
@@ -146,7 +146,7 @@ function RegisterForm() {
 
 export default function RegisterPage() {
     return (
-        <div className="flex items-center justify-center h-full">
+        <div className="flex items-center justify-center h-screen">
             <Suspense fallback={<Loader2 className="h-10 w-10 animate-spin text-blue-400" />}>
                 <RegisterForm />
             </Suspense>
