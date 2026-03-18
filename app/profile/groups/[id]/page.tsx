@@ -1,6 +1,7 @@
 "use client"
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState, useTransition, use, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion"; // Импорт для анимаций
 import {
     Loader2, Trash2,
     ShieldAlert, Save,
@@ -376,214 +377,244 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                 </div>
             </div>
 
-            <div className="flex gap-4 lg:justify-start justify-between border-b dark:border-zinc-700">
+            <div className="flex gap-4 lg:justify-start justify-between border-b dark:border-zinc-700 relative">
                 <button
                     onClick={() => setActiveTab('attendance')}
-                    className={`pb-3 px-4 flex items-center gap-2 font-bold text-sm transition-all ${activeTab === 'attendance' ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400' : 'text-gray-400'}`}
+                    className={`relative pb-3 px-4 flex items-center gap-2 font-bold text-sm transition-all ${activeTab === 'attendance' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400'}`}
                 >
                     <ClipboardCheck size={18} /> Посещаемость
+                    {activeTab === 'attendance' && (
+                        <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />
+                    )}
                 </button>
                 <button
                     onClick={() => setActiveTab('grades')}
-                    className={`pb-3 px-4 flex items-center gap-2 font-bold text-sm transition-all ${activeTab === 'grades' ? 'border-b-2 border-purple-500 text-purple-600 dark:text-purple-400' : 'text-gray-400'}`}
+                    className={`relative pb-3 px-4 flex items-center gap-2 font-bold text-sm transition-all ${activeTab === 'grades' ? 'text-purple-600 dark:text-purple-400' : 'text-gray-400'}`}
                 >
                     <GraduationCap size={18} /> Успеваемость
+                    {activeTab === 'grades' && (
+                        <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-500" />
+                    )}
                 </button>
             </div>
 
-            {activeTab === 'attendance' && (
-                <div className="w-full bg-card rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm p-6 overflow-hidden">
-                    <div className="flex flex-col sm:flex-row lg:items-center justify-between mb-6 gap-4">
-                        <div className="flex items-center gap-3">
-                            <div className="p-3 bg-blue-50 dark:bg-zinc-700 text-blue-600 dark:text-blue-400 rounded-lg"><FileText size={20}/></div>
-                            <h2 className="text-lg font-bold">Ведомость посещаемости</h2>
-                        </div>
-                        <div className="flex items-center gap-2 w-full sm:w-auto">
-                            {attendanceStudents.length > 0 ? (
-                                <>
-                                    <button onClick={() => exportToWord(attendanceStudents, attendanceTotal, group)} className="shadow-sm flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 dark:bg-zinc-700/50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-600! hover:text-white transition-all">
-                                        <Download size={16}/> Word
-                                    </button>
-                                    {isOwner && (
+            <AnimatePresence mode="wait">
+                <motion.div
+                    key={activeTab}
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    transition={{ duration: 0.2 }}
+                >
+                    {activeTab === 'attendance' && (
+                        <div className="w-full bg-card rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm p-6 overflow-hidden">
+                            <div className="flex flex-col sm:flex-row lg:items-center justify-between mb-6 gap-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-3 bg-blue-50 dark:bg-zinc-700 text-blue-600 dark:text-blue-400 rounded-lg"><FileText size={20}/></div>
+                                    <h2 className="text-lg font-bold">Ведомость посещаемости</h2>
+                                </div>
+                                <div className="flex items-center gap-2 w-full sm:w-auto">
+                                    {attendanceStudents.length > 0 ? (
                                         <>
-                                            <button onClick={() => SaveAttendance(groupId, attendanceStudents).then(() => setNotify({message: "Сохранено", type: "success"}))} className="shadow-sm flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-50 dark:bg-zinc-700/50 text-green-500 font-semibold rounded-lg text-sm  hover:bg-green-500! hover:text-white transition-all">
-                                                <Database size={16}/> В базу
+                                            <button onClick={() => exportToWord(attendanceStudents, attendanceTotal, group)} className="shadow-sm flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 dark:bg-zinc-700/50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-600! hover:text-white transition-all">
+                                                <Download size={16}/> Word
                                             </button>
-                                            <button onClick={() => setAttendanceStudents([])} className="shadow-sm p-2 bg-red-100 dark:bg-zinc-700/50 text-red-600 rounded-lg hover:bg-red-600! hover:text-white transition-colors">
-                                                <Trash2 size={18}/>
-                                            </button>
+                                            {isOwner && (
+                                                <>
+                                                    <button onClick={() => SaveAttendance(groupId, attendanceStudents).then(() => setNotify({message: "Сохранено", type: "success"}))} className="shadow-sm flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-50 dark:bg-zinc-700/50 text-green-500 font-semibold rounded-lg text-sm  hover:bg-green-500! hover:text-white transition-all">
+                                                        <Database size={16}/> В базу
+                                                    </button>
+                                                    <button onClick={() => setAttendanceStudents([])} className="shadow-sm p-2 bg-red-100 dark:bg-zinc-700/50 text-red-600 rounded-lg hover:bg-red-600! hover:text-white transition-colors">
+                                                        <Trash2 size={18}/>
+                                                    </button>
+                                                </>
+                                            )}
                                         </>
+                                    ) : (
+                                        <button onClick={handleLoadFromDB} className="shadow-sm flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-zinc-700/50 dark:text-white dark:hover:bg-blue-600 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-all">
+                                            <Database size={16}/> Загрузить из БД
+                                        </button>
                                     )}
-                                </>
+                                </div>
+                            </div>
+
+                            {attendanceStudents.length === 0 ? (
+                                isOwner ? (
+                                    <motion.label
+                                        whileHover={{ scale: 1.01 }}
+                                        whileTap={{ scale: 0.99 }}
+                                        onDragOver={handleDragOver}
+                                        onDragLeave={handleDragLeave}
+                                        onDrop={handleDrop}
+                                        className={`shadow-sm flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-3xl cursor-pointer transition-all group ${isDragging ? "border-blue-500 bg-blue-50/50" : "border-gray-100 dark:border-zinc-700 hover:bg-blue-50/20"}`}
+                                    >
+                                        <Upload className={`${isDragging ? "text-blue-500 scale-110" : "text-gray-300 group-hover:text-blue-500"} transition-all mb-4`} size={40} />
+                                        <span className="text-sm lg:text-left text-center font-medium text-gray-500">{isDragging ? "Отпустите файл здесь" : "Загрузить отчет по посещаемости или перетащите файл"}</span>
+                                        <input type="file" className="hidden" accept=".xls, .xlsx, text/html" onChange={handleAttendanceFileUpload} />
+                                    </motion.label>
+                                ) : (
+                                    <div className="py-20 text-center text-gray-400">Нет данных для отображения</div>
+                                )
                             ) : (
-                                <button onClick={handleLoadFromDB} className="shadow-sm flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-zinc-700/50 dark:text-white dark:hover:bg-blue-600 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-all">
-                                    <Database size={16}/> Загрузить из БД
-                                </button>
-                            )}
-                        </div>
-                    </div>
-
-                    {attendanceStudents.length === 0 ? (
-                        isOwner ? (
-                            <label onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} className={`shadow-sm flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-3xl cursor-pointer transition-all group ${isDragging ? "border-blue-500 bg-blue-50/50" : "border-gray-100 dark:border-zinc-700 hover:bg-blue-50/20"}`}>
-                                <Upload className={`${isDragging ? "text-blue-500 scale-110" : "text-gray-300 group-hover:text-blue-500"} transition-all mb-4`} size={40} />
-                                <span className="text-sm lg:text-left text-center font-medium text-gray-500">{isDragging ? "Отпустите файл здесь" : "Загрузить отчет по посещаемости или перетащите файл"}</span>
-                                <input type="file" className="hidden" accept=".xls, .xlsx, text/html" onChange={handleAttendanceFileUpload} />
-                            </label>
-                        ) : (
-                            <div className="py-20 text-center text-gray-400">Нет данных для отображения</div>
-                        )
-                    ) : (
-                        <div className="w-full overflow-x-auto border border-gray-100 dark:border-zinc-700 rounded-lg shadow-sm">
-                            <table className="text-sm table-auto w-full min-w-150">
-                                <thead className="bg-gray-50/50 dark:bg-zinc-900/50 text-[10px] font-bold uppercase text-gray-400">
-                                <tr className="divide-x divide-gray-100 dark:divide-zinc-700 border-b dark:border-zinc-700">
-                                    <th rowSpan={2} className="py-4 w-12 text-center">ID</th>
-                                    <th rowSpan={2} className="py-4 px-4 text-left">ФИО</th>
-                                    <th colSpan={2} className="py-2 border-b text-center">Дни</th>
-                                    <th colSpan={2} className="py-2 border-b text-center">Уроки</th>
-                                    <th rowSpan={2} className="py-4 text-center w-20">Опозд.</th>
-                                </tr>
-                                <tr className="divide-x divide-gray-100 dark:divide-zinc-700 border-b dark:border-zinc-700">
-                                    <th className="py-2 text-center w-20">Всего</th>
-                                    <th className="py-2 text-amber-600 text-center w-20">Болезнь</th>
-                                    <th className="py-2 text-center w-20">Всего</th>
-                                    <th className="py-2 text-amber-600 text-center w-20">Болезнь</th>
-                                </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-50 dark:divide-zinc-700">
-                                {attendanceStudents.map((s, i) => (
-                                    <tr key={i} className="divide-x divide-gray-50 dark:divide-zinc-700 hover:bg-blue-50/10 transition-colors">
-                                        <td className="py-3 text-center text-gray-400 font-mono text-[10px]">{s.number}</td>
-                                        <td className="px-2 font-medium py-1 hover:bg-gray-100 dark:hover:bg-neutral-600">
-                                            <input
-                                                disabled={!isOwner}
-                                                value={s.fullName}
-                                                onChange={e => updateAttendanceField(i, 'fullName', e.target.value)}
-                                                className="w-full bg-transparent outline-none focus:text-blue-600 disabled:text-gray-700 dark:disabled:text-gray-300"
-                                            />
-                                        </td>
-                                        <td className="py-3 hover:bg-gray-100 dark:hover:bg-neutral-600">
-                                            <input disabled={!isOwner} value={s.fullDaysTotal} onChange={e => updateAttendanceField(i, 'fullDaysTotal', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" />
-                                        </td>
-                                        <td className="py-3 font-bold text-amber-600 hover:bg-gray-100 dark:hover:bg-neutral-600">
-                                            <input disabled={!isOwner} value={s.fullDaysSick} onChange={e => updateAttendanceField(i, 'fullDaysSick', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" />
-                                        </td>
-                                        <td className="py-3 hover:bg-gray-100 dark:hover:bg-neutral-600">
-                                            <input disabled={!isOwner} value={s.lessonsTotal} onChange={e => updateAttendanceField(i, 'lessonsTotal', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center"/>
-                                        </td>
-                                        <td className="py-3 font-bold text-amber-600 hover:bg-gray-100 dark:hover:bg-neutral-600">
-                                            <input disabled={!isOwner} value={s.lessonsSick} onChange={e => updateAttendanceField(i, 'lessonsSick', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center"/>
-                                        </td>
-                                        <td className="py-3 font-bold text-red-600 hover:bg-gray-100 dark:hover:bg-neutral-600">
-                                            <input disabled={!isOwner} value={s.late} onChange={e => updateAttendanceField(i, 'late', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" />
-                                        </td>
-                                    </tr>
-                                ))}
-                                {attendanceTotal && (
-                                    <tr className="divide-x divide-gray-100 dark:divide-zinc-700 bg-gray-50 dark:bg-zinc-900 font-bold border-t-2">
-                                        <td colSpan={2} className="px-4 py-4 text-[11px] uppercase text-gray-400">Итого:</td>
-                                        <td className="px-2 py-4 text-center">{attendanceTotal.fullDaysTotal}</td>
-                                        <td className="px-2 py-4 text-amber-600 text-center">{attendanceTotal.fullDaysSick}</td>
-                                        <td className="px-2 py-4 text-center">{attendanceTotal.lessonsTotal}</td>
-                                        <td className="px-2 py-4 text-amber-600 text-center">{attendanceTotal.lessonsSick}</td>
-                                        <td className="px-2 py-4 text-red-600 text-center">{attendanceTotal.late}</td>
-                                    </tr>
-                                )}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-                </div>
-            )}
-
-            {activeTab === 'grades' && (
-                <div className="w-full bg-card rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm p-6 overflow-hidden">
-                    <div className="flex flex-col sm:flex-row lg:items-center justify-between mb-6 gap-4">
-                        <div className="flex items-center gap-3">
-                            <div className="p-3 bg-purple-50 text-purple-600 dark:bg-zinc-700 dark:text-purple-400 rounded-lg"><GraduationCap size={20}/></div>
-                            <h2 className="text-lg font-bold">Журнал успеваемости</h2>
-                        </div>
-                        <div className="flex items-center gap-2 w-full sm:w-auto">
-                            {gradesStudents.length > 0 ? (
-                                <>
-                                    <button onClick={() => exportGradesToWord(gradesStudents, group)} className="shadow-sm flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-purple-50 dark:bg-zinc-700/50 text-purple-600 rounded-lg text-sm font-semibold hover:bg-purple-600! hover:text-white transition-all">
-                                        <Download size={16}/> Word
-                                    </button>
-                                    {isOwner && (
-                                        <>
-                                            <button onClick={() => SaveGrades(groupId, gradesStudents).then(() => setNotify({message: "Успеваемость сохранена", type: "success"}))} className="shadow-sm flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-50 dark:bg-zinc-700/50 text-green-500 font-semibold rounded-lg text-sm  hover:bg-green-500! hover:text-white transition-all">
-                                                <Database size={16}/> В базу
-                                            </button>
-                                            <button onClick={() => setGradesStudents([])} className="shadow-sm p-2 bg-red-100 dark:bg-zinc-700/50 text-red-600 rounded-lg hover:bg-red-600! hover:text-white transition-colors">
-                                                <Trash2 size={18}/>
-                                            </button>
-                                        </>
-                                    )}
-                                </>
-                            ) : (
-                                <button onClick={handleLoadGradesFromDB} className="shadow-sm flex items-center gap-2 px-4 py-2 dark:bg-zinc-700/50 dark:text-white dark:hover:bg-blue-600 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-all">
-                                    <Database size={16}/> Загрузить из БД
-                                </button>
-                            )}
-                        </div>
-                    </div>
-
-                    {gradesStudents.length === 0 ? (
-                        isOwner ? (
-                            <label onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} className={`shadow-sm flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-3xl cursor-pointer transition-all group ${isDraggingGrades ? "border-purple-500 bg-purple-50/50" : "border-gray-100 dark:border-zinc-700 hover:bg-purple-50/20"}`}>
-                                <Upload className={`${isDraggingGrades ? "text-purple-500 scale-110" : "text-gray-300 group-hover:text-purple-500"} transition-all mb-4`} size={40} />
-                                <span className="text-sm lg:text-left text-center font-medium text-gray-500">{isDraggingGrades ? "Отпустите файл здесь" : "Загрузить отчет по успеваемости (Дневник.ру)"}</span>
-                                <input type="file" className="hidden" accept=".xls, .xlsx, text/html" onChange={handleGradesFileUpload} />
-                            </label>
-                        ) : (
-                            <div className="py-20 text-center text-gray-400">Данные об успеваемости отсутствуют</div>
-                        )
-                    ) : (
-                        <div className="w-full overflow-x-auto border border-gray-100 dark:border-zinc-700 rounded-lg shadow-sm">
-                            <table className="text-sm table-auto">
-                                <thead className="bg-gray-50/50 dark:bg-zinc-900/50 text-[10px] font-bold uppercase text-gray-400">
-                                <tr className="divide-x divide-gray-100 dark:divide-zinc-700 border-b dark:border-zinc-700">
-                                    <th className="py-4 w-10">№</th>
-                                    <th className="px-2 min-w-65 text-left">ФИО Студента</th>
-                                    {gradesStudents[0].subjects.map((sub, idx) => (
-                                        <th key={idx} className="py-4 px-2 text-center truncate max-w-25" title={sub.name}>
-                                            {sub.name}
-                                        </th>
-                                    ))}
-                                    <th className="py-4 px-4 dark:bg-purple-500/50 bg-purple-50 dark:text-white text-gray-600">Средний</th>
-                                </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-50 dark:divide-zinc-700">
-                                {gradesStudents.map((student, sIdx) => (
-                                    <tr key={sIdx} className="divide-x divide-gray-50 dark:divide-zinc-700 hover:bg-purple-50/10 transition-colors">
-                                        <td className="p-4 text-center text-gray-400 text-[10px]">{sIdx + 1}</td>
-                                        <td className="px-2 font-medium py-1">
-                                            <input disabled={!isOwner} value={student.fullName} onChange={e => {
-                                                const updated = [...gradesStudents];
-                                                updated[sIdx].fullName = e.target.value;
-                                                setGradesStudents(updated);
-                                            }} className="w-full bg-transparent outline-none disabled:text-gray-700" />
-                                        </td>
-                                        {student.subjects.map((sub, subIdx) => (
-                                            <td key={subIdx} className="p-0 hover:bg-gray-100 dark:hover:bg-neutral-700">
-                                                <input
-                                                    disabled={!isOwner}
-                                                    value={sub.grade}
-                                                    onChange={(e) => updateGradeField(sIdx, subIdx, e.target.value)}
-                                                    className="w-full h-full py-3 text-center bg-transparent outline-none font-bold"
-                                                />
-                                            </td>
+                                <div className="w-full overflow-x-auto border border-gray-100 dark:border-zinc-700 rounded-lg shadow-sm">
+                                    <table className="text-sm table-auto w-full min-w-150">
+                                        <thead className="bg-gray-50/50 dark:bg-zinc-900/50 text-[10px] font-bold uppercase text-gray-400">
+                                        <tr className="divide-x divide-gray-100 dark:divide-zinc-700 border-b dark:border-zinc-700">
+                                            <th rowSpan={2} className="py-4 w-12 text-center">ID</th>
+                                            <th rowSpan={2} className="py-4 px-4 text-left">ФИО</th>
+                                            <th colSpan={2} className="py-2 border-b text-center">Дни</th>
+                                            <th colSpan={2} className="py-2 border-b text-center">Уроки</th>
+                                            <th rowSpan={2} className="py-4 text-center w-20">Опозд.</th>
+                                        </tr>
+                                        <tr className="divide-x divide-gray-100 dark:divide-zinc-700 border-b dark:border-zinc-700">
+                                            <th className="py-2 text-center w-20">Всего</th>
+                                            <th className="py-2 text-amber-600 text-center w-20">Болезнь</th>
+                                            <th className="py-2 text-center w-20">Всего</th>
+                                            <th className="py-2 text-amber-600 text-center w-20">Болезнь</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-50 dark:divide-zinc-700">
+                                        {attendanceStudents.map((s, i) => (
+                                            <tr key={i} className="divide-x divide-gray-50 dark:divide-zinc-700 hover:bg-blue-50/10 transition-colors">
+                                                <td className="py-3 text-center text-gray-400 font-mono text-[10px]">{s.number}</td>
+                                                <td className="px-2 font-medium py-1 hover:bg-gray-100 dark:hover:bg-neutral-600">
+                                                    <input
+                                                        disabled={!isOwner}
+                                                        value={s.fullName}
+                                                        onChange={e => updateAttendanceField(i, 'fullName', e.target.value)}
+                                                        className="w-full bg-transparent outline-none focus:text-blue-600 disabled:text-gray-700 dark:disabled:text-gray-300"
+                                                    />
+                                                </td>
+                                                <td className="py-3 hover:bg-gray-100 dark:hover:bg-neutral-600">
+                                                    <input disabled={!isOwner} value={s.fullDaysTotal} onChange={e => updateAttendanceField(i, 'fullDaysTotal', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" />
+                                                </td>
+                                                <td className="py-3 font-bold text-amber-600 hover:bg-gray-100 dark:hover:bg-neutral-600">
+                                                    <input disabled={!isOwner} value={s.fullDaysSick} onChange={e => updateAttendanceField(i, 'fullDaysSick', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" />
+                                                </td>
+                                                <td className="py-3 hover:bg-gray-100 dark:hover:bg-neutral-600">
+                                                    <input disabled={!isOwner} value={s.lessonsTotal} onChange={e => updateAttendanceField(i, 'lessonsTotal', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center"/>
+                                                </td>
+                                                <td className="py-3 font-bold text-amber-600 hover:bg-gray-100 dark:hover:bg-neutral-600">
+                                                    <input disabled={!isOwner} value={s.lessonsSick} onChange={e => updateAttendanceField(i, 'lessonsSick', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center"/>
+                                                </td>
+                                                <td className="py-3 font-bold text-red-600 hover:bg-gray-100 dark:hover:bg-neutral-600">
+                                                    <input disabled={!isOwner} value={s.late} onChange={e => updateAttendanceField(i, 'late', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" />
+                                                </td>
+                                            </tr>
                                         ))}
-                                        <td className="py-3 text-center font-bold dark:bg-purple-500/20 dark:border-purple-500 bg-purple-50/20 border-purple-100 border-l-2">{student.averageScore}</td>
-                                    </tr>
-                                ))}
-                                </tbody>
-                            </table>
+                                        {attendanceTotal && (
+                                            <tr className="divide-x divide-gray-100 dark:divide-zinc-700 bg-gray-50 dark:bg-zinc-900 font-bold border-t-2">
+                                                <td colSpan={2} className="px-4 py-4 text-[11px] uppercase text-gray-400">Итого:</td>
+                                                <td className="px-2 py-4 text-center">{attendanceTotal.fullDaysTotal}</td>
+                                                <td className="px-2 py-4 text-amber-600 text-center">{attendanceTotal.fullDaysSick}</td>
+                                                <td className="px-2 py-4 text-center">{attendanceTotal.lessonsTotal}</td>
+                                                <td className="px-2 py-4 text-amber-600 text-center">{attendanceTotal.lessonsSick}</td>
+                                                <td className="px-2 py-4 text-red-600 text-center">{attendanceTotal.late}</td>
+                                            </tr>
+                                        )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
                         </div>
                     )}
-                </div>
-            )}
+
+                    {activeTab === 'grades' && (
+                        <div className="w-full bg-card rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm p-6 overflow-hidden">
+                            <div className="flex flex-col sm:flex-row lg:items-center justify-between mb-6 gap-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-3 bg-purple-50 text-purple-600 dark:bg-zinc-700 dark:text-purple-400 rounded-lg"><GraduationCap size={20}/></div>
+                                    <h2 className="text-lg font-bold">Журнал успеваемости</h2>
+                                </div>
+                                <div className="flex items-center gap-2 w-full sm:w-auto">
+                                    {gradesStudents.length > 0 ? (
+                                        <>
+                                            <button onClick={() => exportGradesToWord(gradesStudents, group)} className="shadow-sm flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-purple-50 dark:bg-zinc-700/50 text-purple-600 rounded-lg text-sm font-semibold hover:bg-purple-600! hover:text-white transition-all">
+                                                <Download size={16}/> Word
+                                            </button>
+                                            {isOwner && (
+                                                <>
+                                                    <button onClick={() => SaveGrades(groupId, gradesStudents).then(() => setNotify({message: "Успеваемость сохранена", type: "success"}))} className="shadow-sm flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-50 dark:bg-zinc-700/50 text-green-500 font-semibold rounded-lg text-sm  hover:bg-green-500! hover:text-white transition-all">
+                                                        <Database size={16}/> В базу
+                                                    </button>
+                                                    <button onClick={() => setGradesStudents([])} className="shadow-sm p-2 bg-red-100 dark:bg-zinc-700/50 text-red-600 rounded-lg hover:bg-red-600! hover:text-white transition-colors">
+                                                        <Trash2 size={18}/>
+                                                    </button>
+                                                </>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <button onClick={handleLoadGradesFromDB} className="shadow-sm flex items-center gap-2 px-4 py-2 dark:bg-zinc-700/50 dark:text-white dark:hover:bg-blue-600 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-all">
+                                            <Database size={16}/> Загрузить из БД
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {gradesStudents.length === 0 ? (
+                                isOwner ? (
+                                    <motion.label
+                                        whileHover={{ scale: 1.01 }}
+                                        whileTap={{ scale: 0.99 }}
+                                        onDragOver={handleDragOver}
+                                        onDragLeave={handleDragLeave}
+                                        onDrop={handleDrop}
+                                        className={`shadow-sm flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-3xl cursor-pointer transition-all group ${isDraggingGrades ? "border-purple-500 bg-purple-50/50" : "border-gray-100 dark:border-zinc-700 hover:bg-purple-50/20"}`}
+                                    >
+                                        <Upload className={`${isDraggingGrades ? "text-purple-500 scale-110" : "text-gray-300 group-hover:text-purple-500"} transition-all mb-4`} size={40} />
+                                        <span className="text-sm lg:text-left text-center font-medium text-gray-500">{isDraggingGrades ? "Отпустите файл здесь" : "Загрузить отчет по успеваемости (Дневник.ру)"}</span>
+                                        <input type="file" className="hidden" accept=".xls, .xlsx, text/html" onChange={handleGradesFileUpload} />
+                                    </motion.label>
+                                ) : (
+                                    <div className="py-20 text-center text-gray-400">Данные об успеваемости отсутствуют</div>
+                                )
+                            ) : (
+                                <div className="w-full overflow-x-auto border border-gray-100 dark:border-zinc-700 rounded-lg shadow-sm">
+                                    <table className="text-sm table-auto">
+                                        <thead className="bg-gray-50/50 dark:bg-zinc-900/50 text-[10px] font-bold uppercase text-gray-400">
+                                        <tr className="divide-x divide-gray-100 dark:divide-zinc-700 border-b dark:border-zinc-700">
+                                            <th className="py-4 w-10">№</th>
+                                            <th className="px-2 min-w-65 text-left">ФИО Студента</th>
+                                            {gradesStudents[0].subjects.map((sub, idx) => (
+                                                <th key={idx} className="py-4 px-2 text-center truncate max-w-25" title={sub.name}>
+                                                    {sub.name}
+                                                </th>
+                                            ))}
+                                            <th className="py-4 px-4 dark:bg-purple-500/50 bg-purple-50 dark:text-white text-gray-600">Средний</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-50 dark:divide-zinc-700">
+                                        {gradesStudents.map((student, sIdx) => (
+                                            <tr key={sIdx} className="divide-x divide-gray-50 dark:divide-zinc-700 hover:bg-purple-50/10 transition-colors">
+                                                <td className="p-4 text-center text-gray-400 text-[10px]">{sIdx + 1}</td>
+                                                <td className="px-2 font-medium py-1">
+                                                    <input disabled={!isOwner} value={student.fullName} onChange={e => {
+                                                        const updated = [...gradesStudents];
+                                                        updated[sIdx].fullName = e.target.value;
+                                                        setGradesStudents(updated);
+                                                    }} className="w-full bg-transparent outline-none disabled:text-gray-700" />
+                                                </td>
+                                                {student.subjects.map((sub, subIdx) => (
+                                                    <td key={subIdx} className="p-0 hover:bg-gray-100 dark:hover:bg-neutral-700">
+                                                        <input
+                                                            disabled={!isOwner}
+                                                            value={sub.grade}
+                                                            onChange={(e) => updateGradeField(sIdx, subIdx, e.target.value)}
+                                                            className="w-full h-full py-3 text-center bg-transparent outline-none font-bold"
+                                                        />
+                                                    </td>
+                                                ))}
+                                                <td className="py-3 text-center font-bold dark:bg-purple-500/20 dark:border-purple-500 bg-purple-50/20 border-purple-100 border-l-2">{student.averageScore}</td>
+                                            </tr>
+                                        ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </motion.div>
+            </AnimatePresence>
         </div>
     );
 }
