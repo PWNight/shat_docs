@@ -162,7 +162,7 @@ export default function ProfileGroups() {
             </div>
 
             {groups.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mb-8">
                     {groups.map((group: Group) => {
                         const isOwner = group.fk_user === userData?.uid;
                         return (
@@ -180,7 +180,7 @@ export default function ProfileGroups() {
                                                 Ваша группа
                                             </span>
                                         )}
-                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-gray-100 dark:bg-zinc-600 rounded dark:text-gray-300">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-gray-100 shadow-sm dark:bg-zinc-600 rounded dark:text-gray-300">
                                             ID: {group.id}
                                         </span>
                                     </div>
@@ -202,7 +202,7 @@ export default function ProfileGroups() {
 
                                 <Link
                                     href={`/profile/groups/${group.id}`}
-                                    className="mt-auto flex items-center justify-center gap-2 w-full bg-gray-100 dark:bg-zinc-700/50 hover:bg-blue-600! hover:text-white text-gray-700 dark:text-gray-200 font-semibold py-3 rounded-xl transition-all"
+                                    className="shadow-sm mt-auto flex items-center justify-center gap-2 w-full bg-zinc-100 dark:bg-zinc-700/50 hover:bg-blue-600! hover:text-white text-gray-700 dark:text-gray-200 font-semibold py-3 rounded-xl transition-all"
                                 >
                                     Управлять
                                     <ArrowRight className="w-4 h-4" />
