@@ -20,7 +20,7 @@ export function ModeToggle() {
         <DropdownMenuTrigger asChild>
           <Button
               size="icon"
-              className="relative h-9 w-9 rounded-full bg-neutral-100 shadow-sm dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 transition-all duration-200 !focus:ring-0 !focus:outline-none"
+              className="relative h-9 w-9 rounded-full bg-gray-100 shadow-sm dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 transition-all duration-200 !focus:ring-0 !focus:outline-none"
           >
             <Sun className="h-4 w-4 text-gray-600 dark:text-gray-400 absolute transition-all duration-300 ease-in-out transform rotate-0 scale-100 dark:-rotate-90 dark:scale-0" />
             <Moon className="h-4 w-4 text-gray-600 dark:text-gray-400 absolute transition-all duration-300 ease-in-out transform rotate-90 scale-0 dark:rotate-0 dark:scale-100" />

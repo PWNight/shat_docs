@@ -178,7 +178,7 @@ export default function ProfilePage() {
                         <TabButton active={activeTab === 'password'} onClick={() => setActiveTab('password')} label="Пароль" />
                     </div>
 
-                    <div className="bg-card border border-border p-6 rounded-2xl shadow-sm overflow-hidden min-h-[300px]">
+                    <div className="bg-card border border-border p-6 rounded-2xl shadow-sm overflow-hidden min-h-75">
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={activeTab}
