@@ -342,7 +342,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
 
                             <Dialog>
                                 <DialogTrigger asChild>
-                                    <button className="shadow-sm flex-1 md:flex-none flex items-center gap-2 px-4 py-2.5 bg-red-50 dark:bg-zinc-700/50 text-red-600 hover:bg-red-500! hover:text-white rounded-lg font-semibold text-sm transition-colors">
+                                    <button className="shadow-sm flex-1 md:flex-none flex items-center gap-2 px-4 py-2.5 bg-red-50 dark:bg-zinc-700/50 text-red-600 dark:text-red-500  hover:bg-red-500! hover:text-white rounded-lg font-semibold text-sm transition-colors">
                                         <Trash2 size={18}/> Удалить
                                     </button>
                                 </DialogTrigger>
@@ -416,15 +416,15 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                 <div className="flex items-center gap-2 w-full sm:w-auto">
                                     {attendanceStudents.length > 0 ? (
                                         <>
-                                            <button onClick={() => exportToWord(attendanceStudents, attendanceTotal, group)} className="shadow-sm flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 dark:bg-zinc-700/50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-600! hover:text-white transition-all">
+                                            <button onClick={() => exportToWord(attendanceStudents, attendanceTotal, group)} className="shadow-sm flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 dark:bg-zinc-700/50 text-blue-600 dark:text-blue-400 rounded-lg text-sm font-semibold hover:bg-blue-600! hover:text-white transition-all">
                                                 <Download size={16}/> Word
                                             </button>
                                             {isOwner && (
                                                 <>
-                                                    <button onClick={() => SaveAttendance(groupId, attendanceStudents).then(() => setNotify({message: "Сохранено", type: "success"}))} className="shadow-sm flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-50 dark:bg-zinc-700/50 text-green-500 font-semibold rounded-lg text-sm  hover:bg-green-500! hover:text-white transition-all">
+                                                    <button onClick={() => SaveAttendance(groupId, attendanceStudents).then(() => setNotify({message: "Сохранено", type: "success"}))} className="shadow-sm flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-50 dark:bg-zinc-700/50 text-green-600 dark:text-green-400 font-semibold rounded-lg text-sm  hover:bg-green-500! hover:text-white transition-all">
                                                         <Database size={16}/> В базу
                                                     </button>
-                                                    <button onClick={() => setAttendanceStudents([])} className="shadow-sm p-2 bg-red-100 dark:bg-zinc-700/50 text-red-600 rounded-lg hover:bg-red-600! hover:text-white transition-colors">
+                                                    <button onClick={() => setAttendanceStudents([])} className="shadow-sm p-2 bg-red-100 dark:bg-zinc-700/50 text-red-600 dark:text-red-500 rounded-lg hover:bg-red-600! hover:text-white transition-colors">
                                                         <Trash2 size={18}/>
                                                     </button>
                                                 </>
@@ -529,15 +529,15 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                 <div className="flex items-center gap-2 w-full sm:w-auto">
                                     {gradesStudents.length > 0 ? (
                                         <>
-                                            <button onClick={() => exportGradesToWord(gradesStudents, group)} className="shadow-sm flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-purple-50 dark:bg-zinc-700/50 text-purple-600 rounded-lg text-sm font-semibold hover:bg-purple-600! hover:text-white transition-all">
+                                            <button onClick={() => exportGradesToWord(gradesStudents, group)} className="shadow-sm flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-purple-50 dark:bg-zinc-700/50 text-purple-600 dark:text-purple-400 rounded-lg text-sm font-semibold hover:bg-purple-600! hover:text-white transition-all">
                                                 <Download size={16}/> Word
                                             </button>
                                             {isOwner && (
                                                 <>
-                                                    <button onClick={() => SaveGrades(groupId, gradesStudents).then(() => setNotify({message: "Успеваемость сохранена", type: "success"}))} className="shadow-sm flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-50 dark:bg-zinc-700/50 text-green-500 font-semibold rounded-lg text-sm  hover:bg-green-500! hover:text-white transition-all">
+                                                    <button onClick={() => SaveGrades(groupId, gradesStudents).then(() => setNotify({message: "Успеваемость сохранена", type: "success"}))} className="shadow-sm flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-50 dark:bg-zinc-700/50 text-green-600 dark:text-green-400 font-semibold rounded-lg text-sm  hover:bg-green-500! hover:text-white transition-all">
                                                         <Database size={16}/> В базу
                                                     </button>
-                                                    <button onClick={() => setGradesStudents([])} className="shadow-sm p-2 bg-red-100 dark:bg-zinc-700/50 text-red-600 rounded-lg hover:bg-red-600! hover:text-white transition-colors">
+                                                    <button onClick={() => setGradesStudents([])} className="shadow-sm p-2 bg-red-100 dark:bg-zinc-700/50 text-red-600 dark:text-red-500  rounded-lg hover:bg-red-600! hover:text-white transition-colors">
                                                         <Trash2 size={18}/>
                                                     </button>
                                                 </>
