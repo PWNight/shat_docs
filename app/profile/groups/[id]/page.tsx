@@ -300,7 +300,13 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                 </DialogTrigger>
                                 <DialogContent>
                                     <DialogHeader>
-                                        <DialogTitle>Передать права</DialogTitle>
+                                        <DialogHeader className={'text-left'}>
+                                            <DialogTitle>Передача прав</DialogTitle>
+                                            <DialogDescription className="pt-2">
+                                                Выберите нового классного руководителя для группы «{group.name}».<br/>
+                                                Это действие нельзя отменить.
+                                            </DialogDescription>
+                                        </DialogHeader>
                                     </DialogHeader>
                                     <select
                                         className="w-full p-3 mt-4 rounded-lg border dark:bg-zinc-900 outline-none"
@@ -347,7 +353,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                     </button>
                                 </DialogTrigger>
                                 <DialogContent>
-                                    <DialogHeader>
+                                    <DialogHeader className={'text-left'}>
                                         <DialogTitle>Удаление группы</DialogTitle>
                                         <DialogDescription className="pt-2">
                                             Вы действительно хотите удалить группу «{group.name}»?<br/>
