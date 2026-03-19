@@ -121,10 +121,10 @@ export function Footer() {
                                             <p className="text-sm font-medium text-muted-foreground animate-pulse">Получаем данные с GitHub...</p>
                                         </div>
                                     ) : releases.length > 0 ? (
-                                        <div className="space-y-10">
+                                        <div className="relative ml-2 space-y-10 border-l-2 border-muted pb-2">
                                             {releases.map((rel) => (
-                                                <div key={rel.id} className="relative pl-6 border-l-2 border-muted hover:border-blue-500/50 transition-colors group">
-                                                    <div className="absolute -left-2.25 top-0 w-4 h-4 rounded-full bg-card border-2 border-muted group-hover:border-blue-500 transition-colors" />
+                                                <div key={rel.id} className="relative pl-8 group">
+                                                    <div className="absolute -left-2.25 top-1 w-4 h-4 rounded-full bg-card border-2 border-muted group-hover:border-blue-500 transition-colors z-10" />
 
                                                     <div className="flex flex-wrap items-center gap-3 mb-4">
                                                         <div className="flex items-center gap-1.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
