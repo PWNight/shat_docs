@@ -17,7 +17,7 @@ import { AuthButton } from "@/components/AccountButton";
 
 export function Leftbar() {
   return (
-      <aside className="md:flex hidden w-[260px] flex-col overflow-y-auto sticky top-20 h-[calc(100vh-5rem)]">
+      <aside className="md:flex hidden w-65 flex-col overflow-y-auto sticky top-20 h-[calc(100vh-5rem)]">
         <ScrollArea className="py-2 text-base">
           <div className="flex items-center gap-2 px-2 mb-4 text-blue-500">
             <Book className="w-4 h-4" />
@@ -46,7 +46,7 @@ export function SheetLeftbar() {
           </Button>
         </SheetTrigger>
         <SheetContent
-            className="flex flex-col gap-0 px-0 w-[300px] sm:w-[340px] bg-background border-r border-border shadow-2xl"
+            className="flex flex-col gap-0 px-0 w-75 sm:w-85 bg-background border border-border shadow-sm py-0 h-fit"
             side="left"
         >
           <DialogTitle className="sr-only">Навигационное меню</DialogTitle>
@@ -58,7 +58,7 @@ export function SheetLeftbar() {
           </SheetHeader>
 
           <ScrollArea className="flex-1 px-4">
-            <div className="flex flex-col gap-8 py-6">
+            <div className="flex flex-col justify-between gap-8 py-6">
 
               <section>
                 <div className="flex items-center gap-2 px-2 mb-3 text-blue-500">
@@ -68,14 +68,11 @@ export function SheetLeftbar() {
                 <NavMenu isSheet />
               </section>
 
-              <section>
-                <div className="space-y-1">
-                  <WikiMenu isSheet />
-                </div>
-              </section>
+
+              <WikiMenu isSheet />
 
               <section className="pb-4">
-                <div className="flex items-center gap-2 px-2 mb-3 text-muted-foreground">
+                <div className="flex items-center gap-2 px-2 mb-3 text-blue-500">
                   <Share2 className="w-4 h-4" />
                   <h2 className="text-[10px] font-bold uppercase tracking-[0.2em]">Сообщество</h2>
                 </div>

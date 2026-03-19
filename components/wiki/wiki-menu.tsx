@@ -12,10 +12,14 @@ export default function WikiMenu({ isSheet = false }) {
   return (
       <div className={'px-2'}>
       {isSheet && (
-          <div className="flex items-center gap-2 mb-3 text-blue-500">
-              <Book className="w-4 h-4" />
-              <h2 className="text-[10px] font-bold uppercase tracking-[0.2em]">Документация</h2>
-          </div>
+          <section>
+              <div className="space-y-1">
+                  <div className="flex items-center gap-2 mb-3 text-blue-500">
+                      <Book className="w-4 h-4" />
+                      <h2 className="text-[10px] font-bold uppercase tracking-[0.2em]">Документация</h2>
+                  </div>
+              </div>
+          </section>
       )}
       {ROUTES.map((item, index) => {
         const modifiedItems = {
