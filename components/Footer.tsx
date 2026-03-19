@@ -84,7 +84,7 @@ export function Footer() {
     };
 
     return (
-        <footer className="w-full p-2 px-6 border-t bg-muted/10 flex flex-row justify-between gap-4 items-center">
+        <footer className="w-full py-2 px-4 lg:px-10 border-t bg-muted/10 flex flex-row justify-between gap-4 items-center">
             <div className="flex items-center gap-3">
                 <Image
                     src="/logo.png"

@@ -21,7 +21,7 @@ export const NAVLINKS = [
 
 export async function Navbar() {
     return (
-        <nav className="sticky top-0 z-50 w-full border-b border-border backdrop-blur-md bg-background/80 px-2 sm:px-4 lg:px-10 h-16 flex items-center shadow-sm">
+        <nav className="sticky top-0 z-50 w-full border-b border-border backdrop-blur-md bg-background/80 px-4 lg:px-10 h-16 flex items-center shadow-sm">
             <div className="w-full flex items-center justify-between gap-1">
                 <div className="flex items-center gap-2">
                     <Logo />
