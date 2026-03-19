@@ -59,7 +59,7 @@ export function Footer() {
         if (releases.length > 0) return;
         setIsLoading(true);
         try {
-            const res = await fetch(`https://api.github.com/repos/PWNight/shat_docs/releases?per_page=5`);
+            const res = await fetch(`https://api.github.com/repos/PWNight/shat_docs/releases?per_page=10`);
             const data: GitHubRelease[] = await res.json();
 
             const formattedReleases = data.map((rel) => ({
