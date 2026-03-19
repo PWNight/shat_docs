@@ -65,7 +65,7 @@ export function NavMenu({ isSheet = false }) {
             {NAVLINKS.map((item) => (
                 <Anchor
                     key={item.title + item.href}
-                    activeClassName="bg-neutral-200 dark:bg-card text-accent-foreground font-medium"
+                    activeClassName="text-blue-600 font-medium"
                     absolute
                     className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
                         isSheet ? "w-full text-base" : "text-sm hover:text-blue-500"
