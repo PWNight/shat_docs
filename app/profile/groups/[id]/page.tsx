@@ -380,7 +380,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
             <div className="flex gap-4 lg:justify-start justify-between border-b dark:border-zinc-700 relative">
                 <button
                     onClick={() => setActiveTab('attendance')}
-                    className={`relative pb-3 px-4 flex items-center gap-2 font-bold text-sm transition-all ${activeTab === 'attendance' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400'}`}
+                    className={`relative pb-3 px-4 flex items-center gap-2 font-bold text-sm transition-all ${activeTab === 'attendance' ? 'text-blue-600 dark:text-blue-400' : 'text-neutral-500'}`}
                 >
                     <ClipboardCheck size={18} /> Посещаемость
                     {activeTab === 'attendance' && (
@@ -389,7 +389,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                 </button>
                 <button
                     onClick={() => setActiveTab('grades')}
-                    className={`relative pb-3 px-4 flex items-center gap-2 font-bold text-sm transition-all ${activeTab === 'grades' ? 'text-purple-600 dark:text-purple-400' : 'text-gray-400'}`}
+                    className={`relative pb-3 px-4 flex items-center gap-2 font-bold text-sm transition-all ${activeTab === 'grades' ? 'text-purple-600 dark:text-purple-400' : 'text-neutral-500'}`}
                 >
                     <GraduationCap size={18} /> Успеваемость
                     {activeTab === 'grades' && (
@@ -445,7 +445,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                         onDragOver={handleDragOver}
                                         onDragLeave={handleDragLeave}
                                         onDrop={handleDrop}
-                                        className={`shadow-sm flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-3xl cursor-pointer transition-all group ${isDragging ? "border-blue-500 bg-blue-50/50" : "border-gray-100 dark:border-zinc-700 hover:bg-blue-50/20"}`}
+                                        className={`shadow-sm flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-3xl cursor-pointer transition-all group ${isDragging ? "border-blue-500 bg-blue-50/50" : "border-gray-100 dark:border-zinc-700 dark:hover:bg-neutral-800 hover:bg-neutral-50"}`}
                                     >
                                         <Upload className={`${isDragging ? "text-blue-500 scale-110" : "text-gray-300 group-hover:text-blue-500"} transition-all mb-4`} size={40} />
                                         <span className="text-sm lg:text-left text-center font-medium text-gray-500">{isDragging ? "Отпустите файл здесь" : "Загрузить отчет по посещаемости или перетащите файл"}</span>
@@ -557,7 +557,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                         onDragOver={handleDragOver}
                                         onDragLeave={handleDragLeave}
                                         onDrop={handleDrop}
-                                        className={`shadow-sm flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-3xl cursor-pointer transition-all group ${isDraggingGrades ? "border-purple-500 bg-purple-50/50" : "border-gray-100 dark:border-zinc-700 hover:bg-purple-50/20"}`}
+                                        className={`shadow-sm flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-3xl cursor-pointer transition-all group ${isDraggingGrades ? "border-purple-500 bg-purple-50/50" : "border-gray-100 dark:border-zinc-700 dark:hover:bg-neutral-800 hover:bg-neutral-50"}`}
                                     >
                                         <Upload className={`${isDraggingGrades ? "text-purple-500 scale-110" : "text-gray-300 group-hover:text-purple-500"} transition-all mb-4`} size={40} />
                                         <span className="text-sm lg:text-left text-center font-medium text-gray-500">{isDraggingGrades ? "Отпустите файл здесь" : "Загрузить отчет по успеваемости (Дневник.ру)"}</span>
