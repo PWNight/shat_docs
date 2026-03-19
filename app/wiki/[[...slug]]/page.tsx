@@ -6,6 +6,7 @@ import {getWikiForSlug} from "@/utils/markdown";
 import {Typography} from "@/components/wiki/typography";
 import {Info} from "lucide-react";
 import WikiBreadcrumb from "@/components/wiki/wiki-breadcrumb";
+import { Metadata } from "next";
 
 type PageProps = {
     params: Promise<{ slug: string[] }>;
@@ -23,7 +24,7 @@ export default async function WikiPage({ params }: PageProps) {
 
     return (
         <div className="flex items-start gap-8 lg:gap-12 px-4 sm:px-6 lg:px-8">
-            <div className="flex-[12] py-6">
+            <div className="flex-12 py-6">
                 <WikiBreadcrumb paths={breadcrumbPaths} />
                 <Typography>
                     <h1 className="sm:text-3xl text-2xl font-bold text-foreground mb-2">
@@ -49,7 +50,7 @@ export default async function WikiPage({ params }: PageProps) {
     );
 }
 
-export async function generateMetadata(props: PageProps) {
+export async function generateMetadata(props: PageProps): Promise<Metadata> {
     const params = await props.params;
     const { slug = [] } = params;
 
