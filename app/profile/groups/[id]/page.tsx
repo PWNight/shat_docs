@@ -441,7 +441,6 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                             {attendanceStudents.length === 0 ? (
                                 isOwner ? (
                                     <motion.label
-                                        whileHover={{ scale: 1.01 }}
                                         whileTap={{ scale: 0.99 }}
                                         onDragOver={handleDragOver}
                                         onDragLeave={handleDragLeave}
@@ -554,7 +553,6 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                             {gradesStudents.length === 0 ? (
                                 isOwner ? (
                                     <motion.label
-                                        whileHover={{ scale: 1.01 }}
                                         whileTap={{ scale: 0.99 }}
                                         onDragOver={handleDragOver}
                                         onDragLeave={handleDragLeave}
