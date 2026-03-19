@@ -19,10 +19,10 @@ export function NavProfile() {
                         key={href}
                         href={href}
                         absolute
-                        className="group flex items-center gap-2 sm:gap-3 w-full px-2 sm:px-4 py-2.5 rounded-lg text-foreground hover:bg-blue-600 hover:text-white transition-all duration-200 font-medium text-sm sm:text-base overflow-hidden"
+                        className="group flex items-center gap-2 sm:gap-3 w-full px-2 sm:px-4 py-2.5 rounded-lg text-foreground hover:bg-blue-600 hover:text-white transition-all duration-200 font-medium text-base overflow-hidden"
                         activeClassName="bg-blue-600 text-white shadow-md"
                     >
-                        <Icon className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                        <Icon className="w-5 h-5 shrink-0" />
                         <span className="truncate">{label}</span>
                     </Anchor>
                 ))}
