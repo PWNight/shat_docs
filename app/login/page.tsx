@@ -53,7 +53,7 @@ function LoginForm() {
                     id="email"
                     name="email"
                     defaultValue={state.values?.email ?? ""}
-                    className="shadow-lg w-full px-4 py-3 dark:bg-neutral-700 bg-gray-50 border dark:border-gray-500 border-gray-200 rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
+                    className="shadow-lg w-full px-4 py-3 dark:bg-neutral-800 bg-gray-50 border dark:border-neutral-700 border-gray-200 rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
                     placeholder="test@test.com"
                 />
                 {state?.fieldErrors?.email && (
@@ -71,7 +71,7 @@ function LoginForm() {
                         autoComplete="current-password"
                         id="password"
                         name="password"
-                        className="shadow-lg w-full px-4 py-3 dark:bg-neutral-700 bg-gray-50 border dark:border-gray-500 border-gray-200 rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
+                        className="shadow-lg w-full px-4 py-3 dark:bg-neutral-800 bg-gray-50 border dark:border-neutral-700 border-gray-200 rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
                         placeholder="********"
                     />
                     {state?.fieldErrors?.password && (
@@ -103,7 +103,7 @@ function LoginForm() {
 
             <button
                 type="submit"
-                className="w-full bg-blue-400 hover:bg-blue-500 text-white font-medium py-3 px-5 rounded-lg focus:ring-2 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg select-none"
+                className="w-full bg-blue-400 hover:bg-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium py-3 px-5 rounded-lg focus:ring-2 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg select-none"
                 disabled={pending}
             >
                 {pending ? (
