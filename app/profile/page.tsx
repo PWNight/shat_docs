@@ -172,7 +172,7 @@ export default function ProfilePage() {
                 </aside>
 
                 <main className="lg:col-span-8 space-y-6 lg:max-w-2xl">
-                    <div className="flex p-1.5 bg-muted/50 rounded-2xl border border-border w-full sm:w-fit shadow-inner relative overflow-hidden">
+                    <div className="flex p-1.5 bg-card rounded-2xl border border-border w-full sm:w-fit shadow-inner relative overflow-hidden">
                         <TabButton active={activeTab === 'name'} onClick={() => setActiveTab('name')} label="Имя" />
                         <TabButton active={activeTab === 'email'} onClick={() => setActiveTab('email')} label="Почта" />
                         <TabButton active={activeTab === 'password'} onClick={() => setActiveTab('password')} label="Пароль" />
@@ -290,7 +290,7 @@ const SubmitButton = ({ pending }: SubmitButtonProps) => (
     <button
         disabled={pending}
         type="submit"
-        className="w-full sm:w-auto bg-primary text-primary-foreground sm:px-8 sm:py-4 py-3 px-8 rounded-2xl font-bold text-sm hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50 shadow-md mt-4"
+        className="w-full sm:w-auto bg-primary hover:bg-neutral-800 dark:bg-neutral-700 hover:dark:bg-neutral-600 text-primary-foreground px-4 py-4 rounded-2xl font-bold text-sm hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50 shadow-md mt-4"
     >
         {pending ? <Loader2 className="animate-spin w-4 h-4"/> : <Save className="w-4 h-4"/>}
         Сохранить изменения
