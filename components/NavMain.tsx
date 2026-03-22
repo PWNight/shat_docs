@@ -61,18 +61,20 @@ export function Logo() {
 
 export function NavMenu({ isSheet = false }) {
     return (
-        <div className={isSheet ? "flex flex-col w-full" : "flex items-center"}>
+        <div className={isSheet ? "flex flex-col gap-1 w-full" : "flex items-center"}>
             {NAVLINKS.map((item) => (
                 <Anchor
                     key={item.title + item.href}
-                    activeClassName="text-blue-600 font-medium"
+                    activeClassName={isSheet ? "bg-blue-500/10 text-blue-600" : "text-blue-600 font-medium"}
                     absolute
-                    className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
-                        isSheet ? "w-full text-base" : "text-sm hover:text-blue-500"
+                    className={`flex items-center gap-3 px-2 py-2.5 rounded-lg transition-all ${
+                        isSheet
+                            ? "w-full text-[15px] font-medium hover:bg-muted active:scale-[0.98]"
+                            : "text-sm hover:text-blue-500"
                     }`}
                     href={item.href}
                 >
-                    {item.icon}
+                    <span className={isSheet ? "text-blue-500" : ""}>{item.icon}</span>
                     {item.title}
                 </Anchor>
             ))}
