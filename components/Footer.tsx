@@ -3,7 +3,7 @@ import Link from "next/link";
 import { buttonVariants } from "./ui/Button";
 import React, { useState } from "react";
 import Image from "next/image";
-import { LifeBuoy, Info, Loader2, Calendar, Tag, ChevronRight } from "lucide-react";
+import { LifeBuoy, Info, Loader2, Calendar, Tag, ChevronRight, Sparkles } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -55,6 +55,11 @@ export function Footer() {
     const [releases, setReleases] = useState<GitHubRelease[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
+    const isMajorRelease = (tagName: string) => {
+        const version = tagName.replace(/[^0-9.]/g, '');
+        return version.endsWith('.0');
+    };
+
     const fetchChangelog = async () => {
         if (releases.length > 0) return;
         setIsLoading(true);
@@ -105,7 +110,7 @@ export function Footer() {
                                 </button>
                             </DialogTrigger>
                             <DialogContent className="max-w-[95vw] sm:max-w-xl bg-card border-border shadow-2xl rounded-2xl p-0 overflow-hidden">
-                                <DialogHeader className="p-6 pb-4 bg-muted/30 border-b">
+                                <DialogHeader className="p-2 bg-muted/30 border-b">
                                     <DialogTitle className="text-2xl flex items-center gap-2 tracking-tight">
                                         <ChevronRight className="text-blue-500" />
                                         Последние обновления
@@ -122,31 +127,39 @@ export function Footer() {
                                         </div>
                                     ) : releases.length > 0 ? (
                                         <div className="relative ml-2 space-y-10 border-l-2 border-muted pb-2">
-                                            {releases.map((rel) => (
-                                                <div key={rel.id} className="relative pl-8 group">
-                                                    <div className="absolute -left-2.25 top-1 w-4 h-4 rounded-full bg-card border-2 border-muted group-hover:border-blue-500 transition-colors z-10" />
+                                            {releases.map((rel) => {
+                                                const isMajor = isMajorRelease(rel.tag_name);
+                                                return (
+                                                    <div key={rel.id} className="relative pl-8 group">
+                                                        {/* Точка на таймлайне */}
+                                                        <div className={`absolute -left-2.25 top-1 w-4 h-4 rounded-full bg-card border-2 transition-colors z-10 ${isMajor ? 'border-blue-500 scale-125 shadow-[0_0_10px_rgba(59,130,246,0.5)]' : 'border-muted group-hover:border-blue-500'}`} />
 
-                                                    <div className="flex flex-wrap items-center gap-3 mb-4">
-                                                        <div className="flex items-center gap-1.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                                                            <Tag size={12} />
-                                                            {rel.tag_name}
+                                                        <div className="flex flex-wrap items-center gap-3 mb-4">
+                                                            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${
+                                                                isMajor
+                                                                    ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20 scale-105"
+                                                                    : "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                                                            }`}>
+                                                                {isMajor ? <Sparkles size={12} className="animate-pulse" /> : <Tag size={12} />}
+                                                                {rel.tag_name}
+                                                            </div>
+                                                            <div className="flex items-center gap-1.5 text-muted-foreground text-xs font-medium">
+                                                                <Calendar size={12} />
+                                                                {new Date(rel.published_at).toLocaleDateString('ru-RU', {
+                                                                    day: 'numeric',
+                                                                    month: 'long',
+                                                                    year: 'numeric'
+                                                                })}
+                                                            </div>
                                                         </div>
-                                                        <div className="flex items-center gap-1.5 text-muted-foreground text-xs font-medium">
-                                                            <Calendar size={12} />
-                                                            {new Date(rel.published_at).toLocaleDateString('ru-RU', {
-                                                                day: 'numeric',
-                                                                month: 'long',
-                                                                year: 'numeric'
-                                                            })}
-                                                        </div>
+
+                                                        <div
+                                                            className={`text-sm leading-relaxed space-y-2 prose prose-sm dark:prose-invert max-w-none ${isMajor ? 'text-foreground font-medium' : 'text-foreground/80'}`}
+                                                            dangerouslySetInnerHTML={{ __html: rel.formattedBody || "" }}
+                                                        />
                                                     </div>
-
-                                                    <div
-                                                        className="text-sm leading-relaxed text-foreground/80 space-y-2 prose prose-sm dark:prose-invert max-w-none"
-                                                        dangerouslySetInnerHTML={{ __html: rel.formattedBody || "" }}
-                                                    />
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     ) : (
                                         <div className="text-center py-16">
