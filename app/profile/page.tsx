@@ -111,12 +111,12 @@ export default function ProfilePage() {
         <div className="w-full space-y-8 animate-in fade-in duration-500 bg-background min-h-screen">
             {notify.message && <ErrorMessage message={notify.message} type={notify.type} onClose={() => setNotify({message:'', type:''})} />}
 
-            <div className="sm:text-left text-center flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-6">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-foreground">Личный кабинет</h1>
                     <p className="text-sm text-muted-foreground font-medium mt-1">Управление профилем и обзор статистики групп</p>
                 </div>
-                <div className="sm:mx-0 mx-auto flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-2xl shadow-sm self-start md:self-center">
+                <div className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-2xl shadow-sm self-start md:self-center">
                     <Fingerprint className="w-4 h-4 text-muted-foreground" />
                     <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">ID: {user?.id}</span>
                 </div>
