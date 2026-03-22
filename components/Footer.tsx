@@ -110,7 +110,7 @@ export function Footer() {
                                 </button>
                             </DialogTrigger>
                             <DialogContent className="max-w-[95vw] sm:max-w-xl bg-card border-border shadow-2xl rounded-2xl p-0 overflow-hidden">
-                                <DialogHeader className="p-2 bg-muted/30 border-b">
+                                <DialogHeader className="p-4 bg-muted/30 border-b">
                                     <DialogTitle className="text-2xl flex items-center gap-2 tracking-tight">
                                         <ChevronRight className="text-blue-500" />
                                         Последние обновления
