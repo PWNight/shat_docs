@@ -249,7 +249,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
     if (!group) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-blue-600" /></div>;
 
     return (
-        <div className="w-full space-y-5 sm:space-y-6 pb-8 sm:pb-10">
+        <div className="w-full space-y-5 sm:space-y-6 pb-8 sm:pb-10 animate-in fade-in duration-500">
             {notify.message && <ErrorMessage message={notify.message} type={notify.type} onClose={() => setNotify({ message: '', type: '' })} />}
 
             <div className="bg-card rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm">
