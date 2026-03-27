@@ -22,28 +22,28 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({
- children,
+   children,
 }: Readonly<{
-  children: React.ReactNode;
+    children: React.ReactNode;
 }>) {
-  return (
-      <html lang="en" suppressHydrationWarning>
-      <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground flex flex-col`}
-      >
-      <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-      >
-        <Navbar />
-          <main className='flex-1 w-[95%] sm:w-full mx-auto sm:p-4 flex flex-col'>
-              {children}
-          </main>
-        <Footer/>
-      </ThemeProvider>
-      </body>
-      </html>
-  );
+    return (
+        <html lang="en" suppressHydrationWarning>
+            <body
+                className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground flex flex-col`}
+            >
+                <ThemeProvider
+                    attribute="class"
+                    defaultTheme="system"
+                    enableSystem
+                    disableTransitionOnChange
+                >
+                    <Navbar />
+                    <main className='flex-1 flex flex-col relative'>
+                        {children}
+                    </main>
+                    <Footer/>
+                </ThemeProvider>
+            </body>
+        </html>
+    );
 }
