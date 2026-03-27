@@ -146,20 +146,20 @@ void main() {
 `;
 
 export default function LineWaves({
-  speed = 0.3,
-  innerLineCount = 32.0,
-  outerLineCount = 36.0,
-  warpIntensity = 1.0,
-  rotation = -45,
-  edgeFadeWidth = 0.0,
-  colorCycleSpeed = 1.0,
-  brightness = 0.2,
-  color1 = '#ffffff',
-  color2 = '#ffffff',
-  color3 = '#ffffff',
-  enableMouseInteraction = true,
-  mouseInfluence = 2.0
-}: LineWavesProps) {
+                                    speed = 0.3,
+                                    innerLineCount = 32.0,
+                                    outerLineCount = 36.0,
+                                    warpIntensity = 1.0,
+                                    rotation = -45,
+                                    edgeFadeWidth = 0.0,
+                                    colorCycleSpeed = 1.0,
+                                    brightness = 0.2,
+                                    color1 = '#ffffff',
+                                    color2 = '#ffffff',
+                                    color3 = '#ffffff',
+                                    enableMouseInteraction = true,
+                                    mouseInfluence = 2.0
+                                  }: LineWavesProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -169,7 +169,8 @@ export default function LineWaves({
     const gl = renderer.gl;
     gl.clearColor(0, 0, 0, 0);
 
-    const currentMouse = [0.5, 0.5];
+    let program: Program;
+    let currentMouse = [0.5, 0.5];
     let targetMouse = [0.5, 0.5];
 
     function handleMouseMove(e: MouseEvent) {
@@ -196,7 +197,7 @@ export default function LineWaves({
 
     const geometry = new Triangle(gl);
     const rotationRad = (rotation * Math.PI) / 180;
-    const program = new Program(gl, {
+    program = new Program(gl, {
       vertex: vertexShader,
       fragment: fragmentShader,
       uniforms: {
