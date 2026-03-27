@@ -169,7 +169,7 @@ export default function MainPage() {
                                 </div>
                                 <div className="p-4 bg-muted/20 border-t flex justify-end">
                                     <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
-                                        SHAT Docs v{latestMajor.tag_name}
+                                        SHAT Docs {latestMajor.tag_name}
                                     </span>
                                 </div>
                             </DialogContent>
