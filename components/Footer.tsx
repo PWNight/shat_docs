@@ -1,12 +1,12 @@
 "use client";
 import Link from "next/link";
 import { buttonVariants } from "./ui/Button";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Image from "next/image";
-import {LifeBuoy, Info, Loader2, Calendar, Tag, ChevronRight, Sparkles, Code} from "lucide-react";
+import {LifeBuoy, Info, Loader2, Calendar, ChevronRight, Sparkles, Code, ChevronLeft, Bug} from "lucide-react";
 import {
     Dialog,
-    DialogContent, DialogDescription,
+    DialogContent,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
@@ -19,6 +19,8 @@ interface GitHubRelease {
     body: string;
     formattedBody?: string;
 }
+
+const ITEMS_PER_PAGE = 10;
 
 export function FooterButtons() {
     return (
@@ -54,6 +56,7 @@ export function Footer() {
 
     const [releases, setReleases] = useState<GitHubRelease[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
 
     const isMajorRelease = (tagName: string) => {
         const version = tagName.replace(/[^0-9.]/g, '');
@@ -64,7 +67,7 @@ export function Footer() {
         if (releases.length > 0) return;
         setIsLoading(true);
         try {
-            const res = await fetch(`https://api.github.com/repos/PWNight/shat_docs/releases?per_page=10`);
+            const res = await fetch(`https://api.github.com/repos/PWNight/shat_docs/releases`);
             const data: GitHubRelease[] = await res.json();
 
             const formattedReleases = data.map((rel) => ({
@@ -88,6 +91,12 @@ export function Footer() {
         }
     };
 
+    const totalPages = Math.ceil(releases.length / ITEMS_PER_PAGE);
+    const paginatedReleases = useMemo(() => {
+        const start = (currentPage - 1) * ITEMS_PER_PAGE;
+        return releases.slice(start, start + ITEMS_PER_PAGE);
+    }, [releases, currentPage]);
+
     return (
         <footer className="w-full py-2 px-4 lg:px-10 border-t bg-muted/10 flex flex-row justify-between gap-4 items-center">
             <div className="flex items-center gap-3">
@@ -102,21 +111,25 @@ export function Footer() {
                 <div className="flex flex-col gap-1">
                     <p className="text-sm opacity-90 font-medium">SHAT Docs © 2025-{new Date().getFullYear()}</p>
                     <div className="flex flex-col">
-                        <Dialog onOpenChange={(open) => open && fetchChangelog()}>
+                        <Dialog onOpenChange={(open) => {
+                            if (open) fetchChangelog();
+                            else setCurrentPage(1);
+                        }}>
                             <DialogTrigger asChild>
-                                <button className="flex items-center gap-1.5 text-[11px] font-semibold text-blue-500 hover:text-blue-600 hover:underline transition-all">
+                                <button className="flex items-center gap-1.5 text-[11px] font-semibold text-blue-500 hover:text-blue-600 hover:underline transition-all text-left">
                                     <Info size={12} />
-                                    v{appVersion} (история изменений)
+                                    v{appVersion} (история версий)
                                 </button>
                             </DialogTrigger>
-                            <DialogContent className="max-w-[95vw] sm:max-w-xl bg-card border-border shadow-2xl rounded-2xl p-0 overflow-hidden">
-                                <DialogHeader className="p-4 bg-muted/30 border-b">
+                            <DialogContent className="max-w-[95vw] sm:max-w-xl bg-card border-border shadow-2xl rounded-2xl p-0 overflow-hidden flex flex-col max-h-[85vh]">
+                                <DialogHeader className="p-4 bg-muted/30 border-b shrink-0">
                                     <DialogTitle className="text-xl md:text-2xl flex items-center gap-2 tracking-tight leading-none">
                                         <ChevronRight size={20} className="text-blue-500 shrink-0" />
                                         <span className="mb-0.5">Последние изменения</span>
                                     </DialogTitle>
                                 </DialogHeader>
-                                <div className="p-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
+
+                                <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
                                     {isLoading ? (
                                         <div className="flex flex-col items-center py-20 gap-4">
                                             <div className="relative">
@@ -127,20 +140,16 @@ export function Footer() {
                                         </div>
                                     ) : releases.length > 0 ? (
                                         <div className="relative ml-2 space-y-10 border-l-2 border-muted pb-2">
-                                            {releases.map((rel) => {
+                                            {paginatedReleases.map((rel) => {
                                                 const isMajor = isMajorRelease(rel.tag_name);
                                                 return (
                                                     <div key={rel.id} className="relative pl-8 group">
-                                                        {/* Точка на таймлайне */}
-                                                        <div className={`absolute -left-2.25 top-1 w-4 h-4 rounded-full bg-card border-2 transition-colors z-10 ${isMajor ? 'border-blue-500 scale-125 shadow-[0_0_10px_rgba(59,130,246,0.5)]' : 'border-muted group-hover:border-blue-500'}`} />
-
+                                                        <div className={`absolute -left-[9.5px] top-1 w-4 h-4 rounded-full bg-card border-2 transition-colors z-10 ${isMajor ? 'border-blue-500 scale-125 shadow-[0_0_10px_rgba(59,130,246,0.5)]' : 'border-muted group-hover:border-blue-500'}`} />
                                                         <div className="flex flex-wrap items-center gap-3 mb-4">
                                                             <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${
-                                                                isMajor
-                                                                    ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20 scale-105"
-                                                                    : "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                                                                isMajor ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20 scale-105" : "bg-blue-500/10 text-blue-600 dark:text-blue-400"
                                                             }`}>
-                                                                {isMajor ? <Sparkles size={12} className="animate-pulse" /> : <Tag size={12} />}
+                                                                {isMajor ? <Sparkles size={15} className="animate-pulse" /> : <Bug size={15} />}
                                                                 {rel.tag_name}
                                                             </div>
                                                             <div className="flex items-center gap-1.5 text-muted-foreground text-xs font-medium">
@@ -152,7 +161,6 @@ export function Footer() {
                                                                 })}
                                                             </div>
                                                         </div>
-
                                                         <div
                                                             className={`text-sm leading-relaxed space-y-2 prose prose-sm dark:prose-invert max-w-none ${isMajor ? 'text-foreground font-medium' : 'text-foreground/80'}`}
                                                             dangerouslySetInnerHTML={{ __html: rel.formattedBody || "" }}
@@ -163,17 +171,33 @@ export function Footer() {
                                         </div>
                                     ) : (
                                         <div className="text-center py-16">
-                                            <p className="text-sm font-medium text-muted-foreground">
-                                                Не удалось загрузить данные. Попробуйте позже.
-                                            </p>
+                                            <p className="text-sm font-medium text-muted-foreground">Не удалось загрузить данные.</p>
                                         </div>
                                     )}
                                 </div>
-                                <div className="p-4 bg-muted/20 border-t flex justify-end">
-                                    <Link href={"https://github.com/PWNight/shat_docs"} className="text-[10px] text-muted-foreground hover:text-muted-foreground/80 uppercase tracking-widest font-bold">
-                                        Github репозиторий проекта
-                                    </Link>
-                                </div>
+                                {totalPages > 1 && (
+                                    <div className="p-3 bg-muted/10 border-t flex items-center justify-between px-6">
+                                    <span className="text-[11px] text-muted-foreground font-medium">
+                                        Страница {currentPage} из {totalPages}
+                                    </span>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                                disabled={currentPage === 1}
+                                                className="p-1.5 rounded-md hover:bg-muted disabled:opacity-30 transition-colors"
+                                            >
+                                                <ChevronLeft size={18} />
+                                            </button>
+                                            <button
+                                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                                disabled={currentPage === totalPages}
+                                                className="p-1.5 rounded-md hover:bg-muted disabled:opacity-30 transition-colors"
+                                            >
+                                                <ChevronRight size={18} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </DialogContent>
                         </Dialog>
                         <button className="flex items-center gap-1.5 text-[11px] font-semibold transition-all">
