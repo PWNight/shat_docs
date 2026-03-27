@@ -170,50 +170,64 @@ export default function ProfileGroups() {
             </div>
 
             {groups.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
                     {groups.map((group: Group) => {
                         const isOwner = group.fk_user === userData?.uid;
                         return (
-                            <div
-                                key={group.id}
-                                className="group relative flex flex-col p-6 rounded-2xl bg-card dark:bg-card border border-gray-100 dark:border-zinc-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
-                            >
-                                <div className="flex justify-between items-center xl:items-start gap-2 mb-4">
-                                    <div className={`p-3 rounded-lg ${isOwner ? 'bg-blue-600 text-white' : 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'}`}>
+                            <div key={group.id}
+                                 className={`group relative flex flex-col p-6 rounded-2xl border transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 ${
+                                     isOwner
+                                         ? 'bg-blue-500/5 border-blue-500/30'
+                                         : 'bg-card border-gray-100 dark:border-zinc-700 hover:border-blue-500/50'
+                                 }`}>
+                                <div className="flex justify-between items-start mb-2">
+                                    <div className={`p-3 rounded-xl transition-colors ${
+                                        isOwner
+                                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+                                            : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                                    }`}>
                                         <Users className="w-6 h-6" />
                                     </div>
-                                    <div className='flex gap-2'>
+                                    <div className='flex flex-col items-end gap-2'>
                                         {isOwner && (
-                                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-blue-600 text-white rounded shadow-sm">
+                                            <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 bg-blue-600 text-white rounded-full shadow-sm">
                                                 Ваша группа
                                             </span>
                                         )}
-                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-gray-100 shadow-sm dark:bg-zinc-600 rounded dark:text-gray-300">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-gray-400 rounded-full border border-gray-200 dark:border-zinc-700">
                                             ID: {group.id}
                                         </span>
                                     </div>
                                 </div>
 
-                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 transition-colors">
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors tracking-tight">
                                     {group.name}
                                 </h3>
 
-                                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 gap-2">
-                                    <Calendar className="w-4 h-4" />
-                                    <span>{new Date(group.created_by).toLocaleDateString("ru-RU", { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                                </div>
+                                <div className="space-y-2 mb-4">
+                                    <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 gap-2">
+                                        <Calendar className="w-4 h-4 text-blue-500" />
+                                        <span className="font-medium">
+                                            {new Date(group.created_by).toLocaleDateString("ru-RU", {
+                                                day: 'numeric',
+                                                month: 'long',
+                                                year: 'numeric'
+                                            })}
+                                        </span>
+                                    </div>
 
-                                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-6 gap-2">
-                                    <UserStar className="w-4 h-4" />
-                                    <span>{group.leader}</span>
+                                    <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 gap-2">
+                                        <UserStar className="w-4 h-4 text-blue-500" />
+                                        <span className="font-medium truncate">{group.leader}</span>
+                                    </div>
                                 </div>
 
                                 <Link
                                     href={`/profile/groups/${group.id}`}
-                                    className="shadow-sm mt-auto flex items-center justify-center gap-2 w-full bg-zinc-100 dark:bg-zinc-700/50 hover:bg-blue-600! hover:text-white text-gray-700 dark:text-gray-200 font-semibold py-3 rounded-xl transition-all"
+                                    className="mt-auto inline-flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-muted border border-input text-foreground text-sm font-semibold hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all shadow-sm"
                                 >
-                                    Управлять
-                                    <ArrowRight className="w-4 h-4" />
+                                    Подробнее
+                                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                                 </Link>
                             </div>
                         );
