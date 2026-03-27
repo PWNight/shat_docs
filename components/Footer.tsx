@@ -122,59 +122,62 @@ export function Footer() {
                                 </button>
                             </DialogTrigger>
                             <DialogContent className="max-w-[95vw] sm:max-w-xl bg-card border-border shadow-2xl rounded-2xl p-0 overflow-hidden flex flex-col max-h-[85vh]">
-                                <DialogHeader className="p-4 bg-muted/30 border-b shrink-0">
-                                    <DialogTitle className="text-xl md:text-2xl flex items-center gap-2 tracking-tight leading-none">
-                                        <ChevronRight size={20} className="text-blue-500 shrink-0" />
-                                        <span className="mb-0.5">Последние изменения</span>
-                                    </DialogTitle>
-                                </DialogHeader>
+                                <div className="overflow-y-auto custom-scrollbar flex-1">
+                                    <DialogHeader className="p-4 border-b shrink-0 sticky top-0 z-50 backdrop-blur-md bg-background/80 shadow-sm">
+                                        <DialogTitle className="text-xl md:text-2xl flex items-center gap-2 tracking-tight leading-none">
+                                            <ChevronRight size={20} className="text-blue-500 shrink-0" />
+                                            <span className="mb-0.5">Последние изменения</span>
+                                        </DialogTitle>
+                                    </DialogHeader>
 
-                                <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
-                                    {isLoading ? (
-                                        <div className="flex flex-col items-center py-20 gap-4">
-                                            <div className="relative">
-                                                <Loader2 className="animate-spin text-blue-500 w-10 h-10" />
-                                                <div className="absolute inset-0 blur-xl bg-blue-500/20 animate-pulse"></div>
+                                    <div className="px-6 py-3 overflow-y-auto custom-scrollbar flex-1">
+                                        {isLoading ? (
+                                            <div className="flex flex-col items-center py-20 gap-4">
+                                                <div className="relative">
+                                                    <Loader2 className="animate-spin text-blue-500 w-10 h-10" />
+                                                    <div className="absolute inset-0 blur-xl bg-blue-500/20 animate-pulse"></div>
+                                                </div>
+                                                <p className="text-sm font-medium text-muted-foreground animate-pulse">Получаем данные с GitHub...</p>
                                             </div>
-                                            <p className="text-sm font-medium text-muted-foreground animate-pulse">Получаем данные с GitHub...</p>
-                                        </div>
-                                    ) : releases.length > 0 ? (
-                                        <div className="relative ml-2 space-y-10 border-l-2 border-muted pb-2">
-                                            {paginatedReleases.map((rel) => {
-                                                const isMajor = isMajorRelease(rel.tag_name);
-                                                return (
-                                                    <div key={rel.id} className="relative pl-8 group">
-                                                        <div className={`absolute -left-[9.5px] top-1 w-4 h-4 rounded-full bg-card border-2 transition-colors z-10 ${isMajor ? 'border-blue-500 scale-125 shadow-[0_0_10px_rgba(59,130,246,0.5)]' : 'border-muted group-hover:border-blue-500'}`} />
-                                                        <div className="flex flex-wrap items-center gap-3 mb-4">
-                                                            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${
-                                                                isMajor ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20 scale-105" : "bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                                                            }`}>
-                                                                {isMajor ? <Sparkles size={15} className="animate-pulse" /> : <Bug size={15} />}
-                                                                {rel.tag_name}
+                                        ) : releases.length > 0 ? (
+                                            <div className="relative ml-2 space-y-10 border-l-2 border-muted pb-2">
+                                                {paginatedReleases.map((rel) => {
+                                                    const isMajor = isMajorRelease(rel.tag_name);
+                                                    return (
+                                                        <div key={rel.id} className="relative pl-8 group">
+                                                            <div className={`absolute -left-[9.5px] top-1 w-4 h-4 rounded-full bg-card border-2 transition-colors z-10 ${isMajor ? 'border-blue-500 scale-125 shadow-[0_0_10px_rgba(59,130,246,0.5)]' : 'border-muted group-hover:border-blue-500'}`} />
+                                                            <div className="flex flex-wrap items-center gap-3 mb-4">
+                                                                <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${
+                                                                    isMajor ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20 scale-105" : "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                                                                }`}>
+                                                                    {isMajor ? <Sparkles size={15} className="animate-pulse" /> : <Bug size={15} />}
+                                                                    {rel.tag_name}
+                                                                </div>
+                                                                <div className="flex items-center gap-1.5 text-muted-foreground text-xs font-medium">
+                                                                    <Calendar size={12} />
+                                                                    {new Date(rel.published_at).toLocaleDateString('ru-RU', {
+                                                                        day: 'numeric',
+                                                                        month: 'long',
+                                                                        year: 'numeric'
+                                                                    })}
+                                                                </div>
                                                             </div>
-                                                            <div className="flex items-center gap-1.5 text-muted-foreground text-xs font-medium">
-                                                                <Calendar size={12} />
-                                                                {new Date(rel.published_at).toLocaleDateString('ru-RU', {
-                                                                    day: 'numeric',
-                                                                    month: 'long',
-                                                                    year: 'numeric'
-                                                                })}
-                                                            </div>
+                                                            <div
+                                                                className={`text-sm leading-relaxed space-y-2 prose prose-sm dark:prose-invert max-w-none text-foreground/80`}
+                                                                dangerouslySetInnerHTML={{ __html: rel.formattedBody || "" }}
+                                                            />
                                                         </div>
-                                                        <div
-                                                            className={`text-sm leading-relaxed space-y-2 prose prose-sm dark:prose-invert max-w-none ${isMajor ? 'text-foreground font-medium' : 'text-foreground/80'}`}
-                                                            dangerouslySetInnerHTML={{ __html: rel.formattedBody || "" }}
-                                                        />
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    ) : (
-                                        <div className="text-center py-16">
-                                            <p className="text-sm font-medium text-muted-foreground">Не удалось загрузить данные.</p>
-                                        </div>
-                                    )}
+                                                    );
+                                                })}
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-16">
+                                                <p className="text-sm font-medium text-muted-foreground">Не удалось загрузить данные.</p>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
+
                                 {totalPages > 1 && (
                                     <div className="p-3 bg-muted/10 border-t flex items-center justify-between px-6">
                                     <span className="text-[11px] text-muted-foreground font-medium">
