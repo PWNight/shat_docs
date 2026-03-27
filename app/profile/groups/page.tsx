@@ -4,7 +4,7 @@ import {useRouter} from "next/navigation";
 import {getSession} from "@/utils/session";
 import {CreateGroup, GetAllGroups} from "@/utils/handlers";
 import ErrorMessage from "@/components/NotifyAlert";
-import {ArrowRight, Calendar, Loader2, Plus, SearchX, Users, UserStar} from "lucide-react";
+import {Calendar, Loader2, Plus, SearchX, Users, UserStar} from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -204,10 +204,10 @@ export default function ProfileGroups() {
                                     {group.name}
                                 </h3>
 
-                                <div className="space-y-2 mb-4">
+                                <div className="space-y-1 mb-4">
                                     <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 gap-2">
                                         <Calendar className="w-4 h-4 text-blue-500" />
-                                        <span className="font-medium">
+                                        <span>
                                             {new Date(group.created_by).toLocaleDateString("ru-RU", {
                                                 day: 'numeric',
                                                 month: 'long',
@@ -218,7 +218,7 @@ export default function ProfileGroups() {
 
                                     <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 gap-2">
                                         <UserStar className="w-4 h-4 text-blue-500" />
-                                        <span className="font-medium truncate">{group.leader}</span>
+                                        <span className="truncate">{group.leader}</span>
                                     </div>
                                 </div>
 
@@ -227,7 +227,6 @@ export default function ProfileGroups() {
                                     className="mt-auto inline-flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-muted border border-input text-foreground text-sm font-semibold hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all shadow-sm"
                                 >
                                     Подробнее
-                                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                                 </Link>
                             </div>
                         );
