@@ -254,9 +254,9 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
         const count5 = grades.filter(g => g === 5).length;
         const count4 = grades.filter(g => g === 4).length;
 
-        if (count4 === 0 && count5 > 0) return { label: "200%", color: "bg-yellow-100 dark:bg-yellow-900/30", multiplier: 2 };
-        if (count5 > count4) return { label: "150%", color: "bg-blue-100 dark:bg-blue-900/30", multiplier: 1.5 };
-        if (count4 > 0) return { label: "100%", color: "bg-green-100 dark:bg-green-900/30", multiplier: 1 };
+        if (count4 === 0 && count5 > 0) return { label: "200%", color: "bg-blue-100 dark:bg-blue-900/30", multiplier: 2 };
+        if (count5 > count4) return { label: "150%", color: "bg-green-100 dark:bg-green-900/30", multiplier: 1.5 };
+        if (count4 > 0) return { label: "100%", color: "bg-yellow-100 dark:bg-yellow-900/30", multiplier: 1 };
 
         return { label: "—", color: "bg-transparent", multiplier: 0 };
     };
@@ -603,8 +603,8 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                         <tr className="divide-x divide-gray-100 dark:divide-zinc-700 border-b dark:border-zinc-700">
                                             <th className="py-4 w-10">№</th>
                                             <th className="px-4 min-w-70 text-left">ФИО Студента</th>
-                                            <th className="py-4 px-3 bg-indigo-50/50 dark:bg-indigo-900/20 text-indigo-600">Стипендия</th>
-                                            <th className="py-4 px-4 min-w-32.5 bg-indigo-50/50 dark:bg-indigo-900/20 text-indigo-600">Средний балл</th>
+                                            <th className="py-4 px-3 bg-purple-50/50 dark:bg-purple-900/20 text-purple-500">Стипендия</th>
+                                            <th className="py-4 px-4 min-w-32.5 bg-purple-50/50 dark:bg-purple-900/20 text-purple-500">Средний балл</th>
                                             {gradesStudents[0]?.subjects.map((sub, idx) => (
                                                 <th key={idx} className="py-4 px-2 text-center truncate max-w-25" title={sub.name}>
                                                     {sub.name}
