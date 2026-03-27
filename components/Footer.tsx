@@ -3,7 +3,7 @@ import Link from "next/link";
 import { buttonVariants } from "./ui/Button";
 import React, { useState } from "react";
 import Image from "next/image";
-import { LifeBuoy, Info, Loader2, Calendar, Tag, ChevronRight, Sparkles } from "lucide-react";
+import {LifeBuoy, Info, Loader2, Calendar, Tag, ChevronRight, Sparkles, Code} from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -101,7 +101,7 @@ export function Footer() {
                 />
                 <div className="flex flex-col gap-1">
                     <p className="text-sm opacity-90 font-medium">SHAT Docs © 2025-{new Date().getFullYear()}</p>
-                    <div className="flex items-center gap-1">
+                    <div className="flex flex-col">
                         <Dialog onOpenChange={(open) => open && fetchChangelog()}>
                             <DialogTrigger asChild>
                                 <button className="flex items-center gap-1.5 text-[11px] font-semibold text-blue-500 hover:text-blue-600 hover:underline transition-all">
@@ -176,6 +176,10 @@ export function Footer() {
                                 </div>
                             </DialogContent>
                         </Dialog>
+                        <button className="flex items-center gap-1.5 text-[11px] font-semibold transition-all">
+                            <Code size={12} />
+                            v0.11.0 в разработке
+                        </button>
                     </div>
                 </div>
             </div>
