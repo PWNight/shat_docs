@@ -130,7 +130,7 @@ export default function MainPage() {
                 />
             </div>
 
-            <div className="flex flex-col gap-6">
+            <div className="grid sm:grid-cols-2 gap-6">
                 {!loading && latestMajor && (
                     <section className="relative overflow-hidden rounded-2xl border border-blue-500/30 bg-blue-500/5 p-5 md:p-6 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
                         <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none hidden sm:block">
