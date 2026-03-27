@@ -253,13 +253,13 @@ export default function MainPage() {
                         </div>
                     </section>
                 )}
-
-                {loading && (
-                    <div className="flex items-center justify-center py-10">
-                        <Loader2 className="animate-spin text-blue-500" size={24} />
-                    </div>
-                )}
             </div>
+            {loading && (
+                <div className="flex items-center justify-center py-10 gap-2">
+                    <Loader2 className="animate-spin text-blue-500" size={24} />
+                    <p>Загружаю блок последних изменений</p>
+                </div>
+            )}
         </div>
     );
 }
