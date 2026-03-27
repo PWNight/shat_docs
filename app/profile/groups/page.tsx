@@ -5,7 +5,14 @@ import {getSession} from "@/utils/session";
 import {CreateGroup, GetAllGroups} from "@/utils/handlers";
 import ErrorMessage from "@/components/NotifyAlert";
 import {ArrowRight, Calendar, Loader2, Plus, SearchX, Users, UserStar} from "lucide-react";
-import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger} from "@/components/ui/Dialog";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger
+} from "@/components/ui/Dialog";
 import Link from "next/link";
 import {GroupFormState} from "@/utils/definitions";
 import {CreateFormProps, Group, Notify} from "@/utils/interfaces";
@@ -23,6 +30,7 @@ const GroupCreateForm = ({ open, setOpen, dispatch, pending, state, userData }: 
             <DialogContent className="sm:max-w-106.25">
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-bold">Новая группа</DialogTitle>
+                    <DialogDescription>Укажите название создаваемой группы</DialogDescription>
                 </DialogHeader>
                 <form action={dispatch} className="space-y-4 mt-4">
                     <div className="space-y-2">
