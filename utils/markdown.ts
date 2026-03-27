@@ -9,6 +9,7 @@ import rehypeSlug from "rehype-slug";
 import rehypeCodeTitles from "rehype-code-titles";
 import { page_routes } from "./routes-config";
 import { visit } from "unist-util-visit";
+import { Node } from "unist";
 
 // Импорты компонентов MDX
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
@@ -24,6 +25,18 @@ const components = {
     pre: Pre, Note, a: Link, Outlet,
     Table, TableHeader, TableHead, TableRow, TableBody, TableCell,
 };
+
+interface ElementNode extends Node {
+    tagName?: string;
+    children?: Node[];
+    properties?: Record<string, unknown>;
+    raw?: string;
+}
+
+interface TextNode extends Node {
+    type: "text";
+    value: string;
+}
 
 async function parseMdx<Frontmatter>(rawMdx: string) {
     return await compileMDX<Frontmatter>({
@@ -135,20 +148,27 @@ export async function getAllChilds(pathString: string) {
     );
 }
 
-const preProcess = () => (tree: any) => {
-    visit(tree, (node) => {
+const preProcess = () => (tree: Node) => {
+    visit(tree, (node: ElementNode) => {
         if (node?.type === "element" && node?.tagName === "pre") {
-            const [codeEl] = node.children;
-            if (codeEl.tagName !== "code") return;
-            node.raw = codeEl.children?.[0].value;
+            const codeEl = node.children?.[0] as ElementNode | undefined;
+            if (!codeEl || codeEl.tagName !== "code") return;
+
+            const textNode = codeEl.children?.[0] as TextNode | undefined;
+
+            if (textNode && textNode.value) {
+                node.raw = textNode.value;
+            }
         }
     });
 };
 
-const postProcess = () => (tree: any) => {
-    visit(tree, "element", (node) => {
+const postProcess = () => (tree: Node) => {
+    visit(tree, "element", (node: ElementNode) => {
         if (node?.type === "element" && node?.tagName === "pre") {
-            node.properties["raw"] = node.raw;
+            if (node.properties) {
+                node.properties["raw"] = node.raw;
+            }
         }
     });
 };
