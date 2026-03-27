@@ -205,16 +205,26 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
 
     const updateGradeField = (studentIndex: number, subjectIndex: number, value: string) => {
         if (!isOwner) return;
+
+        if (value !== "" && !/^[1-5]$/.test(value)) {
+            return;
+        }
+
         const updated = [...gradesStudents];
         updated[studentIndex].subjects[subjectIndex].grade = value;
 
-        const validGrades = updated[studentIndex].subjects.map(s => {
-            const val = s.grade.trim();
-            const num = parseFloat(val.replace(',', '.'));
-            return isNaN(num) || val === '' ? 2 : num;
-        });
+        const validGrades = updated[studentIndex].subjects
+            .map(s => {
+                const val = s.grade.trim();
+                const num = parseFloat(val.replace(',', '.'));
+                return isNaN(num) || val === '' ? 0 : num;
+            })
+            .filter(g => g > 0);
 
-        updated[studentIndex].averageScore = parseFloat((validGrades.reduce((a, b) => a + b, 0) / validGrades.length).toFixed(2));
+        updated[studentIndex].averageScore = validGrades.length > 0
+            ? parseFloat((validGrades.reduce((a, b) => a + b, 0) / validGrades.length).toFixed(2))
+            : 0;
+
         setGradesStudents(updated);
     };
 
@@ -270,13 +280,15 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
 
     const getGradeColor = (grade: string) => {
         const val = grade.trim();
-        if (val === '') return "bg-red-500/20 dark:bg-red-900/40"; // Выделение пустых ячеек
+        if (val === '') return "bg-red-500/20 dark:bg-red-900/40";
 
         const g = parseInt(val);
         if (g === 5) return "bg-green-600/30 text-green-700 dark:text-green-300";
         if (g === 4) return "bg-emerald-400/20 dark:bg-emerald-500/30 text-emerald-700 dark:text-emerald-300";
         if (g === 3) return "bg-amber-400/20 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400";
-        if (g === 2) return "bg-red-500/20 dark:bg-red-600/30 text-red-700 dark:text-red-400";
+
+        if (g <= 2 && g > 0) return "bg-red-500/20 dark:bg-red-600/30 text-red-700 dark:text-red-400";
+
         return "";
     };
 
