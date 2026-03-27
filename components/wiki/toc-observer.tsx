@@ -4,7 +4,13 @@ import clsx from "clsx";
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 
-export default function TocObserver({ data }: { data: any[] }) {
+interface TocItem {
+    level: number;
+    text: string;
+    href: string;
+}
+
+export default function TocObserver({ data }: { data: TocItem[] }) {
     const [activeId, setActiveId] = useState<string | null>(null);
     const observer = useRef<IntersectionObserver | null>(null);
 
