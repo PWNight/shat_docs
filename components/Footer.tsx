@@ -203,10 +203,6 @@ export function Footer() {
                                 )}
                             </DialogContent>
                         </Dialog>
-                        <button className="flex items-center gap-1.5 text-[11px] font-semibold transition-all">
-                            <Code size={12} />
-                            v0.11.0 в разработке
-                        </button>
                     </div>
                 </div>
             </div>
