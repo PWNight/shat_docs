@@ -246,6 +246,30 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
         }
     };
 
+    const getScholarshipInfo = (subjects: { grade: string }[]) => {
+        const grades = subjects.map(s => parseInt(s.grade)).filter(g => !isNaN(g));
+
+        if (grades.some(g => g <= 3)) return { label: "Нет", color: "bg-transparent", multiplier: 0 };
+
+        const count5 = grades.filter(g => g === 5).length;
+        const count4 = grades.filter(g => g === 4).length;
+
+        if (count4 === 0 && count5 > 0) return { label: "200%", color: "bg-yellow-100 dark:bg-yellow-900/30", multiplier: 2 };
+        if (count5 > count4) return { label: "150%", color: "bg-blue-100 dark:bg-blue-900/30", multiplier: 1.5 };
+        if (count4 > 0) return { label: "100%", color: "bg-green-100 dark:bg-green-900/30", multiplier: 1 };
+
+        return { label: "—", color: "bg-transparent", multiplier: 0 };
+    };
+
+    const getGradeColor = (grade: string) => {
+        const g = parseInt(grade);
+        if (g === 5) return "text-green-600 dark:text-green-400";
+        if (g === 4) return "text-emerald-500 dark:text-emerald-300";
+        if (g === 3) return "text-amber-500";
+        if (g === 2) return "text-red-500 font-black";
+        return "";
+    };
+
     if (!group) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-blue-600" /></div>;
 
     return (
@@ -574,43 +598,63 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                 )
                             ) : (
                                 <div className="w-full overflow-x-auto border border-gray-100 dark:border-zinc-700 rounded-lg shadow-sm">
-                                    <table className="text-sm table-auto">
+                                    <table className="text-sm table-auto w-full">
                                         <thead className="bg-gray-50/50 dark:bg-zinc-900/50 text-[10px] font-bold uppercase text-gray-400">
                                         <tr className="divide-x divide-gray-100 dark:divide-zinc-700 border-b dark:border-zinc-700">
                                             <th className="py-4 w-10">№</th>
-                                            <th className="px-2 min-w-65 text-left">ФИО Студента</th>
-                                            {gradesStudents[0].subjects.map((sub, idx) => (
+                                            <th className="px-4 min-w-70 text-left">ФИО Студента</th>
+                                            <th className="py-4 px-3 bg-indigo-50/50 dark:bg-indigo-900/20 text-indigo-600">Стипендия</th>
+                                            <th className="py-4 px-4 min-w-32.5 bg-indigo-50/50 dark:bg-indigo-900/20 text-indigo-600">Средний балл</th>
+                                            {gradesStudents[0]?.subjects.map((sub, idx) => (
                                                 <th key={idx} className="py-4 px-2 text-center truncate max-w-25" title={sub.name}>
                                                     {sub.name}
                                                 </th>
                                             ))}
-                                            <th className="py-4 px-4 dark:bg-purple-500/50 bg-purple-50 dark:text-white text-gray-600">Средний</th>
                                         </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-50 dark:divide-zinc-700">
-                                        {gradesStudents.map((student, sIdx) => (
-                                            <tr key={sIdx} className="divide-x divide-gray-50 dark:divide-zinc-700 hover:bg-purple-50/10 transition-colors">
-                                                <td className="p-4 text-center text-gray-400 text-[10px]">{sIdx + 1}</td>
-                                                <td className="px-2 font-medium py-1">
-                                                    <input disabled={!isOwner} value={student.fullName} onChange={e => {
-                                                        const updated = [...gradesStudents];
-                                                        updated[sIdx].fullName = e.target.value;
-                                                        setGradesStudents(updated);
-                                                    }} className="w-full bg-transparent outline-none disabled:text-gray-700" />
-                                                </td>
-                                                {student.subjects.map((sub, subIdx) => (
-                                                    <td key={subIdx} className="p-0 hover:bg-gray-100 dark:hover:bg-neutral-700">
+                                        {gradesStudents.map((student, sIdx) => {
+                                            const schol = getScholarshipInfo(student.subjects);
+                                            return (
+                                                <tr key={sIdx} className="divide-x divide-gray-50 dark:divide-zinc-700 hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 transition-colors">
+                                                    <td className="p-4 text-center text-gray-400 text-[10px]">{sIdx + 1}</td>
+
+                                                    <td className={`px-4 font-medium py-1 ${schol.color}`}>
                                                         <input
                                                             disabled={!isOwner}
-                                                            value={sub.grade}
-                                                            onChange={(e) => updateGradeField(sIdx, subIdx, e.target.value)}
-                                                            className="w-full h-full py-3 text-center bg-transparent outline-none font-bold"
+                                                            value={student.fullName}
+                                                            onChange={e => {
+                                                                const updated = [...gradesStudents];
+                                                                updated[sIdx].fullName = e.target.value;
+                                                                setGradesStudents(updated);
+                                                            }}
+                                                            className="w-full bg-transparent outline-none disabled:text-gray-700 dark:disabled:text-gray-200"
                                                         />
                                                     </td>
-                                                ))}
-                                                <td className="py-3 text-center font-bold dark:bg-purple-500/20 dark:border-purple-500 bg-purple-50/20 border-purple-100 border-l-2">{student.averageScore}</td>
-                                            </tr>
-                                        ))}
+
+                                                    <td className="text-center font-bold text-[11px]">
+                                                        <span className={`px-2 py-1 rounded-full ${schol.multiplier > 0 ? 'bg-white/50 dark:bg-black/20 shadow-sm' : ''}`}>
+                                                            {schol.label}
+                                                        </span>
+                                                    </td>
+
+                                                    <td className="py-3 text-center font-bold">
+                                                        {student.averageScore}
+                                                    </td>
+
+                                                    {student.subjects.map((sub, subIdx) => (
+                                                        <td key={subIdx} className="p-0 hover:bg-gray-100 dark:hover:bg-neutral-700">
+                                                            <input
+                                                                disabled={!isOwner}
+                                                                value={sub.grade}
+                                                                onChange={(e) => updateGradeField(sIdx, subIdx, e.target.value)}
+                                                                className={`w-full h-full py-3 text-center bg-transparent outline-none font-bold ${getGradeColor(sub.grade)}`}
+                                                            />
+                                                        </td>
+                                                    ))}
+                                                </tr>
+                                            );
+                                        })}
                                         </tbody>
                                     </table>
                                 </div>
