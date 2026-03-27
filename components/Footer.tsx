@@ -6,7 +6,7 @@ import Image from "next/image";
 import {LifeBuoy, Info, Loader2, Calendar, Tag, ChevronRight, Sparkles, Code} from "lucide-react";
 import {
     Dialog,
-    DialogContent,
+    DialogContent, DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
@@ -111,9 +111,9 @@ export function Footer() {
                             </DialogTrigger>
                             <DialogContent className="max-w-[95vw] sm:max-w-xl bg-card border-border shadow-2xl rounded-2xl p-0 overflow-hidden">
                                 <DialogHeader className="p-4 bg-muted/30 border-b">
-                                    <DialogTitle className="text-2xl flex items-center gap-2 tracking-tight">
-                                        <ChevronRight className="text-blue-500" />
-                                        Последние обновления
+                                    <DialogTitle className="text-xl md:text-2xl flex items-center gap-2 tracking-tight leading-none">
+                                        <ChevronRight size={20} className="text-blue-500 shrink-0" />
+                                        <span className="mb-0.5">Последние изменения</span>
                                     </DialogTitle>
                                 </DialogHeader>
                                 <div className="p-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
