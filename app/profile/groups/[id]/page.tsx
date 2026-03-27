@@ -208,9 +208,13 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
         const updated = [...gradesStudents];
         updated[studentIndex].subjects[subjectIndex].grade = value;
 
-        const validGrades = updated[studentIndex].subjects.map(s => parseFloat(s.grade.replace(',', '.'))).filter(g => !isNaN(g));
-        updated[studentIndex].averageScore = validGrades.length > 0 ? parseFloat((validGrades.reduce((a, b) => a + b, 0) / validGrades.length).toFixed(2)) : 0;
+        const validGrades = updated[studentIndex].subjects.map(s => {
+            const val = s.grade.trim();
+            const num = parseFloat(val.replace(',', '.'));
+            return isNaN(num) || val === '' ? 2 : num;
+        });
 
+        updated[studentIndex].averageScore = parseFloat((validGrades.reduce((a, b) => a + b, 0) / validGrades.length).toFixed(2));
         setGradesStudents(updated);
     };
 
@@ -247,7 +251,10 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
     };
 
     const getScholarshipInfo = (subjects: { grade: string }[]) => {
-        const grades = subjects.map(s => parseInt(s.grade)).filter(g => !isNaN(g));
+        const grades = subjects.map(s => {
+            const val = s.grade.trim();
+            return val === '' ? 2 : parseInt(val);
+        }).filter(g => !isNaN(g));
 
         if (grades.some(g => g <= 3)) return { label: "Нет", color: "bg-transparent", multiplier: 0 };
 
@@ -262,11 +269,14 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
     };
 
     const getGradeColor = (grade: string) => {
-        const g = parseInt(grade);
-        if (g === 5) return "text-green-600 dark:text-green-400";
-        if (g === 4) return "text-emerald-500 dark:text-emerald-300";
-        if (g === 3) return "text-amber-500";
-        if (g === 2) return "text-red-500 font-black";
+        const val = grade.trim();
+        if (val === '') return "bg-red-500/20 dark:bg-red-900/40"; // Выделение пустых ячеек
+
+        const g = parseInt(val);
+        if (g === 5) return "bg-green-600/30 text-green-700 dark:text-green-300";
+        if (g === 4) return "bg-emerald-400/20 dark:bg-emerald-500/30 text-emerald-700 dark:text-emerald-300";
+        if (g === 3) return "bg-amber-400/20 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400";
+        if (g === 2) return "bg-red-500/20 dark:bg-red-600/30 text-red-700 dark:text-red-400";
         return "";
     };
 
@@ -643,12 +653,12 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                                     </td>
 
                                                     {student.subjects.map((sub, subIdx) => (
-                                                        <td key={subIdx} className="p-0 hover:bg-gray-100 dark:hover:bg-neutral-700">
+                                                        <td key={subIdx} className={`p-0 transition-colors border-x dark:border-zinc-700 ${getGradeColor(sub.grade)}`}>
                                                             <input
                                                                 disabled={!isOwner}
                                                                 value={sub.grade}
                                                                 onChange={(e) => updateGradeField(sIdx, subIdx, e.target.value)}
-                                                                className={`w-full h-full py-3 text-center bg-transparent outline-none font-bold ${getGradeColor(sub.grade)}`}
+                                                                className="w-full h-full py-3 text-center bg-transparent outline-none font-bold placeholder:opacity-30"
                                                             />
                                                         </td>
                                                     ))}
