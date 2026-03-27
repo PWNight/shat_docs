@@ -8,8 +8,6 @@ import {
     Sparkles,
     Calendar,
     Info,
-    ChevronRight,
-    Tag,
     Loader2,
     Bug
 } from "lucide-react";
@@ -133,9 +131,8 @@ export default function MainPage() {
             </div>
 
             <div className="flex flex-col gap-6">
-                {/* Блок Мажорного Релиза (без изменений) */}
                 {!loading && latestMajor && (
-                    <section className="relative overflow-hidden rounded-2xl border border-blue-500/30 bg-blue-500/5 p-5 md:p-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <section className="relative overflow-hidden rounded-2xl border border-blue-500/30 bg-blue-500/5 p-5 md:p-6 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
                         <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none hidden sm:block">
                             <Sparkles size={80} className="text-blue-500" />
                         </div>
@@ -173,9 +170,9 @@ export default function MainPage() {
                                 </DialogTrigger>
                                 <DialogContent className="max-w-[95vw] sm:max-w-xl bg-card border-border shadow-2xl rounded-2xl p-0 overflow-hidden">
                                     <DialogHeader className="p-4 bg-muted/30 border-b">
-                                        <DialogTitle className="text-xl md:text-2xl flex items-center gap-2 tracking-tight">
-                                            <ChevronRight className="text-blue-500 shrink-0" />
-                                            Обновление {latestMajor.tag_name}
+                                        <DialogTitle className="text-xl md:text-2xl flex items-center gap-2 tracking-tight leading-none">
+                                            <Sparkles size={20} className="text-blue-500 shrink-0" />
+                                            <span className="mb-0.5">Обновление {latestMajor.tag_name}</span>
                                         </DialogTitle>
                                     </DialogHeader>
                                     <div className="px-5 max-h-[60vh] overflow-y-auto custom-scrollbar">
@@ -198,7 +195,7 @@ export default function MainPage() {
                 )}
 
                 {!loading && latestPatch && latestPatch.id !== latestMajor?.id && (
-                    <section className="relative overflow-hidden rounded-2xl border border-border bg-muted/10 p-5 md:p-6 animate-in fade-in slide-in-from-bottom-3 duration-600">
+                    <section className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm p-5 md:p-6 animate-in fade-in slide-in-from-bottom-3 duration-600">
                         <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none hidden sm:block">
                             <Bug size={80} className="text-blue-500" />
                         </div>
@@ -228,16 +225,16 @@ export default function MainPage() {
 
                             <Dialog>
                                 <DialogTrigger asChild>
-                                    <button className="inline-flex items-center justify-center gap-2 px-4 py-2.5 md:py-2 w-full sm:w-fit rounded-xl sm:rounded-full bg-muted border border-input text-foreground text-sm font-semibold hover:bg-muted/80 transition-colors">
+                                    <button className="inline-flex items-center justify-center gap-2 px-4 py-2.5 md:py-2 w-full sm:w-fit rounded-xl sm:rounded-full bg-muted border border-input text-foreground text-sm font-semibold hover:bg-neutral-200 dark:hover:bg-gray-800 transition-colors">
                                         <Info size={16} />
                                         Посмотреть изменения
                                     </button>
                                 </DialogTrigger>
                                 <DialogContent className="max-w-[95vw] sm:max-w-xl bg-card border-border shadow-2xl rounded-2xl p-0 overflow-hidden">
                                     <DialogHeader className="p-4 bg-muted/30 border-b">
-                                        <DialogTitle className="text-xl md:text-2xl flex items-center gap-2 tracking-tight">
-                                            <Tag className="text-muted-foreground shrink-0" size={18} />
-                                            Патч {latestPatch.tag_name}
+                                        <DialogTitle className="text-xl md:text-2xl flex items-center gap-2 tracking-tight leading-none">
+                                            <Bug size={20} className="shrink-0" />
+                                            <span className="mb-0.5">Патч {latestPatch.tag_name}</span>
                                         </DialogTitle>
                                     </DialogHeader>
                                     <div className="px-5 max-h-[60vh] overflow-y-auto custom-scrollbar">
