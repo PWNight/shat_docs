@@ -169,19 +169,21 @@ export default function MainPage() {
                                     </button>
                                 </DialogTrigger>
                                 <DialogContent className="max-w-[95vw] sm:max-w-xl bg-card border-border shadow-2xl rounded-2xl p-0 overflow-hidden">
-                                    <DialogHeader className="p-4 bg-muted/30 border-b">
-                                        <DialogTitle className="text-xl md:text-2xl flex items-center gap-2 tracking-tight leading-none">
-                                            <Sparkles size={20} className="text-blue-500 shrink-0" />
-                                            <span className="mb-0.5">Обновление {latestMajor.tag_name}</span>
-                                        </DialogTitle>
-                                    </DialogHeader>
-                                    <div className="px-5 max-h-[60vh] overflow-y-auto custom-scrollbar">
-                                        <div
-                                            className="text-sm leading-relaxed space-y-2 prose prose-sm dark:prose-invert max-w-none
+                                    <div className="overflow-y-auto custom-scrollbar flex-1">
+                                        <DialogHeader className="p-4 bg-muted/30 border-b">
+                                            <DialogTitle className="text-xl md:text-2xl flex items-center gap-2 tracking-tight leading-none">
+                                                <Sparkles size={20} className="text-blue-500 shrink-0" />
+                                                <span className="mb-0.5">Обновление {latestMajor.tag_name}</span>
+                                            </DialogTitle>
+                                        </DialogHeader>
+                                        <div className="px-6 max-h-[60vh]">
+                                            <div
+                                                className="text-sm leading-relaxed space-y-2 prose prose-sm dark:prose-invert max-w-none
                                                prose-headings:font-bold prose-headings:tracking-tight
                                                prose-h1:text-xl prose-h2:text-lg prose-h3:text-base"
-                                            dangerouslySetInnerHTML={{ __html: latestMajor.formattedBody || "" }}
-                                        />
+                                                dangerouslySetInnerHTML={{ __html: latestMajor.formattedBody || "" }}
+                                            />
+                                        </div>
                                     </div>
                                     <div className="p-4 bg-muted/20 border-t flex justify-end">
                                         <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
@@ -231,17 +233,19 @@ export default function MainPage() {
                                     </button>
                                 </DialogTrigger>
                                 <DialogContent className="max-w-[95vw] sm:max-w-xl bg-card border-border shadow-2xl rounded-2xl p-0 overflow-hidden">
-                                    <DialogHeader className="p-4 bg-muted/30 border-b">
-                                        <DialogTitle className="text-xl md:text-2xl flex items-center gap-2 tracking-tight leading-none">
-                                            <Bug size={20} className="shrink-0" />
-                                            <span className="mb-0.5">Патч {latestPatch.tag_name}</span>
-                                        </DialogTitle>
-                                    </DialogHeader>
-                                    <div className="px-5 max-h-[60vh] overflow-y-auto custom-scrollbar">
-                                        <div
-                                            className="text-sm leading-relaxed space-y-2 prose prose-sm dark:prose-invert max-w-none"
-                                            dangerouslySetInnerHTML={{ __html: latestPatch.formattedBody || "" }}
-                                        />
+                                    <div className="overflow-y-auto custom-scrollbar flex-1">
+                                        <DialogHeader className="p-4 bg-muted/30 border-b">
+                                            <DialogTitle className="text-xl md:text-2xl flex items-center gap-2 tracking-tight leading-none">
+                                                <Bug size={20} className="shrink-0" />
+                                                <span className="mb-0.5">Патч {latestPatch.tag_name}</span>
+                                            </DialogTitle>
+                                        </DialogHeader>
+                                        <div className="px-6 max-h-[60vh]">
+                                            <div
+                                                className="text-sm leading-relaxed space-y-2 prose prose-sm dark:prose-invert max-w-none"
+                                                dangerouslySetInnerHTML={{ __html: latestPatch.formattedBody || "" }}
+                                            />
+                                        </div>
                                     </div>
                                     <div className="p-4 bg-muted/20 border-t flex justify-end">
                                         <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
