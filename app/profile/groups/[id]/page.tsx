@@ -291,7 +291,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                     <div className="flex items-center gap-5 w-full md:w-auto mb-2">
                         <div className="flex-1">
                             <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 px-1">Название группы</label>
-                            <div className="relative group max-w-sm">
+                            <div className="relative group sm:max-w-sm">
                                 <input
                                     disabled={!isOwner}
                                     value={updateFormData.name}
@@ -325,7 +325,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                     </div>
 
                     {isOwner && (
-                        <div className="flex items-center gap-3 w-full md:w-auto border-t md:border-t-0 pt-4 md:pt-0 border-gray-100">
+                        <div className="flex items-center gap-3 w-full md:w-auto pt-4 md:pt-0 border-gray-100">
                             <Dialog>
                                 <DialogTrigger asChild>
                                     <button className="flex-1 md:flex-none flex items-center gap-2 px-4 py-2.5 bg-amber-50 shadow-sm dark:bg-zinc-700/50 text-amber-600 rounded-lg font-semibold text-sm hover:bg-amber-500! hover:text-white! transition-colors">
