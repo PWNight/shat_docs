@@ -43,7 +43,7 @@ export interface FeatureCardProps {
 
 const FeatureCard = ({ title, desc, icon, href }: FeatureCardProps) => (
     <Link href={href} className="group relative p-6 bg-card/40 hover:bg-card/60 backdrop-blur-md border border-border/50 hover:border-blue-500/50 rounded-2xl transition-all duration-300 shadow-sm overflow-hidden flex flex-col h-full">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
         <div className="relative z-10 flex flex-col h-full">
             <div className="flex items-center justify-between mb-4">
                 <div className="p-2.5 bg-blue-500/10 rounded-xl text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform">
@@ -116,7 +116,7 @@ export default function MainPage() {
     return (
         <div className="relative min-h-screen w-full overflow-x-hidden flex flex-col">
             {mounted && (
-                <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+                <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
                     <LineWaves
                         speed={0.3}
                         innerLineCount={32}
@@ -153,7 +153,7 @@ export default function MainPage() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
                     {!loading && (
-                        <section className="relative overflow-hidden rounded-3xl border border-blue-500/20 bg-card/30 backdrop-blur-2xl p-6 md:p-10 shadow-2xl flex flex-col min-h-[420px] lg:min-h-full transition-all duration-300 hover:border-blue-500/40 group">
+                        <section className="relative overflow-hidden rounded-3xl border border-blue-500/20 bg-card/30 backdrop-blur-2xl p-6 md:p-10 shadow-2xl flex flex-col min-h-105 lg:min-h-full transition-all duration-300 hover:border-blue-500/40 group">
                             <div className="absolute inset-0 bg-linear-to-br from-blue-600/10 via-transparent to-transparent opacity-100" />
                             <div className="absolute top-0 right-0 p-0 opacity-15 pointer-events-none translate-x-1/4 -translate-y-1/4 rotate-12">
                                 <Sparkles size={320} className="text-blue-500" strokeWidth={0.5} />
@@ -168,7 +168,7 @@ export default function MainPage() {
                                                 <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em]">Последнее обновление</span>
                                             </div>
                                             <div className="flex flex-col gap-2">
-                                                <h2 className="text-4xl md:text-6xl font-black tracking-tight leading-none bg-linear-to-r from-foreground via-foreground/90 to-blue-500 bg-clip-text text-transparent break-words">
+                                                <h2 className="text-4xl md:text-6xl font-black tracking-tight leading-none bg-linear-to-r from-foreground via-foreground/90 to-blue-500 bg-clip-text text-transparent wrap-break-word">
                                                     {latestMajor.name}
                                                 </h2>
                                                 <span className="flex items-center gap-1.5 text-sm md:text-base text-muted-foreground">
@@ -214,7 +214,7 @@ export default function MainPage() {
 
                     <div className="flex flex-col gap-6">
                         {!loading && (
-                            <section className="relative overflow-hidden rounded-3xl border border-blue-500/30 bg-card/30 backdrop-blur-2xl p-6 md:p-8 shadow-xl flex-1 transition-all duration-300 hover:border-blue-500/50 group/beta flex flex-col justify-between min-h-[220px]">
+                            <section className="relative overflow-hidden rounded-3xl border border-blue-500/30 bg-card/30 backdrop-blur-2xl p-6 md:p-8 shadow-xl flex-1 transition-all duration-300 hover:border-blue-500/50 group/beta flex flex-col justify-between min-h-55">
                                 <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none group-hover/beta:scale-110 transition-transform">
                                     <Boxes size={100} className="text-blue-500" strokeWidth={1} />
                                 </div>
@@ -260,7 +260,7 @@ export default function MainPage() {
                         )}
 
                         {!loading && latestPatch && (
-                            <section className="relative overflow-hidden rounded-3xl border border-border bg-card/30 backdrop-blur-2xl p-6 md:p-8 shadow-xl flex-1 transition-all duration-300 hover:border-foreground/10 group/patch flex flex-col justify-between min-h-[220px]">
+                            <section className="relative overflow-hidden rounded-3xl border border-border bg-card/30 backdrop-blur-2xl p-6 md:p-8 shadow-xl flex-1 transition-all duration-300 hover:border-foreground/10 group/patch flex flex-col justify-between min-h-55">
                                 <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none group-hover/patch:rotate-12 transition-transform">
                                     <Bug size={100} className="text-foreground" strokeWidth={1} />
                                 </div>
