@@ -98,7 +98,7 @@ export function Footer() {
     }, [releases, currentPage]);
 
     return (
-        <footer className="w-full py-2 px-4 lg:px-10 border-t bg-muted/10 flex flex-row justify-between gap-4 items-center">
+        <footer className="relative z-20 w-full py-2 px-4 lg:px-10 border-t bg-background flex flex-row justify-between gap-4 items-center">
             <div className="flex items-center gap-3">
                 <Image
                     src="/logo.png"
