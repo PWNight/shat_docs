@@ -5,7 +5,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     try {
         const { id } = await params;
         const rows = await query(
-            `SELECT full_name as fullName, subjects_json as subjects, average_score as averageScore
+            `SELECT full_name as fullName, subjects_json as subjects, average_score as averageScore, period_semester as periodSemester
              FROM grades WHERE fk_group = ?`, [id]
         );
 
@@ -26,12 +26,13 @@ export async function POST(request: NextRequest) {
 
         for (const student of students) {
             await execute(
-                `INSERT INTO grades (fk_group, full_name, subjects_json, average_score)
-                 VALUES (?, ?, ?, ?)
+                `INSERT INTO grades (fk_group, full_name, subjects_json, average_score, period_semester)
+                 VALUES (?, ?, ?, ?, ?)
                      ON DUPLICATE KEY UPDATE
                         subjects_json = VALUES(subjects_json),
-                        average_score = VALUES(average_score)`,
-                [groupId, student.fullName, JSON.stringify(student.subjects), student.averageScore]
+                        average_score = VALUES(average_score),
+                        period_semester = VALUES(period_semester)`,
+                [groupId, student.fullName, JSON.stringify(student.subjects), student.averageScore, student.periodSemester || null]
             );
         }
         return NextResponse.json({ success: true });

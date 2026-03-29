@@ -16,7 +16,8 @@ export async function GET(request: NextRequest, {params}: { params: Promise<{ id
                 full_days_sick as fullDaysSick, 
                 lessons_total as lessonsTotal, 
                 lessons_sick as lessonsSick, 
-                late 
+                late,
+                period_month as periodMonth
             FROM attendance WHERE fk_group = ?`,
             [id]
         );
@@ -37,18 +38,19 @@ export async function POST(request: NextRequest) {
         for (const student of students) {
             await execute(
                 `INSERT INTO attendance 
-                (fk_group, full_name, full_days_total, full_days_sick, lessons_total, lessons_sick, late) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                (fk_group, full_name, full_days_total, full_days_sick, lessons_total, lessons_sick, late, period_month) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE 
                 full_days_total = VALUES(full_days_total),
                 full_days_sick = VALUES(full_days_sick),
                 lessons_total = VALUES(lessons_total),
                 lessons_sick = VALUES(lessons_sick),
-                late = VALUES(late)`,
+                late = VALUES(late),
+                period_month = VALUES(period_month)`,
                 [
                     groupId, student.fullName, student.fullDaysTotal,
                     student.fullDaysSick, student.lessonsTotal,
-                    student.lessonsSick, student.late
+                    student.lessonsSick, student.late, student.periodMonth || null
                 ]
             );
         }
