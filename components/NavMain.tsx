@@ -22,7 +22,7 @@ export const NAVLINKS = [
 export async function Navbar() {
     return (
         <nav className="sticky top-0 z-50 w-full border-b border-border backdrop-blur-md bg-background/80 px-4 lg:px-10 h-16 flex items-center shadow-sm">
-            <div className="w-full flex items-center justify-between gap-1">
+            <div className="w-full flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <Logo />
                     <div className="lg:hidden">
@@ -33,9 +33,11 @@ export async function Navbar() {
                     </div>
                 </div>
 
-                <div className="hidden min-[400px]:flex items-center gap-2">
+                <div className="flex items-center gap-2">
                     <ModeToggle />
-                    <AuthButton />
+                    <div className="hidden lg:block">
+                        <AuthButton />
+                    </div>
                 </div>
             </div>
         </nav>

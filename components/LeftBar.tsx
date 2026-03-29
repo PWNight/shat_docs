@@ -7,12 +7,11 @@ import {
   SheetTrigger,
 } from "@/components/ui/Sheet";
 import { Logo, NavMenu } from "./NavMain";
-import { AlignLeftIcon, LayoutGrid, Book, Share2 } from "lucide-react";
+import { AlignLeftIcon, Book, Share2 } from "lucide-react";
 import { FooterButtons } from "./Footer";
 import { DialogTitle } from "./ui/Dialog";
 import { Button } from "./ui/Button";
 import WikiMenu from "@/components/wiki/wiki-menu";
-import { ModeToggle } from "@/components/theme-toggle";
 import { AuthButton } from "@/components/AccountButton";
 
 export function Leftbar() {
@@ -46,7 +45,7 @@ export function SheetLeftbar() {
           </Button>
         </SheetTrigger>
         <SheetContent
-            className="flex flex-col gap-0 px-0 w-75 sm:w-85 bg-background border border-border shadow-sm py-0 h-fit"
+            className="flex flex-col gap-0 px-0 w-75 sm:w-85 bg-background border border-border shadow-sm py-0 h-fit rounded-bl-sm rounded-br-sm rounded-tr-sm"
             side="left"
         >
           <DialogTitle className="sr-only">Навигационное меню</DialogTitle>
@@ -58,17 +57,8 @@ export function SheetLeftbar() {
           </SheetHeader>
 
           <ScrollArea className="flex-1 px-4">
-            <div className="flex flex-col justify-between gap-8 py-6">
-
-              <section>
-                <div className="flex items-center gap-2 px-2 mb-3 text-blue-500">
-                  <LayoutGrid className="w-4 h-4" />
-                  <h2 className="text-[10px] font-bold uppercase tracking-[0.2em]">Меню</h2>
-                </div>
-                <NavMenu isSheet />
-              </section>
-
-
+            <div className="flex flex-col justify-between gap-8 py-2">
+              <NavMenu isSheet />
               <WikiMenu isSheet />
 
               <section className="pb-4">
@@ -80,15 +70,10 @@ export function SheetLeftbar() {
                   <FooterButtons />
                 </div>
               </section>
-
             </div>
           </ScrollArea>
 
           <div className="mt-auto border-t border-border p-4 bg-muted/10 space-y-3">
-            <div className="flex items-center justify-between px-2 py-1 bg-background border border-border rounded-lg shadow-sm">
-              <span className="text-xs font-medium text-muted-foreground">Оформление</span>
-              <ModeToggle />
-            </div>
             <div className="w-full">
               <AuthButton />
             </div>
