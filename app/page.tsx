@@ -25,7 +25,7 @@ import LineWaves from '@/components/ui/LineWaves';
 
 interface GitHubRelease {
     id: number;
-    tag_name: string;
+    name: string;
     published_at: string;
     body: string;
     formattedBody?: string;
@@ -42,9 +42,9 @@ export interface FeatureCardProps {
 }
 
 const FeatureCard = ({ title, desc, icon, href }: FeatureCardProps) => (
-    <Link href={href} className="group relative p-6 bg-card/40 hover:bg-card/60 backdrop-blur-md border border-border/50 hover:border-blue-500/50 rounded-2xl transition-all duration-300 shadow-sm overflow-hidden">
+    <Link href={href} className="group relative p-6 bg-card/40 hover:bg-card/60 backdrop-blur-md border border-border/50 hover:border-blue-500/50 rounded-2xl transition-all duration-300 shadow-sm overflow-hidden flex flex-col h-full">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-        <div className="relative z-10">
+        <div className="relative z-10 flex flex-col h-full">
             <div className="flex items-center justify-between mb-4">
                 <div className="p-2.5 bg-blue-500/10 rounded-xl text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform">
                     {React.cloneElement(icon as React.ReactElement, { size: 24 })}
@@ -52,7 +52,7 @@ const FeatureCard = ({ title, desc, icon, href }: FeatureCardProps) => (
                 <ArrowRight size={18} className="text-muted-foreground group-hover:translate-x-1 group-hover:text-blue-500 transition-all" />
             </div>
             <h3 className="font-bold text-lg tracking-tight">{title}</h3>
-            <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{desc}</p>
+            <p className="text-sm text-muted-foreground mt-2 leading-relaxed flex-1">{desc}</p>
         </div>
     </Link>
 );
@@ -114,7 +114,7 @@ export default function MainPage() {
     const isDark = resolvedTheme === "dark";
 
     return (
-        <div className="relative min-h-screen w-full overflow-hidden flex flex-col">
+        <div className="relative min-h-screen w-full overflow-x-hidden flex flex-col">
             {mounted && (
                 <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
                     <LineWaves
@@ -145,234 +145,152 @@ export default function MainPage() {
                     </p>
                 </section>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <FeatureCard
-                        title="Личный кабинет"
-                        desc="Интуитивно понятная панель управления аккаунтом."
-                        icon={<LayoutDashboard/>}
-                        href="/profile"
-                    />
-                    <FeatureCard
-                        title="Группы"
-                        desc="Учёт успеваемости, посещаемости и списка студентов."
-                        icon={<Boxes/>}
-                        href="/profile/groups"
-                    />
-                    <FeatureCard
-                        title="Документация"
-                        desc="Инструкции и рекомендации по использованию приложения."
-                        icon={<FileText/>}
-                        href="/wiki"
-                    />
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                    <FeatureCard title="Личный кабинет" desc="Интуитивно понятная панель управления аккаунтом." icon={<LayoutDashboard/>} href="/profile" />
+                    <FeatureCard title="Группы" desc="Учёт успеваемости, посещаемости и списка студентов." icon={<Boxes/>} href="/profile/groups" />
+                    <FeatureCard title="Документация" desc="Инструкции и рекомендации по использованию приложения." icon={<FileText/>} href="/wiki" />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-                    {/* КРУПНЫЙ БЛОК: Теперь Major Release */}
+                    {/* MAJOR RELEASE */}
                     {!loading && (
-                        <section className="relative overflow-hidden rounded-3xl border border-blue-500/20 bg-card/30 backdrop-blur-2xl p-6 md:p-10 shadow-2xl flex flex-col justify-center min-h-87.5 lg:min-h-full transition-all duration-300 hover:border-blue-500/40 group">
+                        <section className="relative overflow-hidden rounded-3xl border border-blue-500/20 bg-card/30 backdrop-blur-2xl p-6 md:p-10 shadow-2xl flex flex-col min-h-[420px] lg:min-h-full transition-all duration-300 hover:border-blue-500/40 group">
                             <div className="absolute inset-0 bg-linear-to-br from-blue-600/10 via-transparent to-transparent opacity-100" />
-                            <div className="absolute -top-12 -right-12 w-64 h-64 bg-blue-500/10 blur-[80px] rounded-full pointer-events-none group-hover:bg-blue-500/20 transition-colors" />
                             <div className="absolute top-0 right-0 p-0 opacity-15 pointer-events-none translate-x-1/4 -translate-y-1/4 rotate-12">
                                 <Sparkles size={320} className="text-blue-500" strokeWidth={0.5} />
                             </div>
 
-                            {latestMajor ? (
-                                <div className="relative z-10 flex flex-col gap-8">
-                                    <div className="space-y-4">
-                                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400">
-                                            <Sparkles size={14} className="animate-pulse shrink-0" />
-                                            <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em]">
-                                                Major Release
-                                            </span>
-                                        </div>
-
-                                        <div className="flex flex-col gap-2">
-                                            <h2 className="text-4xl md:text-6xl font-black tracking-tight leading-none bg-linear-to-r from-foreground via-foreground/90 to-blue-500 bg-clip-text text-transparent">
-                                                {latestMajor.name}
-                                            </h2>
-                                            <span className="flex items-center gap-1.5">
+                            <div className="relative z-10 flex flex-col h-full justify-between">
+                                {latestMajor ? (
+                                    <div className="flex flex-col h-full gap-8">
+                                        <div className="space-y-4">
+                                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 w-fit">
+                                                <Sparkles size={14} className="animate-pulse shrink-0" />
+                                                <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em]">Последнее обновление</span>
+                                            </div>
+                                            <div className="flex flex-col gap-2">
+                                                <h2 className="text-4xl md:text-6xl font-black tracking-tight leading-none bg-linear-to-r from-foreground via-foreground/90 to-blue-500 bg-clip-text text-transparent break-words">
+                                                    {latestMajor.name}
+                                                </h2>
+                                                <span className="flex items-center gap-1.5 text-sm md:text-base text-muted-foreground">
                                                     <Calendar size={16} className="text-blue-500" />
-                                                {new Date(latestMajor.published_at).toLocaleDateString('ru-RU', {
-                                                    day: 'numeric',
-                                                    month: 'long',
-                                                    year: 'numeric'
-                                                })}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <p className="text-muted-foreground text-base md:text-lg max-w-sm leading-relaxed font-medium">
-                                        Стабильное обновление с ключевыми изменениями и новыми возможностями системы.
-                                    </p>
-
-                                    <div className="flex flex-wrap gap-4">
-                                        <Dialog>
-                                            <DialogTrigger asChild>
-                                                <button className="group/btn relative inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/25 active:scale-95">
-                                                    <Info size={20} className="group-hover/btn:rotate-12 transition-transform" />
-                                                    Посмотреть изменения
-                                                </button>
-                                            </DialogTrigger>
-                                            <DialogContent className="max-w-[95vw] sm:max-w-xl bg-card/95 backdrop-blur-3xl border-border shadow-2xl rounded-4xl p-0 overflow-hidden">
-                                                <div>
-                                                    <DialogHeader className="p-6 bg-blue-500/5 border-b border-blue-500/10">
-                                                        <DialogTitle className="text-xl flex items-center gap-3 tracking-tight font-bold">
-                                                            <Sparkles size={24} className="text-blue-500 shrink-0" />
-                                                            <span>Обновление {latestMajor.name}</span>
-                                                        </DialogTitle>
-                                                    </DialogHeader>
-                                                    <div className="overflow-y-auto flex-1 custom-scrollbar px-6 mb-6 max-h-[60vh]">
-                                                        <div
-                                                            className="text-sm leading-relaxed space-y-2 prose prose-sm dark:prose-invert max-w-none pt-4"
-                                                            dangerouslySetInnerHTML={{ __html: latestMajor.formattedBody || "" }}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </DialogContent>
-                                        </Dialog>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="relative z-10 flex flex-col items-center justify-center min-h-[400px]">
-                                    <div className="flex flex-col items-start max-w-[320px] w-full">
-                                        <div className="relative mb-10 group-hover:scale-105 transition-transform duration-500">
-                                            <div className="absolute inset-0 bg-blue-500/20 blur-3xl rounded-full scale-150 animate-pulse" />
-                                            <div className="relative p-5 rounded-2xl bg-linear-to-b from-blue-500/10 to-transparent border border-blue-500/20 backdrop-blur-sm">
-                                                <Sparkles size={48} className="text-blue-500/60" strokeWidth={1.5} />
+                                                    {new Date(latestMajor.published_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                                </span>
                                             </div>
                                         </div>
-                                        <div className="space-y-5 text-left w-full">
-                                            <h3 className="text-3xl md:text-4xl font-black tracking-tight bg-linear-to-b from-foreground to-foreground/60 bg-clip-text text-transparent">
-                                                Готовим <br/>мажорный релиз
-                                            </h3>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </section>
-                    )}
-
-                    <div className="flex flex-col gap-6">
-                        {/* ВЕРХНИЙ ПРАВЫЙ: Теперь Beta Program */}
-                        {!loading && (
-                            <section className="relative overflow-hidden rounded-3xl border border-blue-500/30 bg-card/30 backdrop-blur-2xl p-6 md:p-8 shadow-xl flex-1 transition-all duration-300 hover:border-blue-500/50 group/beta">
-                                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-transparent opacity-100" />
-                                <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none group-hover/beta:scale-110 transition-transform duration-500">
-                                    <Boxes size={100} className="text-blue-500" strokeWidth={1} />
-                                </div>
-
-                                <div className="relative z-10 flex flex-col gap-6 h-full justify-between">
-                                    {latestBeta ? (
-                                        <>
-                                            <div className="space-y-4">
-                                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400">
-                                                    <Boxes size={14} className="animate-pulse" />
-                                                    <span className="text-[10px] font-bold uppercase tracking-widest">Beta Program</span>
-                                                </div>
-
-                                                <div className="flex flex-col gap-1">
-                                                    <h2 className="text-3xl md:text-4xl font-black tracking-tight text-foreground/90">
-                                                        {latestBeta.name}
-                                                    </h2>
-                                                    <span className="flex items-center gap-1.5 text-sm text-muted-foreground font-medium">
-                                                        <Calendar size={14} className="text-blue-500" />
-                                                        {new Date(latestBeta.published_at).toLocaleDateString('ru-RU', {
-                                                            day: 'numeric',
-                                                            month: 'long',
-                                                            year: 'numeric'
-                                                        })}
-                                                    </span>
-                                                </div>
-                                            </div>
-
+                                        <p className="text-muted-foreground text-base md:text-lg max-w-sm leading-relaxed font-medium flex-1">
+                                            Стабильное обновление с ключевыми изменениями и новыми возможностями системы.
+                                        </p>
+                                        <div className="mt-auto">
                                             <Dialog>
                                                 <DialogTrigger asChild>
-                                                    <button className="inline-flex items-center justify-center gap-2 px-6 py-2.5 w-full sm:w-fit rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-95">
-                                                        <Info size={18} />
+                                                    <button className="group/btn relative inline-flex items-center justify-center gap-3 px-8 py-4 w-full sm:w-fit rounded-2xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/25 active:scale-95">
+                                                        <Info size={20} />
                                                         Посмотреть изменения
                                                     </button>
                                                 </DialogTrigger>
                                                 <DialogContent className="max-w-[95vw] sm:max-w-xl bg-card/95 backdrop-blur-3xl border-border shadow-2xl rounded-4xl p-0 overflow-hidden">
                                                     <div>
                                                         <DialogHeader className="p-6 bg-blue-500/5 border-b border-blue-500/10">
-                                                            <DialogTitle className="text-xl flex items-center gap-3 tracking-tight font-bold">
-                                                                <Boxes size={24} className="text-blue-500 shrink-0" />
-                                                                <span>Обновление {latestBeta.name}</span>
+                                                            <DialogTitle className="text-xl flex items-center gap-3 font-bold">
+                                                                <Sparkles size={24} className="text-blue-500 shrink-0" />
+                                                                <span>Обновление {latestMajor.name}</span>
                                                             </DialogTitle>
                                                         </DialogHeader>
-                                                        <div className="overflow-y-auto flex-1 custom-scrollbar px-6 mb-6 max-h-[60vh]">
-                                                            <div
-                                                                className="text-sm leading-relaxed space-y-2 prose prose-sm dark:prose-invert max-w-none pt-4"
-                                                                dangerouslySetInnerHTML={{ __html: latestBeta.formattedBody || "" }}
-                                                            />
-                                                        </div>
+                                                        <div className="overflow-y-auto px-6 pb-4 max-h-[60vh] custom-scrollbar prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: latestMajor.formattedBody || "" }} />
                                                     </div>
                                                 </DialogContent>
                                             </Dialog>
-                                        </>
-                                    ) : (
-                                        <div className="flex flex-col justify-center h-full gap-2">
-                                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 w-fit">
-                                                <Boxes size={14} />
-                                                <span className="text-[10px] font-bold uppercase tracking-widest">Beta Program</span>
-                                            </div>
-                                            <h3 className="text-xl font-bold">Новая бета скоро...</h3>
                                         </div>
-                                    )}
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center flex-1 h-full py-20 text-center opacity-40">
+                                        <Sparkles size={48} className="mb-4" />
+                                        <h3 className="text-2xl font-bold">Готовим мажорный релиз</h3>
+                                    </div>
+                                )}
+                            </div>
+                        </section>
+                    )}
+
+                    <div className="flex flex-col gap-6">
+                        {/* BETA BLOCK */}
+                        {!loading && (
+                            <section className="relative overflow-hidden rounded-3xl border border-blue-500/30 bg-card/30 backdrop-blur-2xl p-6 md:p-8 shadow-xl flex-1 transition-all duration-300 hover:border-blue-500/50 group/beta flex flex-col justify-between min-h-[220px]">
+                                <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none group-hover/beta:scale-110 transition-transform">
+                                    <Boxes size={100} className="text-blue-500" strokeWidth={1} />
                                 </div>
+
+                                {latestBeta ? (
+                                    <div className="relative z-10 flex flex-col h-full justify-between">
+                                        <div className="space-y-4">
+                                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 w-fit">
+                                                <Boxes size={14} className="animate-pulse" />
+                                                <span className="text-[10px] font-bold uppercase tracking-widest">Последняя бета</span>
+                                            </div>
+                                            <h2 className="text-2xl md:text-3xl font-black tracking-tight text-foreground/90">{latestBeta.name}</h2>
+                                        </div>
+                                        <Dialog>
+                                            <DialogTrigger asChild>
+                                                <button className="mt-4 inline-flex items-center justify-center gap-2 px-6 py-2.5 w-full sm:w-fit rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20">
+                                                    Посмотреть изменения
+                                                </button>
+                                            </DialogTrigger>
+                                            <DialogContent className="max-w-[95vw] sm:max-w-xl bg-card/95 backdrop-blur-3xl border-border shadow-2xl rounded-4xl p-0 overflow-hidden">
+                                                <div>
+                                                    <DialogHeader className="p-6 bg-blue-500/5 border-b border-blue-500/10">
+                                                        <DialogTitle className="text-xl flex items-center gap-3 font-bold">
+                                                            <Boxes size={24} className="text-blue-500 shrink-0" />
+                                                            <span>Бета {latestBeta.name}</span>
+                                                        </DialogTitle>
+                                                    </DialogHeader>
+                                                    <div className="overflow-y-auto px-6 pb-4  max-h-[60vh] custom-scrollbar prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: latestBeta.formattedBody || "" }} />
+                                                </div>
+                                            </DialogContent>
+                                        </Dialog>
+                                    </div>
+                                ) : (
+                                    <div className="relative z-10 space-y-2">
+                                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 w-fit">
+                                            <Boxes size={14} />
+                                            <span className="text-[10px] font-bold uppercase tracking-widest">Последняя бета</span>
+                                        </div>
+                                        <h3 className="text-xl font-bold">Новая бета скоро...</h3>
+                                    </div>
+                                )}
                             </section>
                         )}
 
-                        {/* НИЖНИЙ ПРАВЫЙ: Maintenance Patch (без изменений) */}
+                        {/* PATCH BLOCK */}
                         {!loading && latestPatch && (
-                            <section className="relative overflow-hidden rounded-3xl border border-border bg-card/30 backdrop-blur-2xl p-6 md:p-8 shadow-xl flex-1 transition-all duration-300 hover:border-foreground/10 group/patch">
-                                <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none group-hover/patch:rotate-12 transition-transform duration-500">
+                            <section className="relative overflow-hidden rounded-3xl border border-border bg-card/30 backdrop-blur-2xl p-6 md:p-8 shadow-xl flex-1 transition-all duration-300 hover:border-foreground/10 group/patch flex flex-col justify-between min-h-[220px]">
+                                <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none group-hover/patch:rotate-12 transition-transform">
                                     <Bug size={100} className="text-foreground" strokeWidth={1} />
                                 </div>
 
-                                <div className="relative z-10 flex flex-col gap-6 h-full justify-between">
+                                <div className="relative z-10 flex flex-col h-full justify-between">
                                     <div className="space-y-4">
-                                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted border border-border text-muted-foreground">
+                                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted border border-border text-muted-foreground w-fit">
                                             <Bug size={14} />
-                                            <span className="text-[10px] font-bold uppercase tracking-widest">Maintenance Patch</span>
+                                            <span className="text-[10px] font-bold uppercase tracking-widest">Последний патч</span>
                                         </div>
-
-                                        <div className="flex flex-col gap-1">
-                                            <h2 className="text-3xl md:text-4xl font-black tracking-tight text-foreground/80">
-                                                {latestPatch.name}
-                                            </h2>
-                                            <span className="flex items-center gap-1.5 text-sm text-muted-foreground font-medium">
-                                                <Calendar size={14} />
-                                                {new Date(latestPatch.published_at).toLocaleDateString('ru-RU', {
-                                                    day: 'numeric',
-                                                    month: 'long',
-                                                    year: 'numeric'
-                                                })}
-                                            </span>
-                                        </div>
+                                        <h2 className="text-2xl md:text-3xl font-black tracking-tight text-foreground/80">{latestPatch.name}</h2>
                                     </div>
-
                                     <Dialog>
                                         <DialogTrigger asChild>
-                                            <button className="inline-flex items-center justify-center gap-2 px-6 py-2.5 w-full sm:w-fit rounded-xl bg-muted/80 border border-border text-foreground text-sm font-bold hover:bg-muted transition-all active:scale-95">
-                                                <Info size={18} />
+                                            <button className="mt-4 inline-flex items-center justify-center gap-2 px-6 py-2.5 w-full sm:w-fit rounded-xl bg-muted/80 border border-border text-foreground text-sm font-bold hover:bg-muted transition-all">
                                                 Список исправлений
                                             </button>
                                         </DialogTrigger>
                                         <DialogContent className="max-w-[95vw] sm:max-w-xl bg-card/95 backdrop-blur-3xl border-border shadow-2xl rounded-4xl p-0 overflow-hidden">
                                             <div>
                                                 <DialogHeader className="p-6 bg-muted/30 border-b">
-                                                    <DialogTitle className="text-xl flex items-center gap-3 tracking-tight font-bold">
-                                                        <Bug size={24} className="shrink-0 text-muted-foreground" />
+                                                    <DialogTitle className="text-xl flex items-center gap-3 font-bold">
+                                                        <Bug size={24} className="text-muted-foreground shrink-0" />
                                                         <span>Патч {latestPatch.name}</span>
                                                     </DialogTitle>
                                                 </DialogHeader>
-                                                <div className="overflow-y-auto flex-1 custom-scrollbar px-6 mb-6 max-h-[60vh]">
-                                                    <div
-                                                        className="text-sm leading-relaxed space-y-2 prose prose-sm dark:prose-invert max-w-none pt-4"
-                                                        dangerouslySetInnerHTML={{ __html: latestPatch.formattedBody || "" }}
-                                                    />
-                                                </div>
+                                                <div className="overflow-y-auto px-6 pb-4 max-h-[60vh] custom-scrollbar prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: latestPatch.formattedBody || "" }} />
                                             </div>
                                         </DialogContent>
                                     </Dialog>
