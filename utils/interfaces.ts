@@ -1,6 +1,30 @@
 import {GroupFormState} from "@/utils/definitions";
 import React from "react";
 
+// Period Constants
+export const MONTH_NAMES = {
+    1: "Январь",
+    2: "Февраль",
+    3: "Март",
+    4: "Апрель",
+    5: "Май",
+    6: "Июнь",
+    7: "Июль",
+    8: "Август",
+    9: "Сентябрь",
+    10: "Октябрь",
+    11: "Ноябрь",
+    12: "Декабрь",
+} as const;
+
+export const SEMESTER_NAMES = {
+    1: "Первое полугодие",
+    2: "Второе полугодие",
+} as const;
+
+export type MonthNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+export type SemesterNumber = 1 | 2;
+
 export interface AttendanceStudent {
     number: string;
     fullName: string;
@@ -9,6 +33,7 @@ export interface AttendanceStudent {
     lessonsTotal: number;
     lessonsSick: number;
     late: number;
+    periodMonth?: number;
 }
 export interface AttendanceTotal {
     fullDaysTotal: number;
@@ -25,6 +50,7 @@ export interface GradeStudent {
     fullName: string;
     subjects: SubjectGrade[];
     averageScore: number;
+    periodSemester?: number;
 }
 export interface Group {
     id: number;

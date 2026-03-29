@@ -12,6 +12,7 @@ import {
     Dialog, DialogTrigger, DialogContent, DialogHeader,
     DialogTitle, DialogFooter, DialogDescription, DialogClose
 } from "@/components/ui/Dialog";
+import PeriodSelectionDialog from "@/components/PeriodSelectionDialog";
 import ErrorMessage from "@/components/NotifyAlert";
 import { getSession, SessionPayload } from "@/utils/session";
 import {GetGroup, GetUsersList, SaveGrades, GetGrades} from "@/utils/handlers";
@@ -34,9 +35,15 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
 
     const [attendanceStudents, setAttendanceStudents] = useState<AttendanceStudent[]>([]);
     const [attendanceTotal, setAttendanceTotal] = useState<AttendanceTotal>(Object);
+    const [showAttendancePeriodDialog, setShowAttendancePeriodDialog] = useState(false);
+    const [pendingAttendanceData, setPendingAttendanceData] = useState<AttendanceStudent[] | null>(null);
+    const [selectedAttendancePeriod, setSelectedAttendancePeriod] = useState<number | null>(null);
 
     const [activeTab, setActiveTab] = useState<'attendance' | 'grades'>('attendance');
     const [gradesStudents, setGradesStudents] = useState<GradeStudent[]>([]);
+    const [showGradesPeriodDialog, setShowGradesPeriodDialog] = useState(false);
+    const [pendingGradesData, setPendingGradesData] = useState<GradeStudent[] | null>(null);
+    const [selectedGradesPeriod, setSelectedGradesPeriod] = useState<number | null>(null);
     const [isDraggingGrades, setIsDraggingGrades] = useState(false);
 
     const [notify, setNotify] = useState<Notify>({ message: '', type: '' });
@@ -98,9 +105,22 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                     late: Number(cells[6].textContent) || 0,
                 };
             }).filter(Boolean) as AttendanceStudent[];
-            setAttendanceStudents(data);
+            setPendingAttendanceData(data);
+            setShowAttendancePeriodDialog(true);
         };
         reader.readAsText(file);
+    };
+
+    const handleAttendancePeriodConfirm = (period: number) => {
+        if (!pendingAttendanceData) return;
+        const dataWithPeriod = pendingAttendanceData.map(student => ({
+            ...student,
+            periodMonth: period
+        }));
+        setAttendanceStudents(dataWithPeriod);
+        setSelectedAttendancePeriod(period);
+        setPendingAttendanceData(null);
+        setNotify({ message: "Месяц выбран", type: 'success' });
     };
 
     const handleLoadFromDB = async () => {
@@ -186,11 +206,23 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                 return setNotify({ message: "Не удалось извлечь учеников", type: 'error' });
             }
 
-            setGradesStudents(data);
-            setNotify({ message: `Загружено ${data.length} учеников`, type: 'success' });
+            setPendingGradesData(data);
+            setShowGradesPeriodDialog(true);
         };
 
         reader.readAsText(file);
+    };
+
+    const handleGradesPeriodConfirm = (period: number) => {
+        if (!pendingGradesData) return;
+        const dataWithPeriod = pendingGradesData.map(student => ({
+            ...student,
+            periodSemester: period
+        }));
+        setGradesStudents(dataWithPeriod);
+        setSelectedGradesPeriod(period);
+        setPendingGradesData(null);
+        setNotify({ message: "Полугодие выбрано", type: 'success' });
     };
 
     const handleLoadGradesFromDB = async () => {
@@ -473,6 +505,9 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                             </button>
                                             {isOwner && (
                                                 <>
+                                                    <button onClick={() => setShowAttendancePeriodDialog(true)} className="shadow-sm flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-amber-50 dark:bg-zinc-700/50 text-amber-600 dark:text-amber-400 font-semibold rounded-lg text-sm hover:bg-amber-500! hover:text-white! transition-all">
+                                                        <Calendar size={16}/> Период
+                                                    </button>
                                                     <button onClick={() => SaveAttendance(groupId, attendanceStudents).then(() => setNotify({message: "Сохранено", type: "success"}))} className="shadow-sm flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-50 dark:bg-zinc-700/50 text-green-600 dark:text-green-400 font-semibold rounded-lg text-sm  hover:bg-green-500! hover:text-white! transition-all">
                                                         <Database size={16}/> В базу
                                                     </button>
@@ -585,6 +620,9 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                             </button>
                                             {isOwner && (
                                                 <>
+                                                    <button onClick={() => setShowGradesPeriodDialog(true)} className="shadow-sm flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-amber-50 dark:bg-zinc-700/50 text-amber-600 dark:text-amber-400 font-semibold rounded-lg text-sm hover:bg-amber-500! hover:text-white! transition-all">
+                                                        <Calendar size={16}/> Период
+                                                    </button>
                                                     <button onClick={() => SaveGrades(groupId, gradesStudents).then(() => setNotify({message: "Успеваемость сохранена", type: "success"}))} className="shadow-sm flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-50 dark:bg-zinc-700/50 text-green-600 dark:text-green-400 font-semibold rounded-lg text-sm  hover:bg-green-500! hover:text-white! transition-all">
                                                         <Database size={16}/> В базу
                                                     </button>
@@ -685,6 +723,22 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                     )}
                 </motion.div>
             </AnimatePresence>
+
+            <PeriodSelectionDialog
+                open={showAttendancePeriodDialog}
+                onClose={() => setShowAttendancePeriodDialog(false)}
+                onConfirm={handleAttendancePeriodConfirm}
+                type="attendance"
+                defaultValue={selectedAttendancePeriod || undefined}
+            />
+
+            <PeriodSelectionDialog
+                open={showGradesPeriodDialog}
+                onClose={() => setShowGradesPeriodDialog(false)}
+                onConfirm={handleGradesPeriodConfirm}
+                type="grades"
+                defaultValue={selectedGradesPeriod || undefined}
+            />
         </div>
     );
 }

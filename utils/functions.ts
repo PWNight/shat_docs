@@ -22,6 +22,8 @@ import {
     AttendanceTotal,
     GradeStudent,
     Group,
+    MONTH_NAMES,
+    SEMESTER_NAMES,
 } from "@/utils/interfaces";
 
 const COLORS = {
@@ -93,6 +95,9 @@ export const exportGradesToWord = async (
     const subjectWidth = Math.floor(
         (100 - fioWidth - avgWidth) / subjects.length
     );
+
+    const periodSemester = students[0]?.periodSemester;
+    const semesterText = periodSemester ? SEMESTER_NAMES[periodSemester as 1 | 2] : "";
     
     const doc = new Document({
         sections: [
@@ -115,8 +120,16 @@ export const exportGradesToWord = async (
                     new Paragraph({
                         text: `Группа: ${group.name}`,
                         alignment: AlignmentType.CENTER,
-                        spacing: { after: 300 },
+                        spacing: { after: 100 },
                     }),
+                    ...(semesterText ? [new Paragraph({
+                        text: `Полугодие: ${semesterText}`,
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 300 },
+                    })] : [new Paragraph({
+                        text: "",
+                        spacing: { after: 300 },
+                    })]),
                     new Table({
                         width: { size: 100, type: WidthType.PERCENTAGE },
                         rows: [
@@ -216,6 +229,9 @@ export const exportToWord = async (
 ): Promise<void> => {
     if (!students.length) return;
 
+    const periodMonth = students[0]?.periodMonth;
+    const monthText = periodMonth ? MONTH_NAMES[periodMonth as keyof typeof MONTH_NAMES] : "";
+
     const doc = new Document({
         sections: [
             {
@@ -229,8 +245,16 @@ export const exportToWord = async (
                     new Paragraph({
                         text: `Группа: ${group.name}`,
                         alignment: AlignmentType.CENTER,
-                        spacing: { after: 300 },
+                        spacing: { after: 100 },
                     }),
+                    ...(monthText ? [new Paragraph({
+                        text: `Месяц: ${monthText}`,
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 300 },
+                    })] : [new Paragraph({
+                        text: "",
+                        spacing: { after: 300 },
+                    })]),
                     new Table({
                         width: { size: 100, type: WidthType.PERCENTAGE },
                         rows: [
