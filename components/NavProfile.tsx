@@ -3,7 +3,7 @@ import { House, GraduationCap } from "lucide-react";
 
 export function NavProfile() {
     const navItems = [
-        { href: "/profile", label: "Главная", icon: House }, // Сократил для узких экранов
+        { href: "/profile", label: "Главная", icon: House },
         { href: "/profile/groups", label: "Группы", icon: GraduationCap },
     ];
 
@@ -13,13 +13,13 @@ export function NavProfile() {
                 Навигация
             </h1>
 
-            <nav className="mt-4 space-y-1.5 flex sm:flex-col flex-row">
+            <nav className="mt-4 space-y-1.5 flex gap-2 sm:gap-0 sm:flex-col flex-row">
                 {navItems.map(({href, label, icon: Icon}) => (
                     <Anchor
                         key={href}
                         href={href}
                         absolute
-                        className="group flex items-center justify-center sm:justify-start gap-2 sm:gap-3 w-full px-2 py-2.5 rounded-lg text-foreground hover:bg-blue-600 hover:text-white transition-all duration-200 font-medium text-base overflow-hidden"
+                        className="group flex items-center justify-center sm:justify-start gap-2 sm:gap-3 w-full h-full px-2 py-2.5 rounded-lg text-foreground hover:bg-blue-600 hover:text-white transition-all duration-200 font-medium text-base overflow-hidden"
                         activeClassName="bg-blue-600 text-white shadow-md"
                     >
                         <Icon className="w-5 h-5 shrink-0"/>
