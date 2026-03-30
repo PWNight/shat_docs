@@ -8,8 +8,10 @@ export async function GET(request: NextRequest, {params}: { params: Promise<{ id
         if (!userData) return NextResponse.json({ success: false, message: "Нет доступа" }, { status: 401 });
 
         const {id} = await params;
-        const rows = await execute(
-            `SELECT 
+        const { searchParams } = new URL(request.url);
+        const periodMonth = searchParams.get('periodMonth');
+
+        let query = `SELECT 
                 id as number, 
                 full_name as fullName, 
                 full_days_total as fullDaysTotal, 
@@ -18,9 +20,16 @@ export async function GET(request: NextRequest, {params}: { params: Promise<{ id
                 lessons_sick as lessonsSick, 
                 late,
                 period_month as periodMonth
-            FROM attendance WHERE fk_group = ?`,
-            [id]
-        );
+            FROM attendance WHERE fk_group = ?`;
+        
+        const params_arr: any[] = [id];
+        
+        if (periodMonth) {
+            query += ` AND period_month = ?`;
+            params_arr.push(parseInt(periodMonth));
+        }
+
+        const rows = await execute(query, params_arr);
 
         return NextResponse.json({ success: true, data: rows });
     } catch (error) {
