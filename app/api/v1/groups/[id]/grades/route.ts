@@ -4,10 +4,20 @@ import { execute, query } from "@/utils/mysql";
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const { id } = await params;
-        const rows = await query(
-            `SELECT full_name as fullName, subjects_json as subjects, average_score as averageScore, period_semester as periodSemester
-             FROM grades WHERE fk_group = ?`, [id]
-        );
+        const { searchParams } = new URL(request.url);
+        const periodSemester = searchParams.get('periodSemester');
+
+        let sqlQuery = `SELECT full_name as fullName, subjects_json as subjects, average_score as averageScore, period_semester as periodSemester
+             FROM grades WHERE fk_group = ?`;
+        
+        const queryParams: any[] = [id];
+        
+        if (periodSemester) {
+            sqlQuery += ` AND period_semester = ?`;
+            queryParams.push(parseInt(periodSemester));
+        }
+
+        const rows = await query(sqlQuery, queryParams);
 
         const data = rows.map(row => ({
             ...row,
