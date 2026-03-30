@@ -1,10 +1,6 @@
 import { NextResponse } from 'next/server';
 import { queryOne, execute } from '@/utils/mysql';
 
-/**
- * РЕДАКТИРОВАНИЕ СТУДЕНТА
- * При изменении ФИО обновляет записи во всех связанных таблицах (attendance, grades)
- */
 export async function PATCH(
     req: Request,
     { params }: { params: Promise<{ id: string; studentId: string }> }
@@ -59,10 +55,6 @@ export async function PATCH(
     }
 }
 
-/**
- * УДАЛЕНИЕ СТУДЕНТА
- * Полностью удаляет студента из группы и все его данные по посещаемости и оценкам
- */
 export async function DELETE(
     req: Request,
     { params }: { params: Promise<{ id: string; studentId: string }> }

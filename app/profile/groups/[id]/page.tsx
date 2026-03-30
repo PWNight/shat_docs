@@ -136,7 +136,6 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
         }
 
         if (!pendingAttendanceData) {
-            // Load data for the new period from DB if not from upload
             setIsAttendanceLoading(true);
             const result = await GetAttendance(groupId, period);
             setIsAttendanceLoading(false);
@@ -170,7 +169,6 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
     };
 
     const handleLoadFromDB = async () => {
-        // Just open the period selection dialog
         setShowAttendancePeriodDialog(true);
     };
 
@@ -256,7 +254,6 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
     };
 
     const handleGradesPeriodConfirm = async (period: number) => {
-        // Save previous period if it was modified
         if (selectedGradesPeriod !== null && isGradesModified && gradesStudents.length > 0) {
             setIsGradesSaving(true);
             const studentsToSave = gradesStudents.map(s => ({
@@ -273,7 +270,6 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
         }
 
         if (!pendingGradesData) {
-            // Load data for the new period from DB if not from upload
             setIsGradesLoading(true);
             const result = await GetGrades(groupId, period);
             setIsGradesLoading(false);
@@ -307,7 +303,6 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
     };
 
     const handleLoadGradesFromDB = async () => {
-        // Just open the period selection dialog
         setShowGradesPeriodDialog(true);
     };
 
@@ -569,7 +564,6 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                 >
                     {activeTab === 'attendance' && (
                         <div className="w-full bg-card rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm overflow-hidden">
-                            {/* Header Section */}
                             <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-zinc-800 dark:to-zinc-800/50 border-b border-gray-100 dark:border-zinc-700 px-6 py-4">
                                 <div className="flex items-center justify-between mb-2">
                                     <div className="flex items-center gap-3">
@@ -596,7 +590,6 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                 </div>
                             </div>
 
-                            {/* Control Panel */}
                             <div className="px-6 py-4 border-b border-gray-100 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-900/20">
                                 <div className="flex sm:flex-row flex-col sm:items-center gap-2 lg:gap-3">
                                 {attendanceStudents.length > 0 ? (
@@ -798,7 +791,6 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
 
                     {activeTab === 'grades' && (
                         <div className="w-full bg-card rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm overflow-hidden">
-                            {/* Header Section */}
                             <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-zinc-800 dark:to-zinc-800/50 border-b border-gray-100 dark:border-zinc-700 px-6 py-4">
                                 <div className="flex items-center justify-between mb-2">
                                     <div className="flex items-center gap-3">
@@ -825,7 +817,6 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                 </div>
                             </div>
 
-                            {/* Control Panel */}
                             <div className="px-6 py-4 border-b border-gray-100 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-900/20">
                                 <div className="flex sm:flex-row flex-col sm:items-center gap-2 lg:gap-3">
                                     {gradesStudents.length > 0 ? (
