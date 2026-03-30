@@ -7,12 +7,12 @@ import { queryOne, execute } from '@/utils/mysql';
  */
 export async function PATCH(
     req: Request,
-    { params }: { params: { id: string; studentId: string } }
+    { params }: { params: Promise<{ id: string; studentId: string }> }
 ) {
     try {
         const { full_name: newName } = await req.json();
-        const groupId = params.id;
-        const studentId = params.studentId;
+        const { id, studentId } = await params;
+        const groupId = id;
 
         if (!newName) {
             return NextResponse.json({ error: 'Новое ФИО не указано' }, { status: 400 });
@@ -65,11 +65,11 @@ export async function PATCH(
  */
 export async function DELETE(
     req: Request,
-    { params }: { params: { id: string; studentId: string } }
+    { params }: { params: Promise<{ id: string; studentId: string }> }
 ) {
     try {
-        const groupId = params.id;
-        const studentId = params.studentId;
+        const { id, studentId } = await params;
+        const groupId = id;
 
         // 1. Сначала узнаем ФИО студента перед удалением
         const student = await queryOne<any>(
