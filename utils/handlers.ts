@@ -183,9 +183,13 @@ export async function SaveAttendance(groupId: string, students: AttendanceStuden
     }
 }
 
-export async function GetAttendance(groupId: string) {
+export async function GetAttendance(groupId: string, periodMonth?: number) {
     try {
-        const response = await fetch(`/api/v1/groups/${groupId}/attendance`, {
+        const url = new URL(`/api/v1/groups/${groupId}/attendance`, typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+        if (periodMonth !== undefined) {
+            url.searchParams.append('periodMonth', String(periodMonth));
+        }
+        const response = await fetch(url.toString(), {
             method: 'GET',
         });
         return await handleApiResponse(response);
@@ -269,9 +273,13 @@ export async function SaveGrades(groupId: string, students: GradeStudent[]) {
     }
 }
 
-export async function GetGrades(groupId: string) {
+export async function GetGrades(groupId: string, periodSemester?: number) {
     try {
-        const response = await fetch(`/api/v1/groups/${groupId}/grades`, {
+        const url = new URL(`/api/v1/groups/${groupId}/grades`, typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+        if (periodSemester !== undefined) {
+            url.searchParams.append('periodSemester', String(periodSemester));
+        }
+        const response = await fetch(url.toString(), {
             method: 'GET',
         });
         return await handleApiResponse(response);
