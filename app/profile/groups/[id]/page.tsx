@@ -148,7 +148,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                 setNotify({ message: `Загружены данные за ${MONTH_NAMES[period as keyof typeof MONTH_NAMES]}`, type: 'success' });
             } else {
                 setAttendanceStudents([]);
-                setNotify({ message: `Нет данных для ${MONTH_NAMES[period as keyof typeof MONTH_NAMES]}`, type: 'warning' });
+                setNotify({ message: `Нет данных за ${MONTH_NAMES[period as keyof typeof MONTH_NAMES]}`, type: 'warning' });
             }
         } else {
             const dataWithPeriod = pendingAttendanceData.map(student => ({
@@ -282,7 +282,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                 setNotify({ message: `Загружены данные за ${SEMESTER_NAMES[period as keyof typeof SEMESTER_NAMES]}`, type: 'success' });
             } else {
                 setGradesStudents([]);
-                setNotify({ message: `Нет данных для ${SEMESTER_NAMES[period as keyof typeof SEMESTER_NAMES]}`, type: 'warning' });
+                setNotify({ message: `Нет данных за ${SEMESTER_NAMES[period as keyof typeof SEMESTER_NAMES]}`, type: 'warning' });
             }
         } else {
             const dataWithPeriod = pendingGradesData.map(student => ({
@@ -716,7 +716,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                         onDragOver={handleDragOver}
                                         onDragLeave={handleDragLeave}
                                         onDrop={handleDrop}
-                                        className={`shadow-sm flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-3xl cursor-pointer transition-all group ${isDragging ? "border-blue-500 bg-blue-50/50" : "border-gray-100 dark:border-zinc-700 dark:hover:bg-neutral-800 hover:bg-neutral-50"}`}
+                                        className={`shadow-sm flex flex-col items-center justify-center py-20 border-2 border-dashed cursor-pointer transition-all group ${isDragging ? "border-blue-500 bg-blue-50/50" : "border-gray-100 dark:border-zinc-700 dark:hover:bg-neutral-800 hover:bg-neutral-50"}`}
                                     >
                                         <Upload className={`${isDragging ? "text-blue-500 scale-110" : "text-gray-300 group-hover:text-blue-500"} transition-all mb-4`} size={40} />
                                         <span className="text-sm lg:text-left text-center font-medium text-gray-500">{isDragging ? "Отпустите файл здесь" : "Загрузить отчет по посещаемости или перетащите файл"}</span>
@@ -943,7 +943,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                         onDragOver={handleDragOver}
                                         onDragLeave={handleDragLeave}
                                         onDrop={handleDrop}
-                                        className={`shadow-sm flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-3xl cursor-pointer transition-all group ${isDraggingGrades ? "border-purple-500 bg-purple-50/50" : "border-gray-100 dark:border-zinc-700 dark:hover:bg-neutral-800 hover:bg-neutral-50"}`}
+                                        className={`shadow-sm flex flex-col items-center justify-center py-20 border-2 border-dashed cursor-pointer transition-all group ${isDraggingGrades ? "border-purple-500 bg-purple-50/50" : "border-gray-100 dark:border-zinc-700 dark:hover:bg-neutral-800 hover:bg-neutral-50"}`}
                                     >
                                         <Upload className={`${isDraggingGrades ? "text-purple-500 scale-110" : "text-gray-300 group-hover:text-purple-500"} transition-all mb-4`} size={40} />
                                         <span className="text-sm lg:text-left text-center font-medium text-gray-500">{isDraggingGrades ? "Отпустите файл здесь" : "Загрузить отчет по успеваемости (Дневник.ру)"}</span>
