@@ -38,7 +38,7 @@ export default function PeriodSelectionDialog({
     return (
         <Dialog open={open} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
+                <DialogHeader className='text-left'>
                     <DialogTitle>
                         {isAttendance ? "Выберите месяц" : "Выберите полугодие"}
                     </DialogTitle>
@@ -93,10 +93,7 @@ export default function PeriodSelectionDialog({
                     )}
                 </div>
 
-                <DialogFooter>
-                    <DialogClose asChild>
-                        <Button variant="outline">Отмена</Button>
-                    </DialogClose>
+                <DialogFooter className='flex flex-col gap-2'>
                     <Button
                         onClick={handleConfirm}
                         disabled={selectedPeriod === null}
@@ -104,6 +101,9 @@ export default function PeriodSelectionDialog({
                     >
                         Подтвердить
                     </Button>
+                    <DialogClose asChild>
+                        <Button variant="secondary">Отмена</Button>
+                    </DialogClose>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

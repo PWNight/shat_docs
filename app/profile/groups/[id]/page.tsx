@@ -569,7 +569,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                     <div className="flex items-center gap-3">
                                         <div className="p-2.5 bg-blue-600 text-white rounded-lg"><FileText size={20}/></div>
                                         <div>
-                                            <h2 className="text-lg font-bold text-gray-900 dark:text-white">Ведомость посещаемости</h2>
+                                            <h2 className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">Ведомость посещаемости</h2>
                                             {selectedAttendancePeriod !== null && (
                                                 <p className="text-xs text-gray-600 dark:text-gray-400 flex items-center mt-0.5">
                                                     <Calendar className="w-3.5 h-3.5 mr-1.5" />
@@ -694,7 +694,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                                             setIsAttendanceModified(false);
                                                         }
                                                     }}
-                                                    className="flex items-center gap-2 px-3 py-2 bg-white hover:bg-cyan-50 dark:bg-zinc-800 dark:hover:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400 rounded-lg text-sm font-medium border border-cyan-300 dark:border-cyan-800/50 outline-none transition-all"
+                                                    className="flex items-center gap-2 px-3 py-2 bg-white hover:bg-cyan-50 dark:bg-zinc-800 text-cyan-600 dark:text-cyan-400 rounded-lg text-sm font-medium border border-cyan-300 dark:border-cyan-800/50 outline-none transition-all"
                                                 >
                                                     <option value="">Загруженные периоды</option>
                                                     {Object.entries(attendanceByPeriod).map(([period, data]) => (
@@ -796,7 +796,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                     <div className="flex items-center gap-3">
                                         <div className="p-2.5 bg-purple-600 text-white rounded-lg"><GraduationCap size={20}/></div>
                                         <div>
-                                            <h2 className="text-lg font-bold text-gray-900 dark:text-white">Журнал успеваемости</h2>
+                                            <h2 className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">Журнал успеваемости</h2>
                                             {selectedGradesPeriod !== null && (
                                                 <p className="text-xs text-gray-600 dark:text-gray-400 flex items-center mt-0.5">
                                                     <Calendar className="w-3.5 h-3.5 mr-1.5" />
@@ -821,7 +821,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                 <div className="flex sm:flex-row flex-col sm:items-center gap-2 lg:gap-3">
                                     {gradesStudents.length > 0 ? (
                                         <>
-                                            <button onClick={() => exportGradesToWord(gradesStudents, group)} className="flex items-center justify-center gap-2 px-3 py-2 bg-white hover:bg-purple-50 dark:bg-zinc-800 dark:hover:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-lg text-sm font-medium border border-gray-200 dark:border-zinc-700 hover:border-purple-300 transition-all">
+                                            <button onClick={() => exportGradesToWord(gradesStudents, group)} className="flex items-center justify-center gap-2 px-3 py-2 bg-white hover:bg-purple-50 dark:bg-zinc-800 text-purple-600 dark:text-purple-400 rounded-lg text-sm font-medium border border-gray-200 dark:border-zinc-700 hover:border-purple-300 transition-all">
                                                 <Download size={16}/> Экспорт
                                             </button>
                                             {isOwner && Object.keys(gradesbyPeriod).length > 0 && (
@@ -921,7 +921,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                                             setIsGradesModified(false);
                                                         }
                                                     }}
-                                                    className="flex items-center gap-2 px-3 py-2 bg-white hover:bg-cyan-50 dark:bg-zinc-800 dark:hover:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400 rounded-lg text-sm font-medium border border-cyan-300 dark:border-cyan-800/50 outline-none transition-all"
+                                                    className="flex items-center gap-2 px-3 py-2 bg-white hover:bg-cyan-50 dark:bg-zinc-800 text-cyan-600 dark:text-cyan-400 rounded-lg text-sm font-medium border border-cyan-300 dark:border-cyan-800/50 outline-none transition-all"
                                                 >
                                                     <option value="">Загруженные периоды</option>
                                                     {Object.entries(gradesbyPeriod).map(([period, data]) => (
