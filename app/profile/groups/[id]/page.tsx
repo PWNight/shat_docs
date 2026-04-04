@@ -14,10 +14,11 @@ import {
 } from "@/components/ui/Dialog";
 import GroupAttendance from "@/components/GroupAttendance";
 import GroupGrades from "@/components/GroupGrades";
+import GroupStudents from "@/components/GroupStudents";
 import ErrorMessage from "@/components/NotifyAlert";
 import { getSession, SessionPayload } from "@/utils/session";
-import { GetGroup, GetUsersList, UpdateGroup, DeleteGroup } from "@/utils/handlers";
-import { Group, Notify } from "@/utils/interfaces";
+import { GetGroup, GetUsersList, UpdateGroup, DeleteGroup, GetStudents, UpdateStudent, DeleteStudent } from "@/utils/handlers";
+import { Group, Notify, Student } from "@/utils/interfaces";
 
 interface UserListItem { id: number; full_name: string; }
 
@@ -29,9 +30,10 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
     const [userData, setUserData] = useState<SessionPayload | null>(null);
     const [group, setGroup] = useState<Group | null>(null);
     const [users, setUsers] = useState<UserListItem[]>([]);
-    const [activeTab, setActiveTab] = useState<'attendance' | 'grades'>('attendance');
+    const [activeTab, setActiveTab] = useState<'attendance' | 'grades' | 'students'>('attendance');
     const [notify, setNotify] = useState<Notify>({ message: '', type: '' });
     const [updateFormData, setUpdateFormData] = useState({ name: '', fk_user: '' });
+    const [students, setStudents] = useState<Student[]>([]);
     const [isPending, startTransition] = useTransition();
 
     const loadData = useCallback(async (id: string) => {
@@ -43,6 +45,10 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
 
         const usersRes = await GetUsersList();
         setUsers(usersRes.data ?? []);
+
+        // Загружаем список студентов
+        const studentsRes = await GetStudents(id);
+        setStudents(studentsRes.data ?? []);
     }, [router]);
 
     useEffect(() => {
@@ -146,10 +152,8 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                         >
                                             Подтвердить
                                         </button>
-                                        <DialogClose asChild>
-                                            <button className="flex-1 bg-gray-200 dark:bg-zinc-700 py-3 rounded-lg font-medium">
-                                                Отмена
-                                            </button>
+                                        <DialogClose className="flex-1 bg-gray-200 dark:bg-zinc-700 py-3 rounded-lg font-medium">
+                                            Отмена
                                         </DialogClose>
                                     </DialogFooter>
                                 </DialogContent>
@@ -179,10 +183,8 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                         >
                                             Да, удалить
                                         </button>
-                                        <DialogClose asChild>
-                                            <button className="flex-1 bg-gray-200 dark:bg-zinc-700 py-3 rounded-lg font-medium">
-                                                Отмена
-                                            </button>
+                                        <DialogClose className="flex-1 bg-gray-200 dark:bg-zinc-700 py-3 rounded-lg font-medium">
+                                            Отмена
                                         </DialogClose>
                                     </DialogFooter>
                                 </DialogContent>
@@ -211,6 +213,15 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                         <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-500" />
                     )}
                 </button>
+                <button
+                    onClick={() => setActiveTab('students')}
+                    className={`relative pb-3 px-4 flex items-center gap-2 font-bold text-sm transition-all ${activeTab === 'students' ? 'text-green-600 dark:text-green-400' : 'text-neutral-500'}`}
+                >
+                    <UserStar size={18} /> Студенты
+                    {activeTab === 'students' && (
+                        <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-500" />
+                    )}
+                </button>
             </div>
 
             <AnimatePresence mode="wait">
@@ -223,8 +234,10 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                 >
                     {activeTab === 'attendance' ? (
                         <GroupAttendance groupId={groupId} group={group} isOwner={isOwner} setNotify={setNotify} />
-                    ) : (
+                    ) : activeTab === 'grades' ? (
                         <GroupGrades groupId={groupId} group={group} isOwner={isOwner} setNotify={setNotify} />
+                    ) : (
+                        <GroupStudents groupId={groupId} students={students} setStudents={setStudents} isOwner={isOwner} setNotify={setNotify} />
                     )}
                 </motion.div>
             </AnimatePresence>
