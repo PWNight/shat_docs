@@ -218,6 +218,19 @@ pre > code {
   color: #6f42c1; /* GitHub Purple */
 }
 
+/* Button utilities */
+.btn-primary {
+  @apply flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm transition-all disabled:opacity-50;
+}
+
+.btn-secondary {
+  @apply flex items-center gap-2 px-3 py-2 bg-white hover:bg-gray-50 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium border border-gray-200 dark:border-zinc-700 transition-all;
+}
+
+.btn-danger {
+  @apply flex items-center gap-2 px-3 py-2 bg-red-100 hover:bg-red-600 dark:bg-red-900/20 dark:hover:bg-red-900 text-red-600 hover:text-white dark:text-red-400 rounded-lg text-sm transition-colors;
+}
+
 .punctuation {
   color: #24292e; /* GitHub Black */
 }
