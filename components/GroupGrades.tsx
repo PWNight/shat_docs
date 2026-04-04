@@ -7,7 +7,7 @@ import {
     DialogTitle, DialogFooter, DialogDescription, DialogClose
 } from "@/components/ui/Dialog";
 import PeriodSelectionDialog from "@/components/PeriodSelectionDialog";
-import { GetGrades, SaveGrades, DeleteGradesPeriod } from "@/utils/handlers";
+import { GetGrades, SaveGrades, DeleteGradesPeriod, CreateStudents } from "@/utils/handlers";
 import { exportGradesToWord } from "@/utils/functions";
 import { Group, GradeStudent, Notify, SEMESTER_NAMES } from "@/utils/interfaces";
 
@@ -150,6 +150,9 @@ export default function GroupGrades({ groupId, group, isOwner, setNotify }: Grou
 
         if (result.success) {
             setIsGradesModified(false);
+            // Создаем студентов в базе, если их там нет
+            const studentNames = gradesStudents.map(s => ({ fullName: s.fullName }));
+            await CreateStudents(groupId, studentNames);
             setNotify({ message: "Успеваемость сохранена в БД", type: 'success' });
         } else {
             setNotify({ message: result.message || "Ошибка записи в БД", type: 'error' });
@@ -423,10 +426,8 @@ export default function GroupGrades({ groupId, group, isOwner, setNotify }: Grou
                         >
                             Да, удалить
                         </button>
-                        <DialogClose asChild>
-                            <button className="flex-1 bg-gray-200 dark:bg-zinc-700 py-3 rounded-lg font-medium">
-                                Отмена
-                            </button>
+                        <DialogClose className="flex-1 bg-gray-200 dark:bg-zinc-700 py-3 rounded-lg font-medium">
+                            Отмена
                         </DialogClose>
                     </DialogFooter>
                 </DialogContent>
