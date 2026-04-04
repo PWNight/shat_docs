@@ -2,23 +2,109 @@
 import React, { useState } from "react";
 import { Edit, Trash2, Save, X, User, Loader2, RefreshCw } from "lucide-react";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogClose } from "@/components/ui/Dialog";
-import { UpdateStudent, DeleteStudent, GetStudents } from "@/utils/handlers";
-import { Group, Notify, Student } from "@/utils/interfaces";
+import { GetAttendance, GetGrades, GetStudents, UpdateStudent, DeleteStudent } from "@/utils/handlers";
+import { exportGradesToWord, exportToWord } from "@/utils/functions";
+import { Group, Notify, Student, MONTH_NAMES, SEMESTER_NAMES } from "@/utils/interfaces";
 
 interface GroupStudentsProps {
     groupId: string;
+    groupName: string;
     students: Student[];
     setStudents: React.Dispatch<React.SetStateAction<Student[]>>;
     isOwner: boolean;
     setNotify: (notify: Notify) => void;
 }
 
-export default function GroupStudents({ groupId, students, setStudents, isOwner, setNotify }: GroupStudentsProps) {
+export default function GroupStudents({ groupId, groupName, students, setStudents, isOwner, setNotify }: GroupStudentsProps) {
     const [editingStudent, setEditingStudent] = useState<number | null>(null);
     const [editName, setEditName] = useState("");
     const [deleteStudentId, setDeleteStudentId] = useState<number | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [selectedStudentIds, setSelectedStudentIds] = useState<number[]>([]);
+    const [reportType, setReportType] = useState<'attendance' | 'grades'>('attendance');
+    const [reportPeriod, setReportPeriod] = useState<number | null>(null);
+    const [isGenerating, setIsGenerating] = useState(false);
+
+    const selectedStudents = students.filter(student => selectedStudentIds.includes(student.id));
+    const selectedStudentNames = selectedStudents.map(student => student.full_name);
+    const reportPeriods = reportType === 'attendance'
+        ? Object.entries(MONTH_NAMES).map(([key, label]) => ({ value: Number(key), label }))
+        : Object.entries(SEMESTER_NAMES).map(([key, label]) => ({ value: Number(key), label }));
+
+    const toggleStudentSelection = (id: number) => {
+        setSelectedStudentIds(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
+    };
+
+    const toggleSelectAll = () => {
+        setSelectedStudentIds(prev => prev.length === students.length ? [] : students.map(student => student.id));
+    };
+
+    const generateReport = async () => {
+        if (!reportPeriod || selectedStudentIds.length === 0) {
+            setNotify({ message: 'Выберите студентов и период для отчёта', type: 'warning' });
+            return;
+        }
+
+        setIsGenerating(true);
+        try {
+            if (reportType === 'attendance') {
+                const attendanceRes = await GetAttendance(groupId, reportPeriod);
+                if (!attendanceRes.success) throw new Error(attendanceRes.message || 'Ошибка загрузки посещаемости');
+
+                const reportStudents = attendanceRes.data.filter((item: any) => selectedStudentNames.includes(item.fullName));
+                if (!reportStudents.length) {
+                    setNotify({ message: 'Нет данных посещаемости для выбранных студентов', type: 'warning' });
+                    return;
+                }
+
+                const total = reportStudents.reduce((acc: any, student: any) => ({
+                    fullDaysTotal: acc.fullDaysTotal + Number(student.fullDaysTotal || 0),
+                    fullDaysSick: acc.fullDaysSick + Number(student.fullDaysSick || 0),
+                    lessonsTotal: acc.lessonsTotal + Number(student.lessonsTotal || 0),
+                    lessonsSick: acc.lessonsSick + Number(student.lessonsSick || 0),
+                    late: acc.late + Number(student.late || 0),
+                }), {
+                    fullDaysTotal: 0,
+                    fullDaysSick: 0,
+                    lessonsTotal: 0,
+                    lessonsSick: 0,
+                    late: 0,
+                });
+
+                await exportToWord(reportStudents, total, {
+                    id: 0,
+                    name: groupName,
+                    fk_user: 0,
+                    leader: '',
+                    created_by: '',
+                } as Group);
+                setNotify({ message: 'Отчёт по посещаемости сформирован', type: 'success' });
+            } else {
+                const gradesRes = await GetGrades(groupId, reportPeriod);
+                if (!gradesRes.success) throw new Error(gradesRes.message || 'Ошибка загрузки успеваемости');
+
+                const reportStudents = gradesRes.data.filter((item: any) => selectedStudentNames.includes(item.fullName));
+                if (!reportStudents.length) {
+                    setNotify({ message: 'Нет данных успеваемости для выбранных студентов', type: 'warning' });
+                    return;
+                }
+
+                await exportGradesToWord(reportStudents, {
+                    id: 0,
+                    name: groupName,
+                    fk_user: 0,
+                    leader: '',
+                    created_by: '',
+                } as Group);
+                setNotify({ message: 'Отчёт по успеваемости сформирован', type: 'success' });
+            }
+        } catch (error) {
+            setNotify({ message: error instanceof Error ? error.message : 'Ошибка при формировании отчёта', type: 'error' });
+        } finally {
+            setIsGenerating(false);
+        }
+    };
 
     const handleEdit = (student: any) => {
         setEditingStudent(student.id);
@@ -81,6 +167,81 @@ export default function GroupStudents({ groupId, students, setStudents, isOwner,
                         Обновить
                     </button>
                 </div>
+            </div>
+
+            <div className="rounded-3xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 p-5 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                        <h4 className="text-base font-semibold text-foreground">Генерация отчёта</h4>
+                        <p className="text-sm text-muted-foreground">Выберите студентов, тип отчёта и период для экспорта.</p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={toggleSelectAll}
+                        className="inline-flex items-center justify-center rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-blue-600 shadow-sm hover:bg-blue-50 transition dark:border-blue-900 dark:bg-zinc-950 dark:text-blue-300"
+                    >
+                        {selectedStudentIds.length === students.length ? 'Снять выбор' : 'Выбрать всех'}
+                    </button>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-3">
+                    <label className="space-y-2 text-sm text-gray-700 dark:text-gray-200">
+                        Тип отчёта
+                        <select
+                            value={reportType}
+                            onChange={(e) => { setReportType(e.target.value as 'attendance' | 'grades'); setReportPeriod(null); }}
+                            className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm outline-none transition dark:border-zinc-700 dark:bg-zinc-950"
+                        >
+                            <option value="attendance">Посещаемость</option>
+                            <option value="grades">Успеваемость</option>
+                        </select>
+                    </label>
+
+                    <label className="space-y-2 text-sm text-gray-700 dark:text-gray-200">
+                        Период
+                        <select
+                            value={reportPeriod ?? ''}
+                            onChange={(e) => setReportPeriod(Number(e.target.value) || null)}
+                            className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm outline-none transition dark:border-zinc-700 dark:bg-zinc-950"
+                        >
+                            <option value="">Выберите период</option>
+                            {reportPeriods.map(period => (
+                                <option key={period.value} value={period.value}>{period.label}</option>
+                            ))}
+                        </select>
+                    </label>
+
+                    <div className="space-y-2 text-sm text-gray-700 dark:text-gray-200">
+                        <span className="block font-medium">Выбрано студентов</span>
+                        <p className="text-sm text-muted-foreground">{selectedStudentIds.length} из {students.length}</p>
+                    </div>
+                </div>
+
+                <div className="grid gap-2 sm:grid-cols-2 max-h-52 overflow-y-auto rounded-2xl border border-gray-200 bg-white p-3 text-sm dark:border-zinc-700 dark:bg-zinc-950">
+                    {students.map(student => (
+                        <label
+                            key={student.id}
+                            className="inline-flex w-full cursor-pointer items-center gap-2 rounded-xl border border-transparent px-3 py-2 transition hover:border-blue-300 hover:bg-blue-50 dark:hover:border-blue-700 dark:hover:bg-blue-950"
+                        >
+                            <input
+                                type="checkbox"
+                                checked={selectedStudentIds.includes(student.id)}
+                                onChange={() => toggleStudentSelection(student.id)}
+                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span className="truncate">{student.full_name}</span>
+                        </label>
+                    ))}
+                </div>
+
+                <button
+                    type="button"
+                    onClick={generateReport}
+                    disabled={isGenerating || selectedStudentIds.length === 0 || reportPeriod === null}
+                    className="inline-flex items-center justify-center rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    {isGenerating ? 'Формирование...' : 'Скачать отчёт'}
+                </button>
             </div>
 
             {students.length === 0 ? (
