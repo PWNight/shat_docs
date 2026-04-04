@@ -182,14 +182,14 @@ INSERT INTO `users` (`id`, `email`, `full_name`, `password_hash`, `isAdmin`, `cr
 --
 ALTER TABLE `attendance`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `unique_student_attendance` (`fk_group`,`full_name`) USING BTREE;
+  ADD UNIQUE KEY `unique_student_attendance` (`fk_group`,`full_name`,`period_month`) USING BTREE;
 
 --
 -- Индексы таблицы `grades`
 --
 ALTER TABLE `grades`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `group_student` (`fk_group`,`full_name`) USING BTREE;
+  ADD UNIQUE KEY `group_student` (`fk_group`,`full_name`,`period_semester`) USING BTREE;
 
 --
 -- Индексы таблицы `groups`
