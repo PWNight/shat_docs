@@ -1,8 +1,8 @@
 "use client";
 import React, { useState } from "react";
-import { Edit, Trash2, Save, X, User } from "lucide-react";
+import { Edit, Trash2, Save, X, User, Loader2, RefreshCw } from "lucide-react";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogClose } from "@/components/ui/Dialog";
-import { UpdateStudent, DeleteStudent } from "@/utils/handlers";
+import { UpdateStudent, DeleteStudent, GetStudents } from "@/utils/handlers";
 import { Group, Notify, Student } from "@/utils/interfaces";
 
 interface GroupStudentsProps {
@@ -17,6 +17,8 @@ export default function GroupStudents({ groupId, students, setStudents, isOwner,
     const [editingStudent, setEditingStudent] = useState<number | null>(null);
     const [editName, setEditName] = useState("");
     const [deleteStudentId, setDeleteStudentId] = useState<number | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     const handleEdit = (student: any) => {
         setEditingStudent(student.id);
@@ -37,9 +39,11 @@ export default function GroupStudents({ groupId, students, setStudents, isOwner,
     };
 
     const handleDelete = async () => {
-        if (!deleteStudentId) return;
+        if (!deleteStudentId || isDeleting) return;
 
+        setIsDeleting(true);
         const result = await DeleteStudent(groupId, deleteStudentId);
+        setIsDeleting(false);
         if (result.success) {
             setStudents(prev => prev.filter(s => s.id !== deleteStudentId));
             setNotify({ message: "Студент удален", type: 'success' });
@@ -49,11 +53,34 @@ export default function GroupStudents({ groupId, students, setStudents, isOwner,
         setDeleteStudentId(null);
     };
 
+    const refreshStudents = async () => {
+        setIsRefreshing(true);
+        const result = await GetStudents(groupId);
+        setIsRefreshing(false);
+        if (result.success) {
+            setStudents(result.data);
+            setNotify({ message: "Список студентов обновлен", type: 'success' });
+        } else {
+            setNotify({ message: result.message || "Ошибка обновления списка", type: 'error' });
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-foreground">Управление студентами</h3>
-                <span className="text-sm text-muted-foreground">{students.length} студентов</span>
+                <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">{students.length} студентов</span>
+                    <button
+                        onClick={refreshStudents}
+                        disabled={isRefreshing}
+                        className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-1 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Обновить список студентов"
+                    >
+                        <RefreshCw size={16} className={isRefreshing ? "animate-spin" : ""} />
+                        Обновить
+                    </button>
+                </div>
             </div>
 
             {students.length === 0 ? (
@@ -124,9 +151,11 @@ export default function GroupStudents({ groupId, students, setStudents, isOwner,
                                                     <DialogFooter className="gap-3 sm:gap-4">
                                                         <button
                                                             onClick={handleDelete}
-                                                            className="flex-1 bg-red-600 hover:bg-red-500 text-white py-3 rounded-lg font-bold"
+                                                            disabled={isDeleting}
+                                                            className="flex-1 bg-red-600 hover:bg-red-500 text-white py-3 rounded-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                                         >
-                                                            Да, удалить
+                                                            {isDeleting ? <Loader2 size={16} className="animate-spin" /> : null}
+                                                            {isDeleting ? "Удаление..." : "Да, удалить"}
                                                         </button>
                                                         <DialogClose className="flex-1 bg-gray-200 dark:bg-zinc-700 py-3 rounded-lg font-medium">
                                                             Отмена
