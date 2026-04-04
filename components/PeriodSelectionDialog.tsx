@@ -101,7 +101,7 @@ export default function PeriodSelectionDialog({
                     >
                         Подтвердить
                     </Button>
-                    <DialogClose asChild>
+                    <DialogClose>
                         <Button variant="secondary">Отмена</Button>
                     </DialogClose>
                 </DialogFooter>
