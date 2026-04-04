@@ -7,7 +7,7 @@ import {
     DialogTitle, DialogFooter, DialogDescription, DialogClose
 } from "@/components/ui/Dialog";
 import PeriodSelectionDialog from "@/components/PeriodSelectionDialog";
-import { GetAttendance, SaveAttendance, DeleteAttendancePeriod } from "@/utils/handlers";
+import { GetAttendance, SaveAttendance, DeleteAttendancePeriod, CreateStudents } from "@/utils/handlers";
 import { exportToWord } from "@/utils/functions";
 import { AttendanceStudent, AttendanceTotal, Group, Notify, MONTH_NAMES } from "@/utils/interfaces";
 
@@ -137,6 +137,9 @@ export default function GroupAttendance({ groupId, group, isOwner, setNotify }: 
 
         if (result.success) {
             setIsAttendanceModified(false);
+            // Создаем студентов в базе, если их там нет
+            const studentNames = attendanceStudents.map(s => ({ fullName: s.fullName }));
+            await CreateStudents(groupId, studentNames);
             setNotify({ message: "Посещаемость сохранена в БД", type: 'success' });
         } else {
             setNotify({ message: result.message || "Ошибка записи в БД", type: 'error' });
@@ -367,10 +370,8 @@ export default function GroupAttendance({ groupId, group, isOwner, setNotify }: 
                         >
                             Да, удалить
                         </button>
-                        <DialogClose asChild>
-                            <button className="flex-1 bg-gray-200 dark:bg-zinc-700 py-3 rounded-lg font-medium">
-                                Отмена
-                            </button>
+                        <DialogClose className="flex-1 bg-gray-200 dark:bg-zinc-700 py-3 rounded-lg font-medium">
+                            Отмена
                         </DialogClose>
                     </DialogFooter>
                 </DialogContent>
