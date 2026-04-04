@@ -257,6 +257,66 @@ export async function GetUser(id: number) {
     }
 }
 
+export async function GetStudents(groupId: string) {
+    try {
+        const response = await fetch(`/api/v1/groups/${groupId}/students`);
+        const { data } = await handleApiResponse(response);
+
+        return { success: true, data };
+    } catch (error) {
+        const errorMessage =
+            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
+
+        return { success: false, message: errorMessage };
+    }
+}
+
+export async function CreateStudents(groupId: string, students: { fullName: string }[]) {
+    try {
+        const response = await fetch(`/api/v1/groups/${groupId}/students`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ students }),
+        });
+        return await handleApiResponse(response);
+    } catch (error) {
+        const errorMessage =
+            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
+
+        return { success: false, message: errorMessage };
+    }
+}
+
+export async function UpdateStudent(groupId: string, studentId: number, newName: string) {
+    try {
+        const response = await fetch(`/api/v1/groups/${groupId}/students/${studentId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ full_name: newName }),
+        });
+        return await handleApiResponse(response);
+    } catch (error) {
+        const errorMessage =
+            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
+
+        return { success: false, message: errorMessage };
+    }
+}
+
+export async function DeleteStudent(groupId: string, studentId: number) {
+    try {
+        const response = await fetch(`/api/v1/groups/${groupId}/students/${studentId}`, {
+            method: 'DELETE',
+        });
+        return await handleApiResponse(response);
+    } catch (error) {
+        const errorMessage =
+            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
+
+        return { success: false, message: errorMessage };
+    }
+}
+
 export async function SaveGrades(groupId: string, students: GradeStudent[]) {
     try {
         const response = await fetch(`/api/v1/groups/${groupId}/grades`, {
