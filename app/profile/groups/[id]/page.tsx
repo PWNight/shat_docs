@@ -237,7 +237,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                     ) : activeTab === 'grades' ? (
                         <GroupGrades groupId={groupId} group={group} isOwner={isOwner} setNotify={setNotify} />
                     ) : (
-                        <GroupStudents groupId={groupId} students={students} setStudents={setStudents} isOwner={isOwner} setNotify={setNotify} />
+                        <GroupStudents groupId={groupId} groupName={group.name} students={students} setStudents={setStudents} isOwner={isOwner} setNotify={setNotify} />
                     )}
                 </motion.div>
             </AnimatePresence>
