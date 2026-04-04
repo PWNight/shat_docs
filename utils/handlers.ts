@@ -273,15 +273,40 @@ export async function SaveGrades(groupId: string, students: GradeStudent[]) {
     }
 }
 
+export async function DeleteAttendancePeriod(groupId: string, periodMonth: number) {
+    try {
+        const response = await fetch(`/api/v1/groups/${groupId}/attendance?periodMonth=${periodMonth}`, {
+            method: 'DELETE',
+        });
+        return await handleApiResponse(response);
+    } catch (error) {
+        const errorMessage =
+            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
+
+        return { success: false, message: errorMessage };
+    }
+}
+
+export async function DeleteGradesPeriod(groupId: string, periodSemester: number) {
+    try {
+        const response = await fetch(`/api/v1/groups/${groupId}/grades?periodSemester=${periodSemester}`, {
+            method: 'DELETE',
+        });
+        return await handleApiResponse(response);
+    } catch (error) {
+        const errorMessage =
+            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
+
+        return { success: false, message: errorMessage };
+    }
+}
+
 export async function GetGrades(groupId: string, periodSemester?: number) {
     try {
-        const url = new URL(`/api/v1/groups/${groupId}/grades`, typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
-        if (periodSemester !== undefined) {
-            url.searchParams.append('periodSemester', String(periodSemester));
-        }
-        const response = await fetch(url.toString(), {
-            method: 'GET',
-        });
+        const url = periodSemester 
+            ? `/api/v1/groups/${groupId}/grades?periodSemester=${periodSemester}`
+            : `/api/v1/groups/${groupId}/grades`;
+        const response = await fetch(url);
         return await handleApiResponse(response);
     } catch (error) {
         const errorMessage =

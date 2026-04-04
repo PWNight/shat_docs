@@ -11,19 +11,19 @@ export async function GET(request: NextRequest, {params}: { params: Promise<{ id
         const { searchParams } = new URL(request.url);
         const periodMonth = searchParams.get('periodMonth');
 
-        let query = `SELECT 
-                id as number, 
-                full_name as fullName, 
-                full_days_total as fullDaysTotal, 
-                full_days_sick as fullDaysSick, 
-                lessons_total as lessonsTotal, 
-                lessons_sick as lessonsSick, 
+        let query = `SELECT
+                id as number,
+                full_name as fullName,
+                full_days_total as fullDaysTotal,
+                full_days_sick as fullDaysSick,
+                lessons_total as lessonsTotal,
+                lessons_sick as lessonsSick,
                 late,
                 period_month as periodMonth
             FROM attendance WHERE fk_group = ?`;
-        
+
         const params_arr: any[] = [id];
-        
+
         if (periodMonth) {
             query += ` AND period_month = ?`;
             params_arr.push(parseInt(periodMonth));
@@ -46,10 +46,10 @@ export async function POST(request: NextRequest) {
 
         for (const student of students) {
             await execute(
-                `INSERT INTO attendance 
-                (fk_group, full_name, full_days_total, full_days_sick, lessons_total, lessons_sick, late, period_month) 
+                `INSERT INTO attendance
+                (fk_group, full_name, full_days_total, full_days_sick, lessons_total, lessons_sick, late, period_month)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                ON DUPLICATE KEY UPDATE 
+                ON DUPLICATE KEY UPDATE
                 full_days_total = VALUES(full_days_total),
                 full_days_sick = VALUES(full_days_sick),
                 lessons_total = VALUES(lessons_total),
@@ -65,6 +65,28 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json({ success: true });
+    } catch (error) {
+        return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
+    }
+}
+
+// Удаление записей посещаемости за конкретный период
+export async function DELETE(request: NextRequest, {params}: { params: Promise<{ id: string }> }) {
+    try {
+        const userData = await getSession();
+        if (!userData) return NextResponse.json({ success: false, message: "Нет доступа" }, { status: 401 });
+
+        const {id} = await params;
+        const { searchParams } = new URL(request.url);
+        const periodMonth = searchParams.get('periodMonth');
+
+        if (!periodMonth) {
+            return NextResponse.json({ success: false, message: "Не указан период для удаления" }, { status: 400 });
+        }
+
+        await execute(`DELETE FROM attendance WHERE fk_group = ? AND period_month = ?`, [id, parseInt(periodMonth)]);
+
+        return NextResponse.json({ success: true, message: "Записи удалены" });
     } catch (error) {
         return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
     }

@@ -9,9 +9,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         let sqlQuery = `SELECT full_name as fullName, subjects_json as subjects, average_score as averageScore, period_semester as periodSemester
              FROM grades WHERE fk_group = ?`;
-        
+
         const queryParams: any[] = [id];
-        
+
         if (periodSemester) {
             sqlQuery += ` AND period_semester = ?`;
             queryParams.push(parseInt(periodSemester));
@@ -46,6 +46,25 @@ export async function POST(request: NextRequest) {
             );
         }
         return NextResponse.json({ success: true });
+    } catch (error) {
+        return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
+    }
+}
+
+// Удаление записей успеваемости за конкретный период
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    try {
+        const { id } = await params;
+        const { searchParams } = new URL(request.url);
+        const periodSemester = searchParams.get('periodSemester');
+
+        if (!periodSemester) {
+            return NextResponse.json({ success: false, message: "Не указан период для удаления" }, { status: 400 });
+        }
+
+        await execute(`DELETE FROM grades WHERE fk_group = ? AND period_semester = ?`, [id, parseInt(periodSemester)]);
+
+        return NextResponse.json({ success: true, message: "Записи удалены" });
     } catch (error) {
         return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
     }

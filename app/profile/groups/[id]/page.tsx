@@ -15,9 +15,9 @@ import {
 import PeriodSelectionDialog from "@/components/PeriodSelectionDialog";
 import ErrorMessage from "@/components/NotifyAlert";
 import { getSession, SessionPayload } from "@/utils/session";
-import {GetGroup, GetUsersList, SaveGrades, GetGrades} from "@/utils/handlers";
-import {UpdateGroup, DeleteGroup, SaveAttendance, GetAttendance} from "@/utils/handlers";
-import {exportGradesToWord, exportToWord} from "@/utils/functions";
+import { GetGroup, GetUsersList, SaveGrades, GetGrades, DeleteGradesPeriod } from "@/utils/handlers";
+import { UpdateGroup, DeleteGroup, SaveAttendance, GetAttendance, DeleteAttendancePeriod } from "@/utils/handlers";
+import { exportGradesToWord, exportToWord } from "@/utils/functions";
 import {
     AttendanceStudent, AttendanceTotal, Group, Notify, GradeStudent, MONTH_NAMES, SEMESTER_NAMES
 } from "@/utils/interfaces";
@@ -34,25 +34,27 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
     const [users, setUsers] = useState<UserListItem[]>([]);
 
     const [attendanceStudents, setAttendanceStudents] = useState<AttendanceStudent[]>([]);
-    const [attendanceTotal, setAttendanceTotal] = useState<AttendanceTotal>(Object);
+    const [attendanceTotal, setAttendanceTotal] = useState<AttendanceTotal>({ fullDaysTotal: 0, fullDaysSick: 0, lessonsTotal: 0, lessonsSick: 0, late: 0 });
+    const [attendanceDialogMode, setAttendanceDialogMode] = useState<'load' | 'import'>('load');
     const [showAttendancePeriodDialog, setShowAttendancePeriodDialog] = useState(false);
     const [pendingAttendanceData, setPendingAttendanceData] = useState<AttendanceStudent[] | null>(null);
     const [selectedAttendancePeriod, setSelectedAttendancePeriod] = useState<number | null>(null);
-    const [attendanceByPeriod, setAttendanceByPeriod] = useState<Record<number, AttendanceStudent[]>>({});
     const [isAttendanceModified, setIsAttendanceModified] = useState(false);
     const [isAttendanceSaving, setIsAttendanceSaving] = useState(false);
     const [isAttendanceLoading, setIsAttendanceLoading] = useState(false);
 
     const [activeTab, setActiveTab] = useState<'attendance' | 'grades'>('attendance');
     const [gradesStudents, setGradesStudents] = useState<GradeStudent[]>([]);
+    const [gradesDialogMode, setGradesDialogMode] = useState<'load' | 'import'>('load');
     const [showGradesPeriodDialog, setShowGradesPeriodDialog] = useState(false);
     const [pendingGradesData, setPendingGradesData] = useState<GradeStudent[] | null>(null);
     const [selectedGradesPeriod, setSelectedGradesPeriod] = useState<number | null>(null);
-    const [gradesbyPeriod, setGradesbyPeriod] = useState<Record<number, GradeStudent[]>>({});
     const [isGradesModified, setIsGradesModified] = useState(false);
     const [isGradesSaving, setIsGradesSaving] = useState(false);
     const [isGradesLoading, setIsGradesLoading] = useState(false);
     const [isDraggingGrades, setIsDraggingGrades] = useState(false);
+    const [showDeleteAttendanceDialog, setShowDeleteAttendanceDialog] = useState(false);
+    const [showDeleteGradesDialog, setShowDeleteGradesDialog] = useState(false);
 
     const [notify, setNotify] = useState<Notify>({ message: '', type: '' });
     const [updateFormData, setUpdateFormData] = useState({ name: '', fk_user: '' });
@@ -60,6 +62,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
     const [isPending, startTransition] = useTransition();
     const [isDragging, setIsDragging] = useState(false);
 
+    // Загружает данные группы и список пользователей для управления группой
     const loadData = useCallback(async (id: string) => {
         const groupRes = await GetGroup(id);
         if (!groupRes.success) return router.replace(`/profile/groups`);
@@ -75,34 +78,44 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
         getSession().then(session => {
             if (!session) return router.replace(`/login?to=profile/groups/${groupId}`);
             setUserData(session);
-            loadData(groupId).then(() => {
-                const total = attendanceStudents.reduce((acc, curr) => ({
-                    fullDaysTotal: acc.fullDaysTotal + curr.fullDaysTotal,
-                    fullDaysSick: acc.fullDaysSick + curr.fullDaysSick,
-                    lessonsTotal: acc.lessonsTotal + curr.lessonsTotal,
-                    lessonsSick: acc.lessonsSick + curr.lessonsSick,
-                    late: acc.late + curr.late,
-                }), { fullDaysTotal: 0, fullDaysSick: 0, lessonsTotal: 0, lessonsSick: 0, late: 0 });
-                setAttendanceTotal(total);
-            });
+            loadData(groupId);
         });
-    }, [groupId, loadData, router, attendanceStudents]);
+    }, [groupId, loadData, router]);
+
+    useEffect(() => {
+        const total = attendanceStudents.reduce((acc, curr) => ({
+            fullDaysTotal: acc.fullDaysTotal + curr.fullDaysTotal,
+            fullDaysSick: acc.fullDaysSick + curr.fullDaysSick,
+            lessonsTotal: acc.lessonsTotal + curr.lessonsTotal,
+            lessonsSick: acc.lessonsSick + curr.lessonsSick,
+            late: acc.late + curr.late,
+        }), { fullDaysTotal: 0, fullDaysSick: 0, lessonsTotal: 0, lessonsSick: 0, late: 0 });
+        setAttendanceTotal(total);
+    }, [attendanceStudents]);
 
     const isOwner = userData?.uid === group?.fk_user;
 
+    // Разбирает HTML-отчет по посещаемости и открывает диалог выбора периода для импортированных данных
     const handleAttendanceFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!isOwner) return;
         const file = e.target.files?.[0];
         if (!file) return;
+
         const reader = new FileReader();
         reader.onload = (event) => {
             const parser = new DOMParser();
             const doc = parser.parseFromString(event.target?.result as string, 'text/html');
             const table = doc.querySelector('table.marks');
-            if (!table) return setNotify({ message: "Таблица не найдена", type: 'error' });
+
+            if (!table) {
+                setNotify({ message: "Таблица не найдена", type: 'error' });
+                return;
+            }
+
             const data: AttendanceStudent[] = Array.from(table.querySelectorAll('tr')).map(row => {
                 const cells = Array.from(row.cells);
-                if (cells.length < 7 || !/^\d+$/.test(cells[0].textContent?.trim() || '')) return null;
+                if (cells.length < 7 || !/^[0-9]+$/.test(cells[0].textContent?.trim() || '')) return null;
+
                 return {
                     number: cells[0].textContent?.trim() || '',
                     fullName: cells[1].textContent?.trim() || '',
@@ -113,63 +126,105 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                     late: Number(cells[6].textContent) || 0,
                 };
             }).filter(Boolean) as AttendanceStudent[];
+
+            if (!data.length) {
+                setNotify({ message: "Файл не содержит корректных строк посещаемости", type: 'warning' });
+                return;
+            }
+
             setPendingAttendanceData(data);
+            setAttendanceDialogMode('import');
             setShowAttendancePeriodDialog(true);
         };
         reader.readAsText(file);
     };
 
+    // При выборе периода подтверждает загрузку из БД или применяет импортированные данные
     const handleAttendancePeriodConfirm = async (period: number) => {
-        if (selectedAttendancePeriod !== null && isAttendanceModified && attendanceStudents.length > 0) {
-            setIsAttendanceSaving(true);
-            const studentsToSave = attendanceStudents.map(s => ({
-                ...s,
-                periodMonth: selectedAttendancePeriod
-            })) as AttendanceStudent[];
-            await SaveAttendance(groupId, studentsToSave);
-            setAttendanceByPeriod(prev => ({
-                ...prev,
-                [selectedAttendancePeriod]: studentsToSave
-            }));
-            setIsAttendanceSaving(false);
-            setIsAttendanceModified(false);
-        }
-
-        if (!pendingAttendanceData) {
-            setIsAttendanceLoading(true);
-            const result = await GetAttendance(groupId, period);
-            setIsAttendanceLoading(false);
-            if (result.success && result.data.length > 0) {
-                setAttendanceStudents(result.data);
-                setAttendanceByPeriod(prev => ({
-                    ...prev,
-                    [period]: result.data
-                }));
-                setNotify({ message: `Загружены данные за ${MONTH_NAMES[period as keyof typeof MONTH_NAMES]}`, type: 'success' });
-            } else {
-                setAttendanceStudents([]);
-                setNotify({ message: `Нет данных за ${MONTH_NAMES[period as keyof typeof MONTH_NAMES]}`, type: 'warning' });
-            }
-        } else {
-            const dataWithPeriod = pendingAttendanceData.map(student => ({
-                ...student,
-                periodMonth: period
-            }));
-            setAttendanceStudents(dataWithPeriod);
-            setAttendanceByPeriod(prev => ({
-                ...prev,
-                [period]: dataWithPeriod
-            }));
-            setPendingAttendanceData(null);
-            setNotify({ message: "Месяц выбран", type: 'success' });
-            setIsAttendanceModified(false);
-        }
-
+        setShowAttendancePeriodDialog(false);
         setSelectedAttendancePeriod(period);
+
+        if (attendanceDialogMode === 'import' && pendingAttendanceData) {
+            const imported = pendingAttendanceData.map(student => ({ ...student, periodMonth: period }));
+            setAttendanceStudents(imported);
+            setPendingAttendanceData(null);
+            setIsAttendanceModified(true);
+            setNotify({ message: `Файл готов к сохранению за ${MONTH_NAMES[period as keyof typeof MONTH_NAMES]}`, type: 'success' });
+            return;
+        }
+
+        setIsAttendanceLoading(true);
+        const result = await GetAttendance(groupId, period);
+        setIsAttendanceLoading(false);
+
+        if (result.success && result.data.length > 0) {
+            setAttendanceStudents(result.data);
+            setIsAttendanceModified(false);
+            setNotify({ message: `Загружены данные за ${MONTH_NAMES[period as keyof typeof MONTH_NAMES]}`, type: 'success' });
+        } else {
+            setAttendanceStudents([]);
+            setIsAttendanceModified(false);
+            setNotify({ message: `Нет данных за ${MONTH_NAMES[period as keyof typeof MONTH_NAMES]}`, type: 'warning' });
+        }
     };
 
-    const handleLoadFromDB = async () => {
+    // Открывает диалог выбора периода для загрузки данных посещаемости из БД
+    const handleLoadFromDB = () => {
+        setAttendanceDialogMode('load');
         setShowAttendancePeriodDialog(true);
+    };
+
+    const openAttendanceDeleteDialog = () => {
+        if (!isOwner || selectedAttendancePeriod === null) return;
+        setShowDeleteAttendanceDialog(true);
+    };
+
+    // Сохраняет текущий отчет по посещаемости в базу данных
+    const handleSaveAttendance = async () => {
+        if (!isOwner || selectedAttendancePeriod === null || !attendanceStudents.length) return;
+
+        setIsAttendanceSaving(true);
+        const studentsToSave = attendanceStudents.map(student => ({
+            ...student,
+            periodMonth: selectedAttendancePeriod,
+        })) as AttendanceStudent[];
+
+        const result = await SaveAttendance(groupId, studentsToSave);
+        setIsAttendanceSaving(false);
+
+        if (result.success) {
+            setIsAttendanceModified(false);
+            setNotify({ message: "Посещаемость сохранена в БД", type: 'success' });
+        } else {
+            setNotify({ message: result.message || "Ошибка записи в БД", type: 'error' });
+        }
+    };
+
+    // Удаляет все записи посещаемости за выбранный месяц из базы данных
+    const handleDeleteAttendancePeriod = async () => {
+        if (!isOwner || selectedAttendancePeriod === null) return;
+
+        setShowDeleteAttendanceDialog(false);
+        setIsAttendanceLoading(true);
+        const result = await DeleteAttendancePeriod(groupId, selectedAttendancePeriod);
+        setIsAttendanceLoading(false);
+
+        if (result.success) {
+            setAttendanceStudents([]);
+            setSelectedAttendancePeriod(null);
+            setIsAttendanceModified(false);
+            setNotify({ message: "Записи за период удалены из БД", type: 'success' });
+        } else {
+            setNotify({ message: result.message || "Не удалось удалить период", type: 'error' });
+        }
+    };
+
+    // Сбрасывает текущее состояние посещаемости и очищает выбранный период
+    const handleClearAttendance = () => {
+        setAttendanceStudents([]);
+        setSelectedAttendancePeriod(null);
+        setPendingAttendanceData(null);
+        setIsAttendanceModified(false);
     };
 
     const updateAttendanceField = (index: number, field: keyof AttendanceStudent, value: string) => {
@@ -180,6 +235,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
         setIsAttendanceModified(true);
     };
 
+    // Разбирает HTML-отчет по оценкам и открывает диалог выбора семестра для импортированных данных
     const handleGradesFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!isOwner) return;
         const file = e.target.files?.[0];
@@ -190,24 +246,23 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
             const parser = new DOMParser();
             const doc = parser.parseFromString(event.target?.result as string, 'text/html');
 
-            const table = doc.querySelector('table.grid.gridLines.vam.marks.print_A4') ||
-                doc.querySelector('table');
-            if (!table) return setNotify({ message: "Таблица успеваемости не найдена", type: 'error' });
+            const table = doc.querySelector('table.grid.gridLines.vam.marks.print_A4') || doc.querySelector('table');
+            if (!table) {
+                setNotify({ message: "Таблица успеваемости не найдена", type: 'error' });
+                return;
+            }
 
             const rows = Array.from(table.querySelectorAll('tr'));
+            const headerRowIndex = rows.findIndex(r => r.textContent?.includes('Фамилия') && r.textContent?.includes('Имя'));
 
-            const headerRowIndex = rows.findIndex(r =>
-                r.textContent?.includes('Фамилия') && r.textContent?.includes('Имя')
-            );
             if (headerRowIndex === -1) {
-                return setNotify({ message: "Неверный формат файла (не найдена шапка)", type: 'error' });
+                setNotify({ message: "Неверный формат файла (не найдена шапка)", type: 'error' });
+                return;
             }
 
             const headerCells = Array.from(rows[headerRowIndex].cells);
             const subjectsList = headerCells.slice(2, -2).map(cell => {
-                let name = cell.textContent || '';
-                name = name.replace(/[\n\r]+/g, ' ');
-                return name.replace(/\s+/g, ' ').trim();
+                return (cell.textContent || '').replace(/\s+/g, ' ').trim();
             });
 
             const data: GradeStudent[] = rows
@@ -216,18 +271,14 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                     const cells = Array.from(row.cells);
                     const numText = cells[0]?.textContent?.trim() || '';
 
-                    if (!/^\d+$/.test(numText) || cells.length < 2 + subjectsList.length) {
+                    if (!/^[0-9]+$/.test(numText) || cells.length < 2 + subjectsList.length) {
                         return null;
                     }
 
-                    const fullName = (cells[1]?.textContent || '')
-                        .replace(/[\n\r]+/g, ' ')
-                        .replace(/\s+/g, ' ')
-                        .trim();
-
+                    const fullName = (cells[1]?.textContent || '').replace(/\s+/g, ' ').trim();
                     const subjects = subjectsList.map((name, idx) => ({
                         name,
-                        grade: (cells[idx + 2]?.textContent || '').trim().replace(/\u00A0/g, '')
+                        grade: (cells[idx + 2]?.textContent || '').trim().replace(/\u00A0/g, ''),
                     }));
 
                     const validGrades = subjects
@@ -242,68 +293,105 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                 })
                 .filter(Boolean) as GradeStudent[];
 
-            if (data.length === 0) {
-                return setNotify({ message: "Не удалось извлечь учеников", type: 'error' });
+            if (!data.length) {
+                setNotify({ message: "Не удалось извлечь учеников из файла", type: 'warning' });
+                return;
             }
 
             setPendingGradesData(data);
+            setGradesDialogMode('import');
             setShowGradesPeriodDialog(true);
         };
 
         reader.readAsText(file);
     };
 
+    // При выборе семестра загружает оценки из БД или применяет импортированные оценки
     const handleGradesPeriodConfirm = async (period: number) => {
-        if (selectedGradesPeriod !== null && isGradesModified && gradesStudents.length > 0) {
-            setIsGradesSaving(true);
-            const studentsToSave = gradesStudents.map(s => ({
-                ...s,
-                periodSemester: selectedGradesPeriod
-            })) as GradeStudent[];
-            await SaveGrades(groupId, studentsToSave);
-            setGradesbyPeriod(prev => ({
-                ...prev,
-                [selectedGradesPeriod]: studentsToSave
-            }));
-            setIsGradesSaving(false);
-            setIsGradesModified(false);
-        }
-
-        if (!pendingGradesData) {
-            setIsGradesLoading(true);
-            const result = await GetGrades(groupId, period);
-            setIsGradesLoading(false);
-            if (result.success && result.data.length > 0) {
-                setGradesStudents(result.data);
-                setGradesbyPeriod(prev => ({
-                    ...prev,
-                    [period]: result.data
-                }));
-                setNotify({ message: `Загружены данные за ${SEMESTER_NAMES[period as keyof typeof SEMESTER_NAMES]}`, type: 'success' });
-            } else {
-                setGradesStudents([]);
-                setNotify({ message: `Нет данных за ${SEMESTER_NAMES[period as keyof typeof SEMESTER_NAMES]}`, type: 'warning' });
-            }
-        } else {
-            const dataWithPeriod = pendingGradesData.map(student => ({
-                ...student,
-                periodSemester: period
-            }));
-            setGradesStudents(dataWithPeriod);
-            setGradesbyPeriod(prev => ({
-                ...prev,
-                [period]: dataWithPeriod
-            }));
-            setPendingGradesData(null);
-            setNotify({ message: "Полугодие выбрано", type: 'success' });
-            setIsGradesModified(false);
-        }
-
+        setShowGradesPeriodDialog(false);
         setSelectedGradesPeriod(period);
+
+        if (gradesDialogMode === 'import' && pendingGradesData) {
+            const imported = pendingGradesData.map(student => ({ ...student, periodSemester: period }));
+            setGradesStudents(imported);
+            setPendingGradesData(null);
+            setIsGradesModified(true);
+            setNotify({ message: `Файл готов к сохранению за ${SEMESTER_NAMES[period as keyof typeof SEMESTER_NAMES]}`, type: 'success' });
+            return;
+        }
+
+        setIsGradesLoading(true);
+        const result = await GetGrades(groupId, period);
+        setIsGradesLoading(false);
+
+        if (result.success && result.data.length > 0) {
+            setGradesStudents(result.data);
+            setIsGradesModified(false);
+            setNotify({ message: `Загружены данные за ${SEMESTER_NAMES[period as keyof typeof SEMESTER_NAMES]}`, type: 'success' });
+        } else {
+            setGradesStudents([]);
+            setIsGradesModified(false);
+            setNotify({ message: `Нет данных за ${SEMESTER_NAMES[period as keyof typeof SEMESTER_NAMES]}`, type: 'warning' });
+        }
     };
 
-    const handleLoadGradesFromDB = async () => {
+    // Открывает диалог выбора семестра для загрузки успеваемости из БД
+    const handleLoadGradesFromDB = () => {
+        setGradesDialogMode('load');
         setShowGradesPeriodDialog(true);
+    };
+
+    const openGradesDeleteDialog = () => {
+        if (!isOwner || selectedGradesPeriod === null) return;
+        setShowDeleteGradesDialog(true);
+    };
+
+    // Сохраняет текущий журнал оценок в базу данных для выбранного семестра
+    const handleSaveGrades = async () => {
+        if (!isOwner || selectedGradesPeriod === null || !gradesStudents.length) return;
+
+        setIsGradesSaving(true);
+        const studentsToSave = gradesStudents.map(student => ({
+            ...student,
+            periodSemester: selectedGradesPeriod,
+        })) as GradeStudent[];
+
+        const result = await SaveGrades(groupId, studentsToSave);
+        setIsGradesSaving(false);
+
+        if (result.success) {
+            setIsGradesModified(false);
+            setNotify({ message: "Успеваемость сохранена в БД", type: 'success' });
+        } else {
+            setNotify({ message: result.message || "Ошибка записи в БД", type: 'error' });
+        }
+    };
+
+    // Удаляет все оценки за выбранный семестр из базы данных
+    const handleDeleteGradesPeriod = async () => {
+        if (!isOwner || selectedGradesPeriod === null) return;
+
+        setShowDeleteGradesDialog(false);
+        setIsGradesLoading(true);
+        const result = await DeleteGradesPeriod(groupId, selectedGradesPeriod);
+        setIsGradesLoading(false);
+
+        if (result.success) {
+            setGradesStudents([]);
+            setSelectedGradesPeriod(null);
+            setIsGradesModified(false);
+            setNotify({ message: "Записи за период удалены из БД", type: 'success' });
+        } else {
+            setNotify({ message: result.message || "Не удалось удалить период", type: 'error' });
+        }
+    };
+
+    // Сбрасывает журнал оценок и очищает выбранный семестр
+    const handleClearGrades = () => {
+        setGradesStudents([]);
+        setSelectedGradesPeriod(null);
+        setPendingGradesData(null);
+        setIsGradesModified(false);
     };
 
     const updateGradeField = (studentIndex: number, subjectIndex: number, value: string) => {
@@ -564,7 +652,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                 >
                     {activeTab === 'attendance' && (
                         <div className="w-full bg-card rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm overflow-hidden">
-                            <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-zinc-800 dark:to-zinc-800/50 border-b border-gray-100 dark:border-zinc-700 px-6 py-4">
+                            <div className="bg-linear-to-r from-blue-50 to-cyan-50 dark:from-zinc-800 dark:to-zinc-800/50 border-b border-gray-100 dark:border-zinc-700 px-6 py-4">
                                 <div className="flex items-center justify-between mb-2">
                                     <div className="flex items-center gap-3">
                                         <div className="p-2.5 bg-blue-600 text-white rounded-lg"><FileText size={20}/></div>
@@ -592,118 +680,42 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
 
                             <div className="px-6 py-4 border-b border-gray-100 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-900/20">
                                 <div className="flex sm:flex-row flex-col sm:items-center gap-2 lg:gap-3">
-                                {attendanceStudents.length > 0 ? (
+                                    {attendanceStudents.length > 0 && (
+                                        <button onClick={() => exportToWord(attendanceStudents, attendanceTotal, group)} className="flex items-center justify-center gap-2 px-3 py-2 bg-white hover:bg-blue-50 dark:bg-zinc-800 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-sm font-medium border border-gray-200 dark:border-zinc-700 hover:border-blue-300 transition-all">
+                                            <Download size={16}/> Экспорт
+                                        </button>
+                                    )}
+                                    {attendanceStudents.length === 0 && (
+                                        <button 
+                                            onClick={handleLoadFromDB}
+                                            disabled={isAttendanceLoading}
+                                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white font-semibold rounded-lg text-sm transition-all disabled:opacity-50"
+                                        >
+                                            {isAttendanceLoading ? <Loader2 size={16} className="animate-spin" /> : <Database size={16}/>} Загрузить из БД
+                                        </button>
+                                    )}
+                                    {attendanceStudents.length > 0 && (
                                         <>
-                                            <button onClick={() => exportToWord(attendanceStudents, attendanceTotal, group)} className="flex items-center justify-center gap-2 px-3 py-2 bg-white hover:bg-blue-50 dark:bg-zinc-800 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-sm font-medium border border-gray-200 dark:border-zinc-700 hover:border-blue-300 transition-all">
-                                                <Download size={16}/> Экспорт
-                                            </button>
-                                            {isOwner && Object.keys(attendanceByPeriod).length > 0 && (
-                                                <select 
-                                                    value={selectedAttendancePeriod || ''} 
-                                                    onChange={(e) => {
-                                                        const period = parseInt(e.target.value);
-                                                        const data = attendanceByPeriod[period];
-                                                        if (data && period !== selectedAttendancePeriod) {
-                                                            // Save current if modified
-                                                            if (selectedAttendancePeriod !== null && isAttendanceModified && attendanceStudents.length > 0) {
-                                                                setIsAttendanceSaving(true);
-                                                                const toSave = attendanceStudents.map(s => ({
-                                                                    ...s,
-                                                                    periodMonth: selectedAttendancePeriod
-                                                                })) as AttendanceStudent[];
-                                                                SaveAttendance(groupId, toSave).then(() => {
-                                                                    setAttendanceByPeriod(prev => ({
-                                                                        ...prev,
-                                                                        [selectedAttendancePeriod]: toSave
-                                                                    }));
-                                                                    setIsAttendanceSaving(false);
-                                                                    setIsAttendanceModified(false);
-                                                                });
-                                                            }
-                                                            // Load new period
-                                                            setAttendanceStudents(data);
-                                                            setSelectedAttendancePeriod(period);
-                                                            setIsAttendanceModified(false);
-                                                        }
-                                                    }}
-                                                    className="flex items-center gap-2 px-3 py-2 bg-white hover:bg-cyan-50 dark:bg-zinc-800 text-cyan-600 dark:text-cyan-400 rounded-lg text-sm font-medium border border-cyan-300 dark:border-cyan-800/50 outline-none transition-all"
-                                                >
-                                                    <option value="">К другому периоду</option>
-                                                    {Object.entries(attendanceByPeriod).map(([period, data]) => (
-                                                        <option key={period} value={period}>
-                                                            {MONTH_NAMES[parseInt(period) as keyof typeof MONTH_NAMES]} ({data.length} уч.)
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            )}
-                                            {isOwner && (
-                                                <>
-                                                    <button 
-                                                        onClick={() => setShowAttendancePeriodDialog(true)} 
-                                                        className="flex items-center justify-center gap-2 px-3 py-2 bg-white hover:bg-amber-50 dark:bg-zinc-800 dark:hover:bg-amber-900/20 text-amber-600 dark:text-amber-400 font-medium rounded-lg text-sm border border-amber-300 dark:border-amber-800/50 transition-all"
-                                                    >
-                                                        <Calendar size={16}/> Изменить период
-                                                    </button>
-                                                    <button 
-                                                        onClick={async () => {
-                                                            setIsAttendanceSaving(true);
-                                                            const toSave = attendanceStudents.map(s => ({
-                                                                ...s,
-                                                                periodMonth: selectedAttendancePeriod
-                                                            })) as AttendanceStudent[];
-                                                            await SaveAttendance(groupId, toSave);
-                                                            setNotify({message: "Данные сохранены в БД ✓", type: "success"});
-                                                            setIsAttendanceModified(false);
-                                                            setIsAttendanceSaving(false);
-                                                        }} 
-                                                        disabled={isAttendanceSaving}
-                                                        className="flex items-center justify-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-medium rounded-lg text-sm transition-all disabled:opacity-50"
-                                                    >
-                                                        {isAttendanceSaving ? <Loader2 size={16} className="animate-spin" /> : <Database size={16}/>} Сохранить в БД
-                                                    </button>
-                                                    <button 
-                                                        onClick={() => setAttendanceStudents([])} 
-                                                        className="flex items-center justify-center gap-2 p-2 bg-red-100 hover:bg-red-600 dark:bg-red-900/20 dark:hover:bg-red-900 text-red-600 hover:text-white dark:text-red-400 rounded-lg transition-colors"
-                                                        title="Очистить"
-                                                    >
-                                                        <Trash2 size={18}/>
-                                                        Удалить
-                                                    </button>
-                                                </>
-                                            )}
-                                        </>
-                                    ) : (
-                                        <>
-                                            <button 
-                                                onClick={handleLoadFromDB}
-                                                disabled={isAttendanceLoading}
-                                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white font-semibold rounded-lg text-sm transition-all disabled:opacity-50"
+                                            <button
+                                                onClick={handleSaveAttendance}
+                                                disabled={isAttendanceSaving || selectedAttendancePeriod === null || attendanceStudents.length === 0}
+                                                className="flex items-center justify-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-medium rounded-lg text-sm transition-all disabled:opacity-50"
                                             >
-                                                {isAttendanceLoading ? <Loader2 size={16} className="animate-spin" /> : <Database size={16}/>}
-                                                Загрузить из БД
+                                                {isAttendanceSaving ? <Loader2 size={16} className="animate-spin" /> : <Database size={16}/>} Сохранить в БД
                                             </button>
-                                            {isOwner && Object.keys(attendanceByPeriod).length > 0 && (
-                                                <select 
-                                                    value={selectedAttendancePeriod || ''} 
-                                                    onChange={(e) => {
-                                                        const period = parseInt(e.target.value);
-                                                        const data = attendanceByPeriod[period];
-                                                        if (data) {
-                                                            setAttendanceStudents(data);
-                                                            setSelectedAttendancePeriod(period);
-                                                            setIsAttendanceModified(false);
-                                                        }
-                                                    }}
-                                                    className="flex items-center gap-2 px-3 py-2 bg-white hover:bg-cyan-50 dark:bg-zinc-800 text-cyan-600 dark:text-cyan-400 rounded-lg text-sm font-medium border border-cyan-300 dark:border-cyan-800/50 outline-none transition-all"
-                                                >
-                                                    <option value="">Загруженные периоды</option>
-                                                    {Object.entries(attendanceByPeriod).map(([period, data]) => (
-                                                        <option key={period} value={period}>
-                                                            {MONTH_NAMES[parseInt(period) as keyof typeof MONTH_NAMES]} ({data.length} уч.)
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            )}
+                                            <button
+                                                onClick={openAttendanceDeleteDialog}
+                                                disabled={selectedAttendancePeriod === null}
+                                                className="flex items-center justify-center gap-2 px-3 py-2 bg-red-100 hover:bg-red-600 dark:bg-red-900/20 dark:hover:bg-red-900 text-red-600 hover:text-white dark:text-red-400 rounded-lg text-sm transition-colors disabled:opacity-50"
+                                            >
+                                                <Trash2 size={16}/> Удалить период
+                                            </button>
+                                            <button
+                                                onClick={handleClearAttendance}
+                                                className="flex items-center justify-center gap-2 px-3 py-2 bg-white hover:bg-gray-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium border border-gray-200 dark:border-zinc-700 transition-all"
+                                            >
+                                                <Trash2 size={16}/> Очистить
+                                            </button>
                                         </>
                                     )}
                                 </div>
@@ -791,7 +803,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
 
                     {activeTab === 'grades' && (
                         <div className="w-full bg-card rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm overflow-hidden">
-                            <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-zinc-800 dark:to-zinc-800/50 border-b border-gray-100 dark:border-zinc-700 px-6 py-4">
+                            <div className="bg-linear-to-r from-purple-50 to-pink-50 dark:from-zinc-800 dark:to-zinc-800/50 border-b border-gray-100 dark:border-zinc-700 px-6 py-4">
                                 <div className="flex items-center justify-between mb-2">
                                     <div className="flex items-center gap-3">
                                         <div className="p-2.5 bg-purple-600 text-white rounded-lg"><GraduationCap size={20}/></div>
@@ -819,118 +831,42 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
 
                             <div className="px-6 py-4 border-b border-gray-100 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-900/20">
                                 <div className="flex sm:flex-row flex-col sm:items-center gap-2 lg:gap-3">
-                                    {gradesStudents.length > 0 ? (
+                                    {gradesStudents.length > 0 && (
+                                        <button onClick={() => exportGradesToWord(gradesStudents, group)} className="flex items-center justify-center gap-2 px-3 py-2 bg-white hover:bg-purple-50 dark:bg-zinc-800 text-purple-600 dark:text-purple-400 rounded-lg text-sm font-medium border border-gray-200 dark:border-zinc-700 hover:border-purple-300 transition-all">
+                                            <Download size={16}/> Экспорт
+                                        </button>
+                                    )}
+                                    {gradesStudents.length === 0 && (
+                                        <button 
+                                            onClick={handleLoadGradesFromDB}
+                                            disabled={isGradesLoading}
+                                            className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600 text-white font-semibold rounded-lg text-sm transition-all disabled:opacity-50"
+                                        >
+                                            {isGradesLoading ? <Loader2 size={16} className="animate-spin" /> : <Database size={16}/>} Загрузить из БД
+                                        </button>
+                                    )}
+                                    {gradesStudents.length > 0 && (
                                         <>
-                                            <button onClick={() => exportGradesToWord(gradesStudents, group)} className="flex items-center justify-center gap-2 px-3 py-2 bg-white hover:bg-purple-50 dark:bg-zinc-800 text-purple-600 dark:text-purple-400 rounded-lg text-sm font-medium border border-gray-200 dark:border-zinc-700 hover:border-purple-300 transition-all">
-                                                <Download size={16}/> Экспорт
-                                            </button>
-                                            {isOwner && Object.keys(gradesbyPeriod).length > 0 && (
-                                                <select 
-                                                    value={selectedGradesPeriod || ''} 
-                                                    onChange={(e) => {
-                                                        const period = parseInt(e.target.value);
-                                                        const data = gradesbyPeriod[period];
-                                                        if (data && period !== selectedGradesPeriod) {
-                                                            // Save current if modified
-                                                            if (selectedGradesPeriod !== null && isGradesModified && gradesStudents.length > 0) {
-                                                                setIsGradesSaving(true);
-                                                                const toSave = gradesStudents.map(s => ({
-                                                                    ...s,
-                                                                    periodSemester: selectedGradesPeriod
-                                                                })) as GradeStudent[];
-                                                                SaveGrades(groupId, toSave).then(() => {
-                                                                    setGradesbyPeriod(prev => ({
-                                                                        ...prev,
-                                                                        [selectedGradesPeriod]: toSave
-                                                                    }));
-                                                                    setIsGradesSaving(false);
-                                                                    setIsGradesModified(false);
-                                                                });
-                                                            }
-                                                            // Load new period
-                                                            setGradesStudents(data);
-                                                            setSelectedGradesPeriod(period);
-                                                            setIsGradesModified(false);
-                                                        }
-                                                    }}
-                                                    className="flex items-center gap-2 px-3 py-2 bg-white hover:bg-cyan-50 dark:bg-zinc-800 text-cyan-600 dark:text-cyan-400 rounded-lg text-sm font-medium border border-cyan-300 dark:border-cyan-800/50 outline-none transition-all"
-                                                >
-                                                    <option value="">К другому периоду</option>
-                                                    {Object.entries(gradesbyPeriod).map(([period, data]) => (
-                                                        <option key={period} value={period}>
-                                                            {SEMESTER_NAMES[parseInt(period) as keyof typeof SEMESTER_NAMES]} ({data.length} уч.)
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            )}
-                                            {isOwner && (
-                                                <>
-                                                    <button 
-                                                        onClick={() => setShowGradesPeriodDialog(true)} 
-                                                        className="flex items-center justify-center gap-2 px-3 py-2 bg-white hover:bg-amber-50 dark:bg-zinc-800 dark:hover:bg-amber-900/20 text-amber-600 dark:text-amber-400 font-medium rounded-lg text-sm border border-amber-300 dark:border-amber-800/50 transition-all"
-                                                    >
-                                                        <Calendar size={16}/> Изменить период
-                                                    </button>
-                                                    <button 
-                                                        onClick={async () => {
-                                                            setIsGradesSaving(true);
-                                                            const toSave = gradesStudents.map(s => ({
-                                                                ...s,
-                                                                periodSemester: selectedGradesPeriod
-                                                            })) as GradeStudent[];
-                                                            await SaveGrades(groupId, toSave);
-                                                            setNotify({message: "Успеваемость сохранена в БД ✓", type: "success"});
-                                                            setIsGradesModified(false);
-                                                            setIsGradesSaving(false);
-                                                        }} 
-                                                        disabled={isGradesSaving}
-                                                        className="flex items-center justify-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-medium rounded-lg text-sm transition-all disabled:opacity-50"
-                                                    >
-                                                        {isGradesSaving ? <Loader2 size={16} className="animate-spin" /> : <Database size={16}/>} Сохранить в БД
-                                                    </button>
-                                                    <button 
-                                                        onClick={() => setGradesStudents([])} 
-                                                        className="flex items-center justify-center gap-2 p-2 bg-red-100 hover:bg-red-600 dark:bg-red-900/20 dark:hover:bg-red-900 text-red-600 hover:text-white dark:text-red-400 rounded-lg transition-colors"
-                                                        title="Очистить"
-                                                    >
-                                                        <Trash2 size={18}/>
-                                                        Удалить
-                                                    </button>
-                                                </>
-                                            )}
-                                        </>
-                                    ) : (
-                                        <>
-                                            <button 
-                                                onClick={handleLoadGradesFromDB}
-                                                disabled={isGradesLoading}
-                                                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600 text-white font-semibold rounded-lg text-sm transition-all disabled:opacity-50"
+                                            <button
+                                                onClick={handleSaveGrades}
+                                                disabled={isGradesSaving || selectedGradesPeriod === null || gradesStudents.length === 0}
+                                                className="flex items-center justify-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-medium rounded-lg text-sm transition-all disabled:opacity-50"
                                             >
-                                                {isGradesLoading ? <Loader2 size={16} className="animate-spin" /> : <Database size={16}/>}
-                                                Загрузить из БД
+                                                {isGradesSaving ? <Loader2 size={16} className="animate-spin" /> : <Database size={16}/>} Сохранить в БД
                                             </button>
-                                            {isOwner && Object.keys(gradesbyPeriod).length > 0 && (
-                                                <select 
-                                                    value={selectedGradesPeriod || ''} 
-                                                    onChange={(e) => {
-                                                        const period = parseInt(e.target.value);
-                                                        const data = gradesbyPeriod[period];
-                                                        if (data) {
-                                                            setGradesStudents(data);
-                                                            setSelectedGradesPeriod(period);
-                                                            setIsGradesModified(false);
-                                                        }
-                                                    }}
-                                                    className="flex items-center gap-2 px-3 py-2 bg-white hover:bg-cyan-50 dark:bg-zinc-800 text-cyan-600 dark:text-cyan-400 rounded-lg text-sm font-medium border border-cyan-300 dark:border-cyan-800/50 outline-none transition-all"
-                                                >
-                                                    <option value="">Загруженные периоды</option>
-                                                    {Object.entries(gradesbyPeriod).map(([period, data]) => (
-                                                        <option key={period} value={period}>
-                                                            {SEMESTER_NAMES[parseInt(period) as keyof typeof SEMESTER_NAMES]} ({data.length} уч.)
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            )}
+                                            <button
+                                                onClick={openGradesDeleteDialog}
+                                                disabled={selectedGradesPeriod === null}
+                                                className="flex items-center justify-center gap-2 px-3 py-2 bg-red-100 hover:bg-red-600 dark:bg-red-900/20 dark:hover:bg-red-900 text-red-600 hover:text-white dark:text-red-400 rounded-lg text-sm transition-colors disabled:opacity-50"
+                                            >
+                                                <Trash2 size={16}/> Удалить период
+                                            </button>
+                                            <button
+                                                onClick={handleClearGrades}
+                                                className="flex items-center justify-center gap-2 px-3 py-2 bg-white hover:bg-gray-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium border border-gray-200 dark:border-zinc-700 transition-all"
+                                            >
+                                                <Trash2 size={16}/> Очистить
+                                            </button>
                                         </>
                                     )}
                                 </div>
@@ -1020,9 +956,60 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                 </motion.div>
             </AnimatePresence>
 
+            <Dialog open={showDeleteAttendanceDialog} onOpenChange={setShowDeleteAttendanceDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Удалить период посещаемости</DialogTitle>
+                        <DialogDescription>
+                            Вы уверены, что хотите удалить записи посещаемости за {selectedAttendancePeriod !== null ? MONTH_NAMES[selectedAttendancePeriod as keyof typeof MONTH_NAMES] : 'выбранный период'} из базы данных? Это действие нельзя отменить.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="gap-3">
+                        <button
+                            onClick={handleDeleteAttendancePeriod}
+                            className="flex-1 bg-red-600 hover:bg-red-500 text-white py-3 rounded-lg font-bold"
+                        >
+                            Да, удалить
+                        </button>
+                        <DialogClose asChild>
+                            <button className="flex-1 bg-gray-200 dark:bg-zinc-700 py-3 rounded-lg font-medium">
+                                Отмена
+                            </button>
+                        </DialogClose>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={showDeleteGradesDialog} onOpenChange={setShowDeleteGradesDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Удалить период успеваемости</DialogTitle>
+                        <DialogDescription>
+                            Вы уверены, что хотите удалить записи успеваемости за {selectedGradesPeriod !== null ? SEMESTER_NAMES[selectedGradesPeriod as keyof typeof SEMESTER_NAMES] : 'выбранный период'} из базы данных? Это действие нельзя отменить.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="gap-3">
+                        <button
+                            onClick={handleDeleteGradesPeriod}
+                            className="flex-1 bg-red-600 hover:bg-red-500 text-white py-3 rounded-lg font-bold"
+                        >
+                            Да, удалить
+                        </button>
+                        <DialogClose asChild>
+                            <button className="flex-1 bg-gray-200 dark:bg-zinc-700 py-3 rounded-lg font-medium">
+                                Отмена
+                            </button>
+                        </DialogClose>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
             <PeriodSelectionDialog
                 open={showAttendancePeriodDialog}
-                onClose={() => setShowAttendancePeriodDialog(false)}
+                onClose={() => {
+                    setShowAttendancePeriodDialog(false);
+                    setPendingAttendanceData(null);
+                }}
                 onConfirm={handleAttendancePeriodConfirm}
                 type="attendance"
                 defaultValue={selectedAttendancePeriod || undefined}
@@ -1030,7 +1017,10 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
 
             <PeriodSelectionDialog
                 open={showGradesPeriodDialog}
-                onClose={() => setShowGradesPeriodDialog(false)}
+                onClose={() => {
+                    setShowGradesPeriodDialog(false);
+                    setPendingGradesData(null);
+                }}
                 onConfirm={handleGradesPeriodConfirm}
                 type="grades"
                 defaultValue={selectedGradesPeriod || undefined}
