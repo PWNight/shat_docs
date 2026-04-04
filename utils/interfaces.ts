@@ -79,6 +79,12 @@ export interface UserProfile {
     created_by?: string | null;
 }
 
+export interface Student {
+    id: number;
+    full_name: string;
+    fk_group: number;
+}
+
 export interface TeacherStats {
     students: number;
     avgGrade: number | string;
