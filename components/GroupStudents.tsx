@@ -4,7 +4,7 @@ import { Edit, Trash2, Save, X, User, Loader2, RefreshCw } from "lucide-react";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogClose } from "@/components/ui/Dialog";
 import { GetAttendance, GetGrades, GetStudents, UpdateStudent, DeleteStudent } from "@/utils/handlers";
 import { exportGradesToWord, exportToWord } from "@/utils/functions";
-import { Group, Notify, Student, MONTH_NAMES, SEMESTER_NAMES } from "@/utils/interfaces";
+import { Group, Notify, Student, MONTH_NAMES, SEMESTER_NAMES, AttendanceStudent, AttendanceTotal, GradeStudent } from "@/utils/interfaces";
 
 interface GroupStudentsProps {
     groupId: string;
@@ -52,13 +52,13 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
                 const attendanceRes = await GetAttendance(groupId, reportPeriod);
                 if (!attendanceRes.success) throw new Error(attendanceRes.message || 'Ошибка загрузки посещаемости');
 
-                const reportStudents = attendanceRes.data.filter((item: any) => selectedStudentNames.includes(item.fullName));
+                const reportStudents = attendanceRes.data.filter((item: AttendanceStudent) => selectedStudentNames.includes(item.fullName));
                 if (!reportStudents.length) {
                     setNotify({ message: 'Нет данных посещаемости для выбранных студентов', type: 'warning' });
                     return;
                 }
 
-                const total = reportStudents.reduce((acc: any, student: any) => ({
+                const total = reportStudents.reduce((acc: AttendanceTotal, student: AttendanceStudent) => ({
                     fullDaysTotal: acc.fullDaysTotal + Number(student.fullDaysTotal || 0),
                     fullDaysSick: acc.fullDaysSick + Number(student.fullDaysSick || 0),
                     lessonsTotal: acc.lessonsTotal + Number(student.lessonsTotal || 0),
@@ -84,7 +84,7 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
                 const gradesRes = await GetGrades(groupId, reportPeriod);
                 if (!gradesRes.success) throw new Error(gradesRes.message || 'Ошибка загрузки успеваемости');
 
-                const reportStudents = gradesRes.data.filter((item: any) => selectedStudentNames.includes(item.fullName));
+                const reportStudents = gradesRes.data.filter((item: GradeStudent) => selectedStudentNames.includes(item.fullName));
                 if (!reportStudents.length) {
                     setNotify({ message: 'Нет данных успеваемости для выбранных студентов', type: 'warning' });
                     return;
@@ -106,7 +106,7 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
         }
     };
 
-    const handleEdit = (student: any) => {
+    const handleEdit = (student: Student) => {
         setEditingStudent(student.id);
         setEditName(student.full_name);
     };

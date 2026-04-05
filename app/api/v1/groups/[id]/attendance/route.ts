@@ -22,7 +22,7 @@ export async function GET(request: NextRequest, {params}: { params: Promise<{ id
                 period_month as periodMonth
             FROM attendance WHERE fk_group = ?`;
 
-        const params_arr: any[] = [id];
+        const params_arr: (string | number)[] = [id];
 
         if (periodMonth) {
             query += ` AND period_month = ?`;

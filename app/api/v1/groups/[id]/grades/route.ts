@@ -10,7 +10,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         let sqlQuery = `SELECT full_name as fullName, subjects_json as subjects, average_score as averageScore, period_semester as periodSemester
              FROM grades WHERE fk_group = ?`;
 
-        const queryParams: any[] = [id];
+        const queryParams: (string | number)[] = [id];
 
         if (periodSemester) {
             sqlQuery += ` AND period_semester = ?`;

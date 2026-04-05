@@ -15,7 +15,7 @@ export async function PATCH(
         }
 
         // 1. Получаем текущие данные студента, чтобы знать старое имя
-        const oldStudent = await queryOne<any>(
+        const oldStudent = await queryOne<{ full_name: string }>(
             'SELECT full_name FROM students WHERE id = ? AND fk_group = ?',
             [studentId, groupId]
         );
@@ -64,7 +64,7 @@ export async function DELETE(
         const groupId = id;
 
         // 1. Сначала узнаем ФИО студента перед удалением
-        const student = await queryOne<any>(
+        const student = await queryOne<{ full_name: string }>(
             'SELECT full_name FROM students WHERE id = ? AND fk_group = ?',
             [studentId, groupId]
         );
