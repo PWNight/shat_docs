@@ -160,7 +160,7 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
                     <button
                         onClick={refreshStudents}
                         disabled={isRefreshing}
-                        className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-1 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Обновить список студентов"
                     >
                         <RefreshCw size={16} className={isRefreshing ? "animate-spin" : ""} />
@@ -178,7 +178,7 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
                     <button
                         type="button"
                         onClick={toggleSelectAll}
-                        className="inline-flex items-center justify-center rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-blue-600 shadow-sm hover:bg-blue-50 transition dark:border-blue-900 dark:bg-zinc-950 dark:text-blue-300"
+                        className="inline-flex items-center justify-center rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50 transition dark:border-blue-900 dark:bg-zinc-950 dark:text-blue-300"
                     >
                         {selectedStudentIds.length === students.length ? 'Снять выбор' : 'Выбрать всех'}
                     </button>
@@ -238,7 +238,7 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
                     type="button"
                     onClick={generateReport}
                     disabled={isGenerating || selectedStudentIds.length === 0 || reportPeriod === null}
-                    className="inline-flex items-center justify-center rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center justify-center rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {isGenerating ? 'Формирование...' : 'Скачать отчёт'}
                 </button>

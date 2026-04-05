@@ -97,7 +97,7 @@ export default function PeriodSelectionDialog({
                     <Button
                         onClick={handleConfirm}
                         disabled={selectedPeriod === null}
-                        className="w-full rounded-xl bg-blue-600 px-5 py-3 text-white font-semibold shadow-lg shadow-blue-500/30 transition hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full rounded-xl bg-blue-600 px-5 py-3 text-white font-semibold transition hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         Подтвердить
                     </Button>
