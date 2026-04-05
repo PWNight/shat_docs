@@ -37,6 +37,9 @@
     "rehype-prism-plus": "^2.0.2",
     "rehype-slug": "^6.0.0",
     "remark-gfm": "^4.0.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-dist": "^5.32.1",
+    "swagger-ui-react": "^5.32.1",
     "tailwind-merge": "^3.5.0",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^4.3.6"
@@ -49,6 +52,8 @@
     "@types/node": "25.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-react": "^5.18.0",
     "@typescript-eslint/parser": "^8.58.0",
     "baseline-browser-mapping": "^2.10.14",
     "eslint": "^10.2.0",
