@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
 import { queryOne, execute } from '@/utils/mysql';
+import { Student } from '@/utils/interfaces';
+import { RowDataPacket } from 'mysql2';
+
+type StudentRow = Student & RowDataPacket;
 
 export async function PATCH(
     req: Request,
@@ -15,7 +19,7 @@ export async function PATCH(
         }
 
         // 1. Получаем текущие данные студента, чтобы знать старое имя
-        const oldStudent = await queryOne<{ full_name: string }>(
+        const oldStudent = await queryOne<StudentRow>(
             'SELECT full_name FROM students WHERE id = ? AND fk_group = ?',
             [studentId, groupId]
         );
@@ -64,7 +68,7 @@ export async function DELETE(
         const groupId = id;
 
         // 1. Сначала узнаем ФИО студента перед удалением
-        const student = await queryOne<{ full_name: string }>(
+        const student = await queryOne<StudentRow>(
             'SELECT full_name FROM students WHERE id = ? AND fk_group = ?',
             [studentId, groupId]
         );
