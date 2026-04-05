@@ -1,11 +1,11 @@
 "use client"
 import React, { useState } from 'react';
 import {
-    Dialog, DialogTrigger, DialogContent, DialogHeader,
+    Dialog, DialogContent, DialogHeader,
     DialogTitle, DialogFooter, DialogDescription, DialogClose
 } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
-import { MONTH_NAMES, SEMESTER_NAMES, MonthNumber, SemesterNumber } from "@/utils/interfaces";
+import { MONTH_NAMES, SEMESTER_NAMES } from "@/utils/interfaces";
 
 interface PeriodSelectionDialogProps {
     open: boolean;

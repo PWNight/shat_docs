@@ -17,7 +17,7 @@ import GroupGrades from "@/components/GroupGrades";
 import GroupStudents from "@/components/GroupStudents";
 import ErrorMessage from "@/components/NotifyAlert";
 import { getSession, SessionPayload } from "@/utils/session";
-import { GetGroup, GetUsersList, UpdateGroup, DeleteGroup, GetStudents, UpdateStudent, DeleteStudent } from "@/utils/handlers";
+import { GetGroup, GetUsersList, UpdateGroup, DeleteGroup, GetStudents } from "@/utils/handlers";
 import { Group, Notify, Student } from "@/utils/interfaces";
 
 interface UserListItem { id: number; full_name: string; }
