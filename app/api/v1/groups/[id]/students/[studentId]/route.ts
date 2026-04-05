@@ -5,6 +5,7 @@ import { RowDataPacket } from 'mysql2';
 
 type StudentRow = Student & RowDataPacket;
 
+// Обновление информации о студенте
 export async function PATCH(
     req: Request,
     { params }: { params: Promise<{ id: string; studentId: string }> }
@@ -59,6 +60,7 @@ export async function PATCH(
     }
 }
 
+// Удаление студента и всех связанных данных
 export async function DELETE(
     req: Request,
     { params }: { params: Promise<{ id: string; studentId: string }> }

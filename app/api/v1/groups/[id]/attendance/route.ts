@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { execute } from "@/utils/mysql";
 import { getSession } from "@/utils/session";
 
+// Получение посещаемости за конкретный период
 export async function GET(request: NextRequest, {params}: { params: Promise<{ id: string }> }) {
     try {
         const userData = await getSession();

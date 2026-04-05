@@ -2,7 +2,7 @@ import {NextRequest, NextResponse} from "next/server";
 import {queryOne} from "@/utils/mysql";
 import {getSession} from "@/utils/session";
 
-// GET USER BY ID
+// Получение пользователя
 export async function GET(_request: NextRequest, {params}: { params: Promise<{ id: string }> }) {
     try{
         const userData = await getSession();

@@ -4,7 +4,7 @@ import {getSession} from "@/utils/session";
 import {GroupFormSchema} from "@/utils/definitions";
 import {z} from "zod";
 
-// GET GROUP BY ID
+// Получение группы
 export async function GET(_request: NextRequest, {params}: { params: Promise<{ id: string }> }) {
     try{
         const userData = await getSession();
@@ -39,7 +39,7 @@ export async function GET(_request: NextRequest, {params}: { params: Promise<{ i
     }
 }
 
-// UPDATE GROUP BY ID
+// Обновление информации о группе
 export async function POST(request: NextRequest, {params}: { params: Promise<{ id: string }> }) {
     try{
         const userData = await getSession();
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest, {params}: { params: Promise<{ i
         );
     }
 }
-// DELETE GROUP BY ID
+// Удаление группы
 export async function DELETE(request: NextRequest, {params}: { params: Promise<{ id: string }> }) {
     try{
         const userData = await getSession();

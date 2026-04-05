@@ -3,7 +3,7 @@ import {query, execute} from "@/utils/mysql";
 import {getSession} from "@/utils/session";
 
 
-// GET STUDENTS BY GROUP ID
+// Получение списка студентов
 export async function GET(_request: NextRequest, {params}: { params: Promise<{ id: string }> }) {
     try{
         const userData = await getSession();
@@ -35,7 +35,7 @@ export async function GET(_request: NextRequest, {params}: { params: Promise<{ i
     }
 }
 
-// POST - CREATE STUDENTS
+// Создание нового студента
 export async function POST(request: NextRequest, {params}: { params: Promise<{ id: string }> }) {
     try {
         const userData = await getSession();

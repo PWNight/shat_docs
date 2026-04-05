@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { execute, query } from "@/utils/mysql";
 
+// Получение успеваемости за конкретный период
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const { id } = await params;
@@ -30,6 +31,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 }
 
+// Добавление успеваемости за конкретный период
 export async function POST(request: NextRequest) {
     try {
         const { groupId, students } = await request.json();
@@ -51,7 +53,7 @@ export async function POST(request: NextRequest) {
     }
 }
 
-// Удаление записей успеваемости за конкретный период
+// Удаление успеваемости за конкретный период
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const { id } = await params;

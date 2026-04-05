@@ -3,6 +3,7 @@ import {execute, query, queryOne} from "@/utils/mysql";
 import {createSession, getSession} from "@/utils/session";
 import bcrypt from "bcrypt";
 
+// Получение списка пользователей
 export async function GET() {
     try {
         const userData = await getSession();
@@ -19,6 +20,7 @@ export async function GET() {
     }
 }
 
+// Обновление информации о пользователе
 export async function POST(req: Request) {
     try {
         const session = await getSession();

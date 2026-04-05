@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { queryOne } from "@/utils/mysql";
 import { getSession } from "@/utils/session";
 
+// Получение статистики о группе пользователя
 export async function GET() {
     try {
         const session = await getSession();

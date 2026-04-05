@@ -4,7 +4,7 @@ import {GroupFormSchema} from "@/utils/definitions";
 import {z} from "zod";
 import {getSession} from "@/utils/session";
 
-// GET ALL GROUPS
+// Получение списка групп
 export async function GET() {
     try{
         const userData = await getSession();
@@ -35,7 +35,7 @@ export async function GET() {
     }
 }
 
-// CREATE NEW GROUP
+// Создание новой группы
 export async function POST(request: NextRequest) {
     try {
         const userData = await getSession();
