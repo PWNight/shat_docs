@@ -7,25 +7,30 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/Breadcrumb";
 import { Fragment } from "react";
+import Link from "next/link";
 
 export default function WikiBreadcrumb({ paths }: { paths: string[] }) {
   return (
       <div className="pb-5">
-        <Breadcrumb>
-          <BreadcrumbList>
+        <Breadcrumb className="overflow-x-auto">
+          <BreadcrumbList className="w-max flex-nowrap rounded-lg border border-border/70 bg-muted/30 px-3 py-2 text-xs sm:text-sm">
             <BreadcrumbItem>
-              <BreadcrumbLink>Wiki</BreadcrumbLink>
+              <BreadcrumbLink asChild>
+                <Link href="/wiki">Wiki</Link>
+              </BreadcrumbLink>
             </BreadcrumbItem>
             {paths.map((path, index) => (
                 <Fragment key={path}>
                   <BreadcrumbSeparator />
                   <BreadcrumbItem>
                     {index < paths.length - 1 ? (
-                        <BreadcrumbLink className="a">
+                        <BreadcrumbLink asChild>
+                          <Link href={`/wiki/${paths.slice(0, index + 1).join("/")}`}>
                           {toTitleCase(path)}
+                          </Link>
                         </BreadcrumbLink>
                     ) : (
-                        <BreadcrumbPage className="b">
+                        <BreadcrumbPage>
                           {toTitleCase(path)}
                         </BreadcrumbPage>
                     )}

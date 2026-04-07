@@ -23,9 +23,12 @@ export default async function WikiPage({ params }: PageProps) {
     if (!res) notFound();
 
     return (
-        <div className="flex items-start gap-8 lg:gap-12 px-4 sm:px-6 lg:px-8">
-            <div className="flex-12 py-6">
+        <div className="flex flex-col lg:flex-row items-start gap-6 lg:gap-12 px-4 sm:px-6 lg:px-8">
+            <div className="w-full lg:flex-12 py-6">
                 <WikiBreadcrumb paths={breadcrumbPaths} />
+                <div className="mb-6 lg:hidden">
+                    <Toc path={pathName} />
+                </div>
                 <Typography>
                     <h1 className="sm:text-3xl text-2xl font-bold text-foreground mb-2">
                         {res.frontmatter.title}
@@ -45,7 +48,9 @@ export default async function WikiPage({ params }: PageProps) {
                     </div>
                 </Typography>
             </div>
-            <Toc path={pathName} />
+            <div className="hidden lg:block sticky top-20 h-[calc(100vh-5rem)] w-[280px] shrink-0 py-6">
+                <Toc path={pathName} />
+            </div>
         </div>
     );
 }
