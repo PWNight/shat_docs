@@ -8,6 +8,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, Clock3, Shield, Users, UserCog, Layers, KeyRound, Trash2, Save, PlusCircle, Loader2, ArrowUpRight } from "lucide-react";
 import { getSession } from "@/utils/session";
 import { useRouter } from "next/navigation";
+import NotifyAlert from "@/components/NotifyAlert";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/Dialog";
 
 type AdminUser = {
     id: number;
@@ -48,6 +50,7 @@ export default function AdminPage() {
     const [userData, setUserData] = useState<{ email: string; uid: number }>(Object);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [notify, setNotify] = useState<{ message: string; type: string }>({ message: "", type: "" });
     const [tab, setTab] = useState<TabType>("groups");
     const [newPasswords, setNewPasswords] = useState<Record<number, string>>({});
     const [newGroupName, setNewGroupName] = useState("");
@@ -57,6 +60,13 @@ export default function AdminPage() {
     const [busy, setBusy] = useState(false);
     const [actionKey, setActionKey] = useState<string | null>(null);
     const [selectedAccessUserId, setSelectedAccessUserId] = useState("");
+    const [groupEditId, setGroupEditId] = useState<number | null>(null);
+    const [groupDeleteId, setGroupDeleteId] = useState<number | null>(null);
+    const [userEditId, setUserEditId] = useState<number | null>(null);
+    const [userDeleteId, setUserDeleteId] = useState<number | null>(null);
+    const [userResetId, setUserResetId] = useState<number | null>(null);
+    const [resetRequestDialogId, setResetRequestDialogId] = useState<number | null>(null);
+    const [resetPasswordDraft, setResetPasswordDraft] = useState("");
     const router = useRouter();
 
     const load = useCallback(async (silent: boolean = false) => {
@@ -77,28 +87,34 @@ export default function AdminPage() {
             setData(response.data);
             
         } catch (e) {
-            setError(e instanceof Error ? e.message : "Ошибка загрузки админ панели");
+            const message = e instanceof Error ? e.message : "Ошибка загрузки админ панели";
+            setError(message);
+            setNotify({ message, type: "error" });
         } finally {
             if (!silent) {
                 setLoading(false);
             }
         }
-    }, []);
+    }, [router]);
 
     useEffect(() => {
         void load();
     }, [load]);
 
-    const runAction = async (action: () => Promise<void>, key: string, reloadAfter: boolean = true) => {
+    const runAction = async (action: () => Promise<void>, key: string, successMessage?: string, reloadAfter: boolean = true) => {
         setBusy(true);
         setActionKey(key);
         try {
             await action();
+            if (successMessage) {
+                setNotify({ message: successMessage, type: "success" });
+            }
             if (reloadAfter) {
                 await load(true);
             }
         } catch (e) {
-            setError(e instanceof Error ? e.message : "Ошибка выполнения операции");
+            const message = e instanceof Error ? e.message : "Ошибка выполнения операции";
+            setNotify({ message, type: "error" });
         } finally {
             setBusy(false);
             setActionKey(null);
@@ -108,13 +124,13 @@ export default function AdminPage() {
     const approve = async (userId: number) => {
         await runAction(async () => {
             await apiPost(`/api/v2/admin/registrations/${userId}/approve`);
-        }, `approve-${userId}`);
+        }, `approve-${userId}`, "Заявка подтверждена");
     };
 
     const reject = async (userId: number) => {
         await runAction(async () => {
             await apiPost(`/api/v2/admin/registrations/${userId}/reject`);
-        }, `reject-${userId}`);
+        }, `reject-${userId}`, "Заявка отклонена");
     };
 
     const toggleAccess = async (userId: number) => {
@@ -138,32 +154,33 @@ export default function AdminPage() {
                     },
                 };
             });
-        }, `toggle-${userId}`, false);
+        }, `toggle-${userId}`, "Права доступа обновлены", false);
     };
 
     const resolveReset = async (requestId: number) => {
         const nextPassword = (newPasswords[requestId] || "").trim();
         if (!nextPassword || nextPassword.length < 8) {
-            alert("Введите новый пароль длиной минимум 8 символов");
+            setNotify({ message: "Введите новый пароль длиной минимум 8 символов", type: "warning" });
             return;
         }
         await runAction(async () => {
             await apiPost(`/api/v2/admin/password-resets/${requestId}/resolve`, { newPassword: nextPassword });
             setNewPasswords((prev) => ({ ...prev, [requestId]: "" }));
-        }, `reset-${requestId}`);
+            setResetRequestDialogId(null);
+        }, `reset-${requestId}`, "Пароль по заявке обновлен");
     };
 
     const createGroup = async () => {
         const fkUser = Number(newGroupTeacherId);
         if (!newGroupName.trim() || !Number.isFinite(fkUser) || fkUser <= 0) {
-            alert("Укажите название группы и корректный ID преподавателя");
+            setNotify({ message: "Укажите название группы и корректного преподавателя", type: "warning" });
             return;
         }
         await runAction(async () => {
             await apiPost("/api/v2/admin/groups", { name: newGroupName.trim(), fk_user: fkUser });
             setNewGroupName("");
             setNewGroupTeacherId("");
-        }, "create-group");
+        }, "create-group", "Группа создана");
     };
 
     const saveGroup = async (groupId: number) => {
@@ -180,16 +197,17 @@ export default function AdminPage() {
             }).then(async (res) => {
                 if (!res.ok) throw new Error((await res.json()).message || "Ошибка обновления группы");
             });
-        }, `save-group-${groupId}`);
+            setGroupEditId(null);
+        }, `save-group-${groupId}`, "Группа обновлена");
     };
 
     const deleteGroup = async (groupId: number) => {
-        if (!confirm("Удалить группу? Это удалит связанные данные посещаемости/оценок/студентов.")) return;
         await runAction(async () => {
             await fetch(`/api/v2/admin/groups/${groupId}`, { method: "DELETE" }).then(async (res) => {
                 if (!res.ok) throw new Error((await res.json()).message || "Ошибка удаления группы");
             });
-        }, `delete-group-${groupId}`);
+            setGroupDeleteId(null);
+        }, `delete-group-${groupId}`, "Группа удалена");
     };
 
     const saveUser = async (userId: number) => {
@@ -206,37 +224,70 @@ export default function AdminPage() {
             }).then(async (res) => {
                 if (!res.ok) throw new Error((await res.json()).message || "Ошибка обновления пользователя");
             });
-        }, `save-user-${userId}`);
+            setUserEditId(null);
+        }, `save-user-${userId}`, "Пользователь обновлен");
     };
 
     const deleteUser = async (userId: number) => {
-        if (!confirm("Удалить пользователя? Действие необратимо.")) return;
         await runAction(async () => {
             await fetch(`/api/v2/admin/users/${userId}`, { method: "DELETE" }).then(async (res) => {
                 if (!res.ok) throw new Error((await res.json()).message || "Ошибка удаления пользователя");
             });
-        }, `delete-user-${userId}`);
+            setUserDeleteId(null);
+        }, `delete-user-${userId}`, "Пользователь удален");
     };
 
     const resetUserPasswordDirect = async (userId: number) => {
-        const newPassword = prompt("Введите новый пароль (мин. 8 символов)");
-        if (!newPassword) return;
-        if (newPassword.trim().length < 8) {
-            alert("Пароль должен быть длиной минимум 8 символов");
+        const newPassword = resetPasswordDraft.trim();
+        if (newPassword.length < 8) {
+            setNotify({ message: "Пароль должен быть длиной минимум 8 символов", type: "warning" });
             return;
         }
         await runAction(async () => {
-            await apiPost(`/api/v2/admin/users/${userId}/reset-password`, { newPassword: newPassword.trim() });
-        }, `direct-reset-${userId}`);
+            await apiPost(`/api/v2/admin/users/${userId}/reset-password`, { newPassword });
+            setUserResetId(null);
+            setResetPasswordDraft("");
+        }, `direct-reset-${userId}`, "Пароль пользователя обновлен");
     };
 
-    if (loading) return <div className="p-8">Загрузка...</div>;
-    if (error) return <div className="p-8 text-red-500">Ошибка: {error}</div>;
+    if (loading) {
+        return (
+            <div className="min-h-[70vh] flex items-center justify-center p-6">
+                <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-sm">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="h-10 w-10 rounded-xl bg-blue-600 text-white flex items-center justify-center">
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                        </div>
+                        <div>
+                            <p className="font-semibold">Загружаю админ-панель</p>
+                            <p className="text-sm text-muted-foreground">Подготавливаю данные групп, пользователей и логов</p>
+                        </div>
+                    </div>
+                    <div className="grid gap-2">
+                        <div className="h-2 rounded-full bg-muted overflow-hidden">
+                            <motion.div
+                                className="h-full w-1/3 bg-blue-600 rounded-full"
+                                animate={{ x: ["-20%", "220%"] }}
+                                transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                            />
+                        </div>
+                        <div className="text-xs text-muted-foreground">Это займет несколько секунд</div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
     if (!data) return null;
     const teacherOptions = data.users.filter((u) => u.registration_status === "approved");
+    const editingGroup = groupEditId ? data.groups.find((g) => g.id === groupEditId) : null;
+    const editingUser = userEditId ? data.users.find((u) => u.id === userEditId) : null;
+    const deletingGroup = groupDeleteId ? data.groups.find((g) => g.id === groupDeleteId) : null;
+    const deletingUser = userDeleteId ? data.users.find((u) => u.id === userDeleteId) : null;
+    const resettingUser = userResetId ? data.users.find((u) => u.id === userResetId) : null;
 
     return (
         <div className="relative w-full animate-in fade-in duration-500 bg-background min-h-screen p-4 sm:p-6">
+            {notify.message ? <NotifyAlert message={notify.message} type={notify.type} onClose={() => setNotify({ message: "", type: "" })} /> : null}
             <div className="mx-auto max-w-7xl grid gap-6">
             <div className="grid md:grid-cols-[1fr_auto] items-start md:items-center gap-4 border-b border-border/70 pb-5">
                 <div>
@@ -287,7 +338,7 @@ export default function AdminPage() {
                                     <option key={u.id} value={u.id}>{u.full_name} ({u.email})</option>
                                 ))}
                             </select>
-                            <ActionButton loading={actionKey === "create-group"} disabled={busy} onClick={createGroup} className="rounded-xl bg-blue-600 text-white font-semibold px-3 py-2 hover:bg-blue-700 disabled:opacity-60 flex items-center justify-center gap-2">
+                            <ActionButton loading={actionKey === "create-group"} disabled={busy} onClick={createGroup} className="rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white font-semibold px-3 py-2 text-sm transition-all disabled:opacity-60 flex items-center justify-center gap-2">
                                 <PlusCircle className="w-4 h-4" /> Создать
                             </ActionButton>
                         </div>
@@ -295,7 +346,6 @@ export default function AdminPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                     {data.groups.map((group) => {
                         const isOwner = group.fk_user === userData.uid;
-                        const draft = groupDrafts[group.id] || { name: group.name, fk_user: String(group.fk_user) };
                         const stat = data.groupStats.find((g) => g.id === group.id);
                         const attendancePercent = stat && stat.lessons_total > 0
                             ? (((stat.lessons_total - stat.lessons_sick) / stat.lessons_total) * 100).toFixed(1)
@@ -327,20 +377,19 @@ export default function AdminPage() {
                                     <p>Студентов: {stat?.students_count ?? 0} | Ср. балл: {stat?.avg_grade ?? "—"}</p>
                                     <p>Посещаемость: {attendancePercent}% | Опоздания: {stat?.late_total ?? 0}</p>
                                 </div>
-                                <div className="flex flex-col gap-2 mt-auto w-full">
-                                    <input className="border border-border rounded-xl px-3 py-2 bg-background" value={draft.name} onChange={(e) => setGroupDrafts((prev) => ({ ...prev, [group.id]: { ...draft, name: e.target.value } }))} />
-                                    <select className="border border-border rounded-xl px-3 py-2 bg-background" value={draft.fk_user} onChange={(e) => setGroupDrafts((prev) => ({ ...prev, [group.id]: { ...draft, fk_user: e.target.value } }))}>
-                                        <option value="">Выберите преподавателя</option>
-                                        {teacherOptions.map((u) => (
-                                            <option key={u.id} value={u.id}>{u.full_name} ({u.email})</option>
-                                        ))}
-                                    </select>
-                                    <div className="flex sm:flex-row flex-col gap-2 w-full items-center">
-                                        <ActionButton loading={actionKey === `save-group-${group.id}`} disabled={busy} onClick={() => saveGroup(group.id)} className="w-full rounded-xl bg-emerald-600 text-white px-3 py-2 hover:bg-emerald-700 disabled:opacity-60 flex items-center gap-2"><Save className="w-4 h-4" /> Сохранить</ActionButton>
-                                        <ActionButton loading={actionKey === `delete-group-${group.id}`} disabled={busy} onClick={() => deleteGroup(group.id)} className="w-full rounded-xl bg-rose-600 text-white px-3 py-2 hover:bg-rose-700 disabled:opacity-60 flex items-center gap-2"><Trash2 className="w-4 h-4" /> Удалить</ActionButton>
+                                <div className="flex sm:flex-row flex-col gap-2 w-full items-center mt-auto">
+                                    <button
+                                        className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-3 py-2 text-sm font-medium transition-all"
+                                        onClick={() => {
+                                            setGroupDrafts((prev) => ({ ...prev, [group.id]: { name: group.name, fk_user: String(group.fk_user) } }));
+                                            setGroupEditId(group.id);
+                                        }}
+                                    >
+                                        Редактировать
+                                    </button>
+                                    <ActionButton loading={actionKey === `delete-group-${group.id}`} disabled={busy} onClick={() => setGroupDeleteId(group.id)} className="w-full rounded-lg bg-red-50 dark:bg-zinc-700/50 text-red-600 dark:text-red-500 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 dark:hover:text-white px-3 py-2 text-sm font-medium transition-colors disabled:opacity-60 flex items-center justify-center gap-2"><Trash2 className="w-4 h-4" /> Удалить</ActionButton>
                                     </div>
                                 </div>
-                            </div>
                         );
                     })}
                     </div>
@@ -350,51 +399,29 @@ export default function AdminPage() {
             {tab === "users" ? (
                 <section className="grid gap-5">
                     <h2 className="text-xl font-bold">Пользователи и безопасность</h2>
-                    <div className="grid md:grid-cols-[1fr_auto] gap-3 items-end border border-border rounded-xl p-3">
-                        <select className="border border-border rounded-xl px-3 py-2 bg-background" value={selectedAccessUserId} onChange={(e) => setSelectedAccessUserId(e.target.value)}>
-                            <option value="">Выберите преподавателя для выдачи/отзыва доступа</option>
-                            {teacherOptions.map((u) => (
-                                <option key={u.id} value={u.id}>{u.full_name} ({u.email})</option>
-                            ))}
-                        </select>
-                        <ActionButton
-                            loading={actionKey === `toggle-${selectedAccessUserId}`}
-                            disabled={busy || !selectedAccessUserId}
-                            className="px-3 py-2 rounded bg-blue-600 text-white disabled:opacity-60 hover:bg-blue-700"
-                            onClick={() => toggleAccess(Number(selectedAccessUserId))}
-                        >
-                            Выдать / забрать доступ
-                        </ActionButton>
-                    </div>
                     <div className="grid gap-2">
-                        <h3 className="font-semibold">Полное управление пользователями</h3>
                         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-2">
                             {data.users.map((item) => {
-                                const draft = userDrafts[item.id] || { full_name: item.full_name, email: item.email };
                                 return (
                                     <div key={`manage-${item.id}`} className="border border-border rounded-xl p-3 grid gap-2">
                                         <p className="text-xs text-muted-foreground">ID: {item.id} {item.isRoot ? "| root" : ""}</p>
-                                        <input
-                                            className="border border-border rounded-xl px-3 py-2 bg-background"
-                                            value={draft.full_name}
-                                            onChange={(e) => setUserDrafts((prev) => ({ ...prev, [item.id]: { ...draft, full_name: e.target.value } }))}
-                                            placeholder="ФИО"
-                                        />
-                                        <input
-                                            className="border border-border rounded-xl px-3 py-2 bg-background"
-                                            value={draft.email}
-                                            onChange={(e) => setUserDrafts((prev) => ({ ...prev, [item.id]: { ...draft, email: e.target.value } }))}
-                                            placeholder="Email"
-                                        />
+                                        <p className="text-sm">{item.full_name}</p>
+                                        <p className="text-sm text-muted-foreground">{item.email}</p>
                                         <div className="grid grid-cols-2 gap-2">
-                                            <ActionButton loading={actionKey === `save-user-${item.id}`} disabled={busy} className="px-3 py-2 rounded bg-emerald-600 text-white disabled:opacity-60 flex items-center justify-center gap-1 hover:bg-emerald-700" onClick={() => saveUser(item.id)}>
-                                                <Save className="w-4 h-4" /> Сохранить
-                                            </ActionButton>
-                                            <ActionButton loading={actionKey === `direct-reset-${item.id}`} disabled={busy} className="px-3 py-2 rounded bg-violet-600 text-white disabled:opacity-60 hover:bg-violet-700" onClick={() => resetUserPasswordDirect(item.id)}>
+                                            <button
+                                                className="flex items-center justify-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-medium rounded-lg text-sm transition-all"
+                                                onClick={() => {
+                                                    setUserDrafts((prev) => ({ ...prev, [item.id]: { full_name: item.full_name, email: item.email } }));
+                                                    setUserEditId(item.id);
+                                                }}
+                                            >
+                                                <Save className="w-4 h-4" /> Редактировать
+                                            </button>
+                                            <button className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white text-sm font-medium transition-all" onClick={() => { setResetPasswordDraft(""); setUserResetId(item.id); }}>
                                                 Сброс пароля
-                                            </ActionButton>
+                                            </button>
                                         </div>
-                                        <ActionButton loading={actionKey === `delete-user-${item.id}`} disabled={busy || item.isRoot === 1} className="px-3 py-2 rounded bg-rose-600 text-white disabled:opacity-60 hover:bg-rose-700" onClick={() => deleteUser(item.id)}>
+                                        <ActionButton loading={actionKey === `delete-user-${item.id}`} disabled={busy || item.isRoot === 1} className="px-3 py-2 rounded-lg bg-red-50 dark:bg-zinc-700/50 text-red-600 dark:text-red-500 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 dark:hover:text-white text-sm font-medium transition-colors disabled:opacity-60" onClick={() => setUserDeleteId(item.id)}>
                                             Удалить пользователя
                                         </ActionButton>
                                     </div>
@@ -410,8 +437,8 @@ export default function AdminPage() {
                             <div key={item.id} className="border border-border rounded-xl p-3 grid gap-3">
                                 <div><p>{item.full_name}</p><p className="text-sm text-muted-foreground">{item.email}</p></div>
                                 <div className="flex gap-2">
-                                    <ActionButton loading={actionKey === `approve-${item.id}`} disabled={busy} className="px-3 py-1 rounded bg-emerald-600 text-white disabled:opacity-60 flex items-center gap-1 hover:bg-emerald-700" onClick={() => approve(item.id)}><CheckCircle2 className="w-4 h-4" /> Подтвердить</ActionButton>
-                                    <ActionButton loading={actionKey === `reject-${item.id}`} disabled={busy} className="px-3 py-1 rounded bg-rose-600 text-white disabled:opacity-60 hover:bg-rose-700" onClick={() => reject(item.id)}>Отклонить</ActionButton>
+                                    <ActionButton loading={actionKey === `approve-${item.id}`} disabled={busy} className="px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white text-sm font-medium transition-all disabled:opacity-60 flex items-center gap-1" onClick={() => approve(item.id)}><CheckCircle2 className="w-4 h-4" /> Подтвердить</ActionButton>
+                                    <ActionButton loading={actionKey === `reject-${item.id}`} disabled={busy} className="px-3 py-1.5 rounded-lg bg-red-50 dark:bg-zinc-700/50 text-red-600 dark:text-red-500 hover:bg-red-500 hover:text-white text-sm font-medium transition-colors disabled:opacity-60" onClick={() => reject(item.id)}>Отклонить</ActionButton>
                                 </div>
                             </div>
                         ))}
@@ -423,7 +450,7 @@ export default function AdminPage() {
                         {data.users.map((item) => (
                             <div key={item.id} className="border border-border rounded-xl p-3 grid gap-3">
                                 <div><p>{item.full_name} {item.isRoot ? "(root)" : ""}</p><p className="text-sm text-muted-foreground">{item.email}</p></div>
-                                <ActionButton loading={actionKey === `toggle-${item.id}`} disabled={busy || item.isRoot === 1} className="px-3 py-1 rounded bg-blue-600 text-white disabled:opacity-60 hover:bg-blue-700" onClick={() => toggleAccess(item.id)}>
+                                <ActionButton loading={actionKey === `toggle-${item.id}`} disabled={busy || item.isRoot === 1} className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white text-sm font-medium transition-all disabled:opacity-60" onClick={() => toggleAccess(item.id)}>
                                     {item.canAccessAdmin ? "Забрать доступ" : "Выдать доступ"}
                                 </ActionButton>
                             </div>
@@ -440,8 +467,9 @@ export default function AdminPage() {
                             <p className="text-sm text-muted-foreground">Статус: {item.status}</p>
                             {item.status === "pending" ? (
                                 <div className="grid sm:grid-cols-[1fr_auto] gap-2">
-                                    <input className="border border-border rounded-xl px-3 py-2 bg-background" placeholder="Новый пароль" value={newPasswords[item.id] || ""} onChange={(e) => setNewPasswords((prev) => ({ ...prev, [item.id]: e.target.value }))} />
-                                    <ActionButton loading={actionKey === `reset-${item.id}`} disabled={busy} className="rounded-xl bg-violet-600 text-white px-3 py-2 hover:bg-violet-700 disabled:opacity-60" onClick={() => resolveReset(item.id)}>Сбросить пароль</ActionButton>
+                                    <button className="rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-3 py-2 text-sm font-medium transition-all" onClick={() => setResetRequestDialogId(item.id)}>
+                                        Открыть диалог сброса
+                                    </button>
                                 </div>
                             ) : null}
                         </div>
@@ -467,6 +495,97 @@ export default function AdminPage() {
                 </AnimatePresence>
             </div>
             </div>
+
+            <Dialog open={groupEditId !== null} onOpenChange={(open) => !open && setGroupEditId(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Редактирование группы</DialogTitle>
+                        <DialogDescription>Измените название и преподавателя группы.</DialogDescription>
+                    </DialogHeader>
+                    {editingGroup ? (
+                        <div className="grid gap-3">
+                            <input className="border border-border rounded-xl px-3 py-2 bg-background" value={(groupDrafts[editingGroup.id] || { name: editingGroup.name, fk_user: String(editingGroup.fk_user) }).name} onChange={(e) => setGroupDrafts((prev) => ({ ...prev, [editingGroup.id]: { ...(prev[editingGroup.id] || { name: editingGroup.name, fk_user: String(editingGroup.fk_user) }), name: e.target.value } }))} />
+                            <select className="border border-border rounded-xl px-3 py-2 bg-background" value={(groupDrafts[editingGroup.id] || { name: editingGroup.name, fk_user: String(editingGroup.fk_user) }).fk_user} onChange={(e) => setGroupDrafts((prev) => ({ ...prev, [editingGroup.id]: { ...(prev[editingGroup.id] || { name: editingGroup.name, fk_user: String(editingGroup.fk_user) }), fk_user: e.target.value } }))}>
+                                <option value="">Выберите преподавателя</option>
+                                {teacherOptions.map((u) => <option key={u.id} value={u.id}>{u.full_name} ({u.email})</option>)}
+                            </select>
+                        </div>
+                    ) : null}
+                    <DialogFooter>
+                        <ActionButton loading={actionKey === `save-group-${groupEditId}`} disabled={busy || !groupEditId} onClick={() => groupEditId && saveGroup(groupEditId)} className="rounded-lg bg-green-600 hover:bg-green-700 text-white px-4 py-2">Сохранить</ActionButton>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={groupDeleteId !== null} onOpenChange={(open) => !open && setGroupDeleteId(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Удаление группы</DialogTitle>
+                        <DialogDescription>Удалить группу «{deletingGroup?.name || ""}»? Это удалит связанные данные посещаемости, оценок и студентов.</DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <ActionButton loading={actionKey === `delete-group-${groupDeleteId}`} disabled={busy || !groupDeleteId} onClick={() => groupDeleteId && deleteGroup(groupDeleteId)} className="rounded-lg bg-red-600 hover:bg-red-700 text-white px-4 py-2">Да, удалить</ActionButton>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={userEditId !== null} onOpenChange={(open) => !open && setUserEditId(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Редактирование пользователя</DialogTitle>
+                        <DialogDescription>Измените ФИО и email пользователя.</DialogDescription>
+                    </DialogHeader>
+                    {editingUser ? (
+                        <div className="grid gap-3">
+                            <input className="border border-border rounded-xl px-3 py-2 bg-background" value={(userDrafts[editingUser.id] || { full_name: editingUser.full_name, email: editingUser.email }).full_name} onChange={(e) => setUserDrafts((prev) => ({ ...prev, [editingUser.id]: { ...(prev[editingUser.id] || { full_name: editingUser.full_name, email: editingUser.email }), full_name: e.target.value } }))} />
+                            <input className="border border-border rounded-xl px-3 py-2 bg-background" value={(userDrafts[editingUser.id] || { full_name: editingUser.full_name, email: editingUser.email }).email} onChange={(e) => setUserDrafts((prev) => ({ ...prev, [editingUser.id]: { ...(prev[editingUser.id] || { full_name: editingUser.full_name, email: editingUser.email }), email: e.target.value } }))} />
+                        </div>
+                    ) : null}
+                    <DialogFooter>
+                        <ActionButton loading={actionKey === `save-user-${userEditId}`} disabled={busy || !userEditId} onClick={() => userEditId && saveUser(userEditId)} className="rounded-lg bg-green-600 hover:bg-green-700 text-white px-4 py-2">Сохранить</ActionButton>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={userResetId !== null} onOpenChange={(open) => !open && setUserResetId(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Сброс пароля</DialogTitle>
+                        <DialogDescription>Введите новый пароль для пользователя {resettingUser?.full_name || ""}.</DialogDescription>
+                    </DialogHeader>
+                    <input className="border border-border rounded-xl px-3 py-2 bg-background" placeholder="Новый пароль (минимум 8 символов)" value={resetPasswordDraft} onChange={(e) => setResetPasswordDraft(e.target.value)} />
+                    <DialogFooter>
+                        <ActionButton loading={actionKey === `direct-reset-${userResetId}`} disabled={busy || !userResetId} onClick={() => userResetId && resetUserPasswordDirect(userResetId)} className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2">Обновить пароль</ActionButton>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={userDeleteId !== null} onOpenChange={(open) => !open && setUserDeleteId(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Удаление пользователя</DialogTitle>
+                        <DialogDescription>Удалить пользователя «{deletingUser?.full_name || ""}»? Действие необратимо.</DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <ActionButton loading={actionKey === `delete-user-${userDeleteId}`} disabled={busy || !userDeleteId} onClick={() => userDeleteId && deleteUser(userDeleteId)} className="rounded-lg bg-red-600 hover:bg-red-700 text-white px-4 py-2">Да, удалить</ActionButton>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={resetRequestDialogId !== null} onOpenChange={(open) => !open && setResetRequestDialogId(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Сброс по заявке</DialogTitle>
+                        <DialogDescription>Введите новый пароль для обработки заявки.</DialogDescription>
+                    </DialogHeader>
+                    {resetRequestDialogId ? (
+                        <input className="border border-border rounded-xl px-3 py-2 bg-background" placeholder="Новый пароль (минимум 8 символов)" value={newPasswords[resetRequestDialogId] || ""} onChange={(e) => setNewPasswords((prev) => ({ ...prev, [resetRequestDialogId]: e.target.value }))} />
+                    ) : null}
+                    <DialogFooter>
+                        <ActionButton loading={actionKey === `reset-${resetRequestDialogId}`} disabled={busy || !resetRequestDialogId} onClick={() => resetRequestDialogId && resolveReset(resetRequestDialogId)} className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2">Сбросить пароль</ActionButton>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
@@ -480,19 +599,22 @@ function StatCard({
     label: string;
     value: number;
 }) {
-    const colorMap: Record<string, string> = {
-        "Пользователи": "border-blue-300/80 dark:border-blue-400/45 bg-blue-100/80 dark:bg-blue-400/22",
-        "Ожидают регистрацию": "border-amber-300/80 dark:border-amber-400/45 bg-amber-100/80 dark:bg-amber-400/22",
-        "Админов": "border-violet-300/80 dark:border-violet-400/45 bg-violet-100/80 dark:bg-violet-400/22",
-        "Групп": "border-emerald-300/80 dark:border-emerald-400/45 bg-emerald-100/80 dark:bg-emerald-400/22",
-        "Студентов": "border-cyan-300/80 dark:border-cyan-400/45 bg-cyan-100/80 dark:bg-cyan-400/22",
-        "Сбросов пароля": "border-rose-300/80 dark:border-rose-400/45 bg-rose-100/80 dark:bg-rose-400/22",
+    const colorMap: Record<string, { border: string; icon: string; iconBg: string }> = {
+        "Пользователи": { border: "border-gray-100 dark:border-zinc-700", icon: "text-blue-600 dark:text-blue-400", iconBg: "bg-gray-100 dark:bg-zinc-700/50" },
+        "Ожидают регистрацию": { border: "border-gray-100 dark:border-zinc-700", icon: "text-amber-600 dark:text-amber-400", iconBg: "bg-gray-100 dark:bg-zinc-700/50" },
+        "Админов": { border: "border-gray-100 dark:border-zinc-700", icon: "text-violet-600 dark:text-violet-400", iconBg: "bg-gray-100 dark:bg-zinc-700/50" },
+        "Групп": { border: "border-gray-100 dark:border-zinc-700", icon: "text-emerald-600 dark:text-emerald-400", iconBg: "bg-gray-100 dark:bg-zinc-700/50" },
+        "Студентов": { border: "border-gray-100 dark:border-zinc-700", icon: "text-cyan-600 dark:text-cyan-400", iconBg: "bg-gray-100 dark:bg-zinc-700/50" },
+        "Сбросов пароля": { border: "border-gray-100 dark:border-zinc-700", icon: "text-rose-600 dark:text-rose-400", iconBg: "bg-gray-100 dark:bg-zinc-700/50" },
     };
+    const tone = colorMap[label] || { border: "border-border", icon: "text-muted-foreground", iconBg: "bg-muted" };
     return (
-        <div className={`p-3 rounded-xl border ${colorMap[label] || "border-border bg-card"}`}>
-            <div className="mb-2 text-muted-foreground [&>svg]:w-4 [&>svg]:h-4">{icon}</div>
-            <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">{label}</p>
-            <p className="text-xl font-bold text-foreground leading-tight">{value}</p>
+        <div className={`bg-card p-5 rounded-lg border ${tone.border} shadow-sm hover:shadow-md transition-all duration-300 group`}>
+            <div className={`${tone.iconBg} ${tone.icon} w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110`}>
+                <div className="[&>svg]:w-5 [&>svg]:h-5">{icon}</div>
+            </div>
+            <p className="text-[10px] text-muted-foreground font-bold uppercase mb-1 tracking-wider">{label}</p>
+            <p className="text-2xl font-bold text-foreground leading-none">{value}</p>
         </div>
     );
 }
