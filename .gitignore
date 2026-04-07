@@ -44,3 +44,4 @@ storage.json
 storage.json-shm
 storage.json-wal
 qodana.yaml
+package-lock.json
