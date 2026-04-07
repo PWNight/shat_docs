@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'API Documentation - Shat Docs',
-  description: 'Swagger UI Documentation for Shat Docs API',
+  description: 'API documentation moved to /wiki',
   robots: 'noindex,nofollow',
 };
 
