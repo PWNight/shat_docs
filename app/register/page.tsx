@@ -2,7 +2,7 @@
 import { useActionState, useEffect, useState, Suspense } from "react";
 import { Loader2, User } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import {Register} from "@/utils/handlers";
 import { getSession } from "@/utils/session";
 
@@ -14,22 +14,21 @@ function RegisterForm() {
         values: { email: "" }
     });
     const [showPassword, setShowPassword] = useState(false);
-    const router = useRouter();
     const searchParams = useSearchParams();
 
     const redirectTo = searchParams.get("to") || "/profile";
 
     useEffect(() => {
         if (state?.success) {
-            router.push(redirectTo);
-            router.refresh();
+            window.location.assign(redirectTo);
+            return;
         }
         getSession().then(data => {
             if ( data ) {
-                router.push(redirectTo);
+                window.location.assign(redirectTo);
             }
         })
-    }, [state, router, redirectTo]);
+    }, [state, redirectTo]);
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
