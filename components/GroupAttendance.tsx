@@ -110,7 +110,7 @@ export default function GroupAttendance({ groupId, group, isOwner, setNotify }: 
         if (!isMountedRef.current) return;
         setIsAttendanceLoading(false);
 
-        if (result.success && result.data.length > 0) {
+        if (result.success && result.data && result.data.length > 0) {
             setAttendanceStudents(result.data);
             setIsAttendanceModified(false);
             setNotify({ message: `Загружены данные за ${MONTH_NAMES[period as keyof typeof MONTH_NAMES]}`, type: 'success' });

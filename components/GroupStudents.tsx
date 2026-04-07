@@ -57,7 +57,7 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
         try {
             if (reportType === 'attendance') {
                 const attendanceRes = await GetAttendance(groupId, reportPeriod);
-                if (!attendanceRes.success) throw new Error(attendanceRes.message || 'Ошибка загрузки посещаемости');
+                if (!attendanceRes.success || !attendanceRes.data) throw new Error(attendanceRes.message || 'Ошибка загрузки посещаемости');
 
                 const reportStudents = attendanceRes.data.filter((item: AttendanceStudent) => selectedStudentNames.includes(item.fullName));
                 if (!reportStudents.length) {
@@ -89,7 +89,7 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
                 setNotify({ message: 'Отчёт по посещаемости сформирован', type: 'success' });
             } else {
                 const gradesRes = await GetGrades(groupId, reportPeriod);
-                if (!gradesRes.success) throw new Error(gradesRes.message || 'Ошибка загрузки успеваемости');
+                if (!gradesRes.success || !gradesRes.data) throw new Error(gradesRes.message || 'Ошибка загрузки успеваемости');
 
                 const reportStudents = gradesRes.data.filter((item: GradeStudent) => selectedStudentNames.includes(item.fullName));
                 if (!reportStudents.length) {
@@ -154,7 +154,7 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
         const result = await GetStudents(groupId);
         if (!isMountedRef.current) return;
         setIsRefreshing(false);
-        if (result.success) {
+        if (result.success && result.data) {
             setStudents(result.data);
             setNotify({ message: "Список студентов обновлен", type: 'success' });
         } else {

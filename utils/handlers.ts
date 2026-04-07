@@ -5,7 +5,7 @@ import {
 } from "@/utils/definitions";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/utils/http-client";
 import {z} from "zod";
-import {AttendanceStudent, GradeStudent} from "@/utils/interfaces";
+import {AttendanceStudent, GradeStudent, Group, Student, TeacherStats, UserProfile} from "@/utils/interfaces";
 import { ApiResponseError } from "@/utils/functions";
 import { logger } from "@/utils/logger";
 import { isValidEntityId, isValidMonth, isValidSemester } from "@/utils/validators";
@@ -22,6 +22,10 @@ function toErrorResult(error: unknown, fallback: string) {
 
     return { success: false, message: fallback };
 }
+
+type HandlerResult<T = unknown> =
+    | { success: true; data?: T; message?: string }
+    | { success: false; message: string; code?: string; status?: number };
 
 // Код авторизации
 export async function Login(_prevState: LoginFormState, formData: FormData): Promise<LoginFormState> {
@@ -121,7 +125,7 @@ export async function CreateGroup(_state: GroupFormState, formData: FormData) {
     }
 }
 
-export async function UpdateGroup(id: string, data: object) {
+export async function UpdateGroup(id: string, data: object): Promise<HandlerResult> {
     if (!isValidEntityId(id)) return { success: false, message: "Некорректный id группы" };
     try {
         return await apiPost(`/api/v2/groups/${id}`, data);
@@ -131,7 +135,7 @@ export async function UpdateGroup(id: string, data: object) {
 }
 
 // Код удаления группы
-export async function DeleteGroup(id: string) {
+export async function DeleteGroup(id: string): Promise<HandlerResult> {
     if (!isValidEntityId(id)) return { success: false, message: "Некорректный id группы" };
     try {
         return await apiDelete(`/api/v2/groups/${id}`);
@@ -140,7 +144,7 @@ export async function DeleteGroup(id: string) {
     }
 }
 
-export async function SaveAttendance(groupId: string, students: AttendanceStudent[]) {
+export async function SaveAttendance(groupId: string, students: AttendanceStudent[]): Promise<HandlerResult> {
     if (!isValidEntityId(groupId)) return { success: false, message: "Некорректный id группы" };
     try {
         return await apiPost(`/api/v2/groups/${groupId}/attendance`, { groupId, students });
@@ -149,7 +153,7 @@ export async function SaveAttendance(groupId: string, students: AttendanceStuden
     }
 }
 
-export async function GetAttendance(groupId: string, periodMonth?: number) {
+export async function GetAttendance(groupId: string, periodMonth?: number): Promise<HandlerResult<AttendanceStudent[]>> {
     if (!isValidEntityId(groupId)) return { success: false, message: "Некорректный id группы" };
     if (periodMonth !== undefined && !isValidMonth(periodMonth)) return { success: false, message: "Некорректный месяц" };
     try {
@@ -161,9 +165,9 @@ export async function GetAttendance(groupId: string, periodMonth?: number) {
     }
 }
 
-export async function GetAllGroups(){
+export async function GetAllGroups(): Promise<HandlerResult<Group[]>>{
     try {
-        const { data } = await apiGet<{ data?: unknown }>("/api/v2/groups/");
+        const { data } = await apiGet<{ data?: Group[] }>("/api/v2/groups/");
 
         return { success: true, message: "Успешно", data }
     } catch (error) {
@@ -171,10 +175,10 @@ export async function GetAllGroups(){
     }
 }
 
-export async function GetGroup(id: string){
+export async function GetGroup(id: string): Promise<HandlerResult<Group>>{
     if (!isValidEntityId(id)) return { success: false, message: "Некорректный id группы" };
     try {
-        const { data } = await apiGet<{ data?: unknown }>(`/api/v2/groups/${id}`);
+        const { data } = await apiGet<{ data?: Group }>(`/api/v2/groups/${id}`);
 
         return { success: true, message: "Успешно", data }
     } catch (error) {
@@ -182,9 +186,9 @@ export async function GetGroup(id: string){
     }
 }
 
-export async function GetUsersList() {
+export async function GetUsersList(): Promise<HandlerResult<{ id: number; full_name: string }[]>> {
     try {
-        const { data } = await apiGet<{ data?: unknown }>('/api/v2/users');
+        const { data } = await apiGet<{ data?: { id: number; full_name: string }[] }>('/api/v2/users');
 
         return { success: true, data };
     } catch (error) {
@@ -192,10 +196,10 @@ export async function GetUsersList() {
     }
 }
 
-export async function GetUser(id: number) {
+export async function GetUser(id: number): Promise<HandlerResult<UserProfile>> {
     if (!isValidEntityId(id)) return { success: false, message: "Некорректный id пользователя" };
     try {
-        const { data } = await apiGet<{ data?: unknown }>(`/api/v2/users/${id}`);
+        const { data } = await apiGet<{ data?: UserProfile }>(`/api/v2/users/${id}`);
 
         return { success: true, data };
     } catch (error) {
@@ -203,10 +207,10 @@ export async function GetUser(id: number) {
     }
 }
 
-export async function GetStudents(groupId: string) {
+export async function GetStudents(groupId: string): Promise<HandlerResult<Student[]>> {
     if (!isValidEntityId(groupId)) return { success: false, message: "Некорректный id группы" };
     try {
-        const { data } = await apiGet<{ data?: unknown }>(`/api/v2/groups/${groupId}/students`);
+        const { data } = await apiGet<{ data?: Student[] }>(`/api/v2/groups/${groupId}/students`);
 
         return { success: true, data };
     } catch (error) {
@@ -214,7 +218,7 @@ export async function GetStudents(groupId: string) {
     }
 }
 
-export async function CreateStudents(groupId: string, students: { fullName: string }[]) {
+export async function CreateStudents(groupId: string, students: { fullName: string }[]): Promise<HandlerResult> {
     if (!isValidEntityId(groupId)) return { success: false, message: "Некорректный id группы" };
     try {
         return await apiPost(`/api/v2/groups/${groupId}/students`, { students });
@@ -223,7 +227,7 @@ export async function CreateStudents(groupId: string, students: { fullName: stri
     }
 }
 
-export async function UpdateStudent(groupId: string, studentId: number, newName: string) {
+export async function UpdateStudent(groupId: string, studentId: number, newName: string): Promise<HandlerResult> {
     if (!isValidEntityId(groupId) || !isValidEntityId(studentId)) return { success: false, message: "Некорректный id студента или группы" };
     try {
         return await apiPatch(`/api/v2/groups/${groupId}/students/${studentId}`, { full_name: newName });
@@ -232,7 +236,7 @@ export async function UpdateStudent(groupId: string, studentId: number, newName:
     }
 }
 
-export async function DeleteStudent(groupId: string, studentId: number) {
+export async function DeleteStudent(groupId: string, studentId: number): Promise<HandlerResult> {
     if (!isValidEntityId(groupId) || !isValidEntityId(studentId)) return { success: false, message: "Некорректный id студента или группы" };
     try {
         return await apiDelete(`/api/v2/groups/${groupId}/students/${studentId}`);
@@ -241,7 +245,7 @@ export async function DeleteStudent(groupId: string, studentId: number) {
     }
 }
 
-export async function SaveGrades(groupId: string, students: GradeStudent[]) {
+export async function SaveGrades(groupId: string, students: GradeStudent[]): Promise<HandlerResult> {
     if (!isValidEntityId(groupId)) return { success: false, message: "Некорректный id группы" };
     try {
         return await apiPost(`/api/v2/groups/${groupId}/grades`, { groupId, students });
@@ -250,7 +254,7 @@ export async function SaveGrades(groupId: string, students: GradeStudent[]) {
     }
 }
 
-export async function DeleteAttendancePeriod(groupId: string, periodMonth: number) {
+export async function DeleteAttendancePeriod(groupId: string, periodMonth: number): Promise<HandlerResult> {
     if (!isValidEntityId(groupId) || !isValidMonth(periodMonth)) return { success: false, message: "Некорректный период или id группы" };
     try {
         return await apiDelete(`/api/v2/groups/${groupId}/attendance`, { query: { periodMonth } });
@@ -259,7 +263,7 @@ export async function DeleteAttendancePeriod(groupId: string, periodMonth: numbe
     }
 }
 
-export async function DeleteGradesPeriod(groupId: string, periodSemester: number) {
+export async function DeleteGradesPeriod(groupId: string, periodSemester: number): Promise<HandlerResult> {
     if (!isValidEntityId(groupId) || !isValidSemester(periodSemester)) return { success: false, message: "Некорректный период или id группы" };
     try {
         return await apiDelete(`/api/v2/groups/${groupId}/grades`, { query: { periodSemester } });
@@ -268,7 +272,7 @@ export async function DeleteGradesPeriod(groupId: string, periodSemester: number
     }
 }
 
-export async function GetGrades(groupId: string, periodSemester?: number) {
+export async function GetGrades(groupId: string, periodSemester?: number): Promise<HandlerResult<GradeStudent[]>> {
     if (!isValidEntityId(groupId)) return { success: false, message: "Некорректный id группы" };
     if (periodSemester !== undefined && !isValidSemester(periodSemester)) return { success: false, message: "Некорректный семестр" };
     try {
@@ -278,7 +282,7 @@ export async function GetGrades(groupId: string, periodSemester?: number) {
     }
 }
 
-export async function UpdateProfile(data: object) {
+export async function UpdateProfile(data: object): Promise<HandlerResult> {
     try {
         return await apiPost('/api/v2/users', data);
     } catch (error) {
@@ -287,9 +291,10 @@ export async function UpdateProfile(data: object) {
 }
 
 // Получение статистики преподавателя
-export async function GetTeacherStats() {
+export async function GetTeacherStats(): Promise<HandlerResult<TeacherStats>> {
     try {
-        return await apiGet('/api/v2/users/stats');
+        const { data, message } = await apiGet<{ data?: TeacherStats; message?: string }>('/api/v2/users/stats');
+        return { success: true, data, message };
     } catch (error) {
         return toErrorResult(error, "Неизвестная ошибка сервера");
     }

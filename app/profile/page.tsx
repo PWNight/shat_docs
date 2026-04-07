@@ -42,14 +42,14 @@ export default function ProfilePage() {
         ]);
 
         let hasFatalError = false;
-        if (userResponse.status === "fulfilled" && userResponse.value.success) {
-            setUser(userResponse.value.data);
+        if (userResponse.status === "fulfilled" && userResponse.value.success && "data" in userResponse.value) {
+            setUser((userResponse.value.data ?? null) as UserProfile | null);
         } else {
             hasFatalError = true;
         }
 
-        if (statsResponse.status === "fulfilled" && statsResponse.value.success) {
-            setStats(statsResponse.value.data);
+        if (statsResponse.status === "fulfilled" && statsResponse.value.success && "data" in statsResponse.value) {
+            setStats((statsResponse.value.data ?? null) as TeacherStats | null);
         } else {
             setNotify({ message: "Не удалось загрузить статистику, показываем профиль без нее", type: "warning" });
         }
@@ -86,10 +86,10 @@ export default function ProfilePage() {
         const formData = new FormData(e.currentTarget);
         const data = Object.fromEntries(formData) as UpdateProfileFormData;
 
-        const res = await UpdateProfile(data);
+        const res = await UpdateProfile(data) as { success: boolean; message?: string };
 
         setNotify({
-            message: res.message,
+            message: res.message || (res.success ? "Сохранено" : "Ошибка сохранения"),
             type: res.success ? 'success' : 'error'
         });
 

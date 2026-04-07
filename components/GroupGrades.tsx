@@ -123,7 +123,7 @@ export default function GroupGrades({ groupId, group, isOwner, setNotify }: Grou
         if (!isMountedRef.current) return;
         setIsGradesLoading(false);
 
-        if (result.success && result.data.length > 0) {
+        if (result.success && result.data && result.data.length > 0) {
             setGradesStudents(result.data);
             setIsGradesModified(false);
             setNotify({ message: `Загружены данные за ${SEMESTER_NAMES[period as keyof typeof SEMESTER_NAMES]}`, type: 'success' });

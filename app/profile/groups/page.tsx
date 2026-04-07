@@ -87,11 +87,11 @@ export default function ProfileGroups() {
     // Функция загрузки списка групп
     const loadData = useCallback(async () => {
         const response = await GetAllGroups();
-        if (!response.success) {
+        if (!response.success || !("data" in response)) {
             setPageError(response.message || "Ошибка загрузки групп");
         } else {
             setPageError(null);
-            setGroups(response.data || []);
+            setGroups((response.data as Group[]) || []);
         }
     }, []);
 

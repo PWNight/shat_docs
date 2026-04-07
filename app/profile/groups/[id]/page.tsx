@@ -39,22 +39,23 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
 
     const loadData = useCallback(async (id: string) => {
         const groupRes = await GetGroup(id);
-        if (!groupRes.success) {
+        if (!groupRes.success || !("data" in groupRes) || !groupRes.data) {
             setPageError(groupRes.message || "Группа не найдена или недоступна");
             return;
         }
 
-        setGroup(groupRes.data);
-        setUpdateFormData({ name: groupRes.data.name, fk_user: String(groupRes.data.fk_user) });
+        const groupData = groupRes.data as Group;
+        setGroup(groupData);
+        setUpdateFormData({ name: groupData.name, fk_user: String(groupData.fk_user) });
 
         const [usersRes, studentsRes] = await Promise.allSettled([GetUsersList(), GetStudents(id)]);
-        if (usersRes.status === "fulfilled" && usersRes.value.success) {
-            setUsers(usersRes.value.data ?? []);
+        if (usersRes.status === "fulfilled" && usersRes.value.success && "data" in usersRes.value) {
+            setUsers((usersRes.value.data as UserListItem[]) ?? []);
         } else {
             setNotify({ message: "Не удалось загрузить список преподавателей", type: "warning" });
         }
-        if (studentsRes.status === "fulfilled" && studentsRes.value.success) {
-            setStudents(studentsRes.value.data ?? []);
+        if (studentsRes.status === "fulfilled" && studentsRes.value.success && "data" in studentsRes.value) {
+            setStudents((studentsRes.value.data as Student[]) ?? []);
         } else {
             setNotify({ message: "Не удалось загрузить список студентов", type: "warning" });
         }
@@ -131,7 +132,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                 </div>
                                 {isOwner && (
                                     <button onClick={() => startTransition(async () => {
-                                        const result = await UpdateGroup(groupId, updateFormData);
+                                        const result = await UpdateGroup(groupId, updateFormData) as { success: boolean; message?: string };
                                         if (!result.success) {
                                             setNotify({ message: result.message || "Ошибка сохранения", type: "error" });
                                             return;
@@ -184,7 +185,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                             onClick={() => {
                                                 if (!updateFormData.fk_user) return;
                                                 startTransition(async () => {
-                                                    const result = await UpdateGroup(groupId, updateFormData);
+                                                    const result = await UpdateGroup(groupId, updateFormData) as { success: boolean; message?: string };
                                                     if (!result.success) {
                                                         setNotify({ message: result.message || "Ошибка передачи прав", type: "error" });
                                                         return;
@@ -221,7 +222,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                     <DialogFooter className="gap-3 sm:gap-4">
                                         <button
                                             onClick={() => startTransition(async () => {
-                                                const result = await DeleteGroup(groupId);
+                                                const result = await DeleteGroup(groupId) as { success: boolean; message?: string };
                                                 if (!result.success) {
                                                     setNotify({ message: result.message || "Ошибка удаления", type: "error" });
                                                     return;
