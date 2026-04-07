@@ -20,6 +20,9 @@ function RegisterForm() {
 
     useEffect(() => {
         if (state?.success) {
+            if (state.requiresApproval) {
+                return;
+            }
             window.location.assign(redirectTo);
             return;
         }
@@ -110,7 +113,7 @@ function RegisterForm() {
             </div>
 
             {state?.message && (
-                <p className="text-red-400 text-sm mb-2">{state.message}</p>
+                <p className={`${state.requiresApproval ? "text-emerald-500" : "text-red-400"} text-sm mb-2`}>{state.message}</p>
             )}
 
             <button

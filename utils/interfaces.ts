@@ -77,6 +77,8 @@ export interface UserProfile {
     full_name: string;
     email: string;
     created_by?: string | null;
+    canAccessAdmin?: number;
+    isRoot?: number;
 }
 
 export interface Student {

@@ -85,10 +85,10 @@ export async function Register(_prevState: RegisterFormState, formData: FormData
 
     try {
     // Отправляем POST запрос в регистрацию
-    await apiPost('/api/v2/auth/register', { email, full_name, password });
+    const response = await apiPost<{ message?: string }>('/api/v2/auth/register', { email, full_name, password });
 
     // Возвращаем успех
-    return { success: true };
+    return { success: true, requiresApproval: true, message: response.message || "Заявка отправлена" };
     } catch (err) {
         const message = err instanceof Error ? err.message : "Ошибка авторизации";
 
