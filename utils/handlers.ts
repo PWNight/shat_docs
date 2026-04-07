@@ -3,9 +3,13 @@ import {
     LoginFormSchema, LoginFormState,
     RegisterFormSchema, RegisterFormState
 } from "@/utils/definitions";
-import { handleApiResponse } from "@/utils/functions";
+import { apiDelete, apiGet, apiPatch, apiPost } from "@/utils/http-client";
 import {z} from "zod";
 import {AttendanceStudent, GradeStudent} from "@/utils/interfaces";
+
+function toErrorMessage(error: unknown, fallback: string): string {
+    return error instanceof Error ? error.message : fallback;
+}
 
 // Код авторизации
 export async function Login(_prevState: LoginFormState, formData: FormData): Promise<LoginFormState> {
@@ -27,14 +31,7 @@ export async function Login(_prevState: LoginFormState, formData: FormData): Pro
 
     try {
         // Отправляем POST запрос в авторизацию
-        const loginResponse = await fetch('/api/v2/auth/login', {
-            method: 'POST',
-            body: JSON.stringify({ email, password }),
-            headers: { 'Content-Type': 'application/json' }
-        });
-
-        // Получаем данные из ответа
-        const { data } = await handleApiResponse(loginResponse);
+        await apiPost('/api/v2/auth/login', { email, password });
 
         // Возвращаем успех
         return { success: true };
@@ -72,14 +69,7 @@ export async function Register(_prevState: RegisterFormState, formData: FormData
 
     try {
     // Отправляем POST запрос в регистрацию
-    const registerResponse = await fetch('/api/v2/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({ email, full_name, password }),
-        headers: { 'Content-Type': 'application/json' }
-    });
-
-    // Получаем данные из ответа
-    const { data } = await handleApiResponse(registerResponse);
+    await apiPost('/api/v2/auth/register', { email, full_name, password });
 
     // Возвращаем успех
     return { success: true };
@@ -110,281 +100,169 @@ export async function CreateGroup(_state: GroupFormState, formData: FormData) {
         const { name, fk_user } = parsed.data;
 
         // Отправляем POST запрос в авторизацию
-        const response = await fetch('/api/v2/groups', {
-            method: 'POST',
-            body: JSON.stringify({ name, fk_user }),
-            headers: { 'Content-Type': 'application/json' }
-        });
-        await handleApiResponse(response);
+        await apiPost('/api/v2/groups', { name, fk_user });
 
         // Возвращаем успех и redirectTo
         return { success: true };
     } catch (error) {
-        console.log( error )
-        return { success: false, message: error instanceof Error ? error.message : 'Произошла ошибка' };
+        return { success: false, message: toErrorMessage(error, "Произошла ошибка") };
     }
 }
 
 export async function UpdateGroup(id: string, data: object) {
     try {
-        const response = await fetch(`/api/v2/groups/${id}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-        });
-
-        return await handleApiResponse(response);
+        return await apiPost(`/api/v2/groups/${id}`, data);
     } catch (error) {
-        console.log( error )
-        return { success: false, message: error instanceof Error ? error.message : 'Ошибка обновления' };
+        return { success: false, message: toErrorMessage(error, "Ошибка обновления") };
     }
 }
 
 // Код удаления группы
 export async function DeleteGroup(id: string) {
     try {
-        const response = await fetch(`/api/v2/groups/${id}`, { method: 'DELETE' });
-        return await handleApiResponse(response);
+        return await apiDelete(`/api/v2/groups/${id}`);
     } catch (error) {
-        console.log( error )
-        return { success: false, message: error instanceof Error ? error.message : 'Ошибка обновления' };
+        return { success: false, message: toErrorMessage(error, "Ошибка обновления") };
     }
 }
 
 export async function SaveAttendance(groupId: string, students: AttendanceStudent[]) {
     try {
-        const response = await fetch(`/api/v2/groups/${groupId}/attendance`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ groupId, students }),
-        });
-        return await handleApiResponse(response);
+        return await apiPost(`/api/v2/groups/${groupId}/attendance`, { groupId, students });
     } catch (error) {
-        const errorMessage =
-            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
-
-        return { success: false, message: errorMessage };
+        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
     }
 }
 
 export async function GetAttendance(groupId: string, periodMonth?: number) {
     try {
-        const url = new URL(`/api/v2/groups/${groupId}/attendance`, typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
-        if (periodMonth !== undefined) {
-            url.searchParams.append('periodMonth', String(periodMonth));
-        }
-        const response = await fetch(url.toString(), {
-            method: 'GET',
+        return await apiGet(`/api/v2/groups/${groupId}/attendance`, {
+            query: { periodMonth },
         });
-        return await handleApiResponse(response);
     } catch (error) {
-        const errorMessage =
-            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
-
-        return { success: false, message: errorMessage };
+        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
     }
 }
 
 export async function GetAllGroups(){
     try {
-        const response = await fetch("/api/v2/groups/")
-        const { data } = await handleApiResponse(response);
+        const { data } = await apiGet<{ data?: unknown }>("/api/v2/groups/");
 
         return { success: true, message: "Успешно", data }
     } catch (error) {
-        const errorMessage =
-            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
-
-        return { success: false, message: errorMessage };
+        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
     }
 }
 
 export async function GetGroup(id: string){
     try {
-        const response = await fetch(`/api/v2/groups/${id}`)
-        const { data } = await handleApiResponse(response);
+        const { data } = await apiGet<{ data?: unknown }>(`/api/v2/groups/${id}`);
 
         return { success: true, message: "Успешно", data }
     } catch (error) {
-        const errorMessage =
-            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
-
-        return { success: false, message: errorMessage };
+        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
     }
 }
 
 export async function GetUsersList() {
     try {
-        const response = await fetch('/api/v2/users');
-        const { data } = await handleApiResponse(response);
+        const { data } = await apiGet<{ data?: unknown }>('/api/v2/users');
 
         return { success: true, data };
     } catch (error) {
-        const errorMessage =
-            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
-
-        return { success: false, message: errorMessage };
+        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
     }
 }
 
 export async function GetUser(id: number) {
     try {
-        const response = await fetch(`/api/v2/users/${id}`);
-        const { data } = await handleApiResponse(response);
+        const { data } = await apiGet<{ data?: unknown }>(`/api/v2/users/${id}`);
 
         return { success: true, data };
     } catch (error) {
-        const errorMessage =
-            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
-
-        return { success: false, message: errorMessage };
+        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
     }
 }
 
 export async function GetStudents(groupId: string) {
     try {
-        const response = await fetch(`/api/v2/groups/${groupId}/students`);
-        const { data } = await handleApiResponse(response);
+        const { data } = await apiGet<{ data?: unknown }>(`/api/v2/groups/${groupId}/students`);
 
         return { success: true, data };
     } catch (error) {
-        const errorMessage =
-            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
-
-        return { success: false, message: errorMessage };
+        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
     }
 }
 
 export async function CreateStudents(groupId: string, students: { fullName: string }[]) {
     try {
-        const response = await fetch(`/api/v2/groups/${groupId}/students`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ students }),
-        });
-        return await handleApiResponse(response);
+        return await apiPost(`/api/v2/groups/${groupId}/students`, { students });
     } catch (error) {
-        const errorMessage =
-            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
-
-        return { success: false, message: errorMessage };
+        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
     }
 }
 
 export async function UpdateStudent(groupId: string, studentId: number, newName: string) {
     try {
-        const response = await fetch(`/api/v2/groups/${groupId}/students/${studentId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ full_name: newName }),
-        });
-        return await handleApiResponse(response);
+        return await apiPatch(`/api/v2/groups/${groupId}/students/${studentId}`, { full_name: newName });
     } catch (error) {
-        const errorMessage =
-            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
-
-        return { success: false, message: errorMessage };
+        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
     }
 }
 
 export async function DeleteStudent(groupId: string, studentId: number) {
     try {
-        const response = await fetch(`/api/v2/groups/${groupId}/students/${studentId}`, {
-            method: 'DELETE',
-        });
-        return await handleApiResponse(response);
+        return await apiDelete(`/api/v2/groups/${groupId}/students/${studentId}`);
     } catch (error) {
-        const errorMessage =
-            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
-
-        return { success: false, message: errorMessage };
+        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
     }
 }
 
 export async function SaveGrades(groupId: string, students: GradeStudent[]) {
     try {
-        const response = await fetch(`/api/v2/groups/${groupId}/grades`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ groupId, students }),
-        });
-        return await handleApiResponse(response);
+        return await apiPost(`/api/v2/groups/${groupId}/grades`, { groupId, students });
     } catch (error) {
-        const errorMessage =
-            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
-
-        return { success: false, message: errorMessage };
+        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
     }
 }
 
 export async function DeleteAttendancePeriod(groupId: string, periodMonth: number) {
     try {
-        const response = await fetch(`/api/v2/groups/${groupId}/attendance?periodMonth=${periodMonth}`, {
-            method: 'DELETE',
-        });
-        return await handleApiResponse(response);
+        return await apiDelete(`/api/v2/groups/${groupId}/attendance`, { query: { periodMonth } });
     } catch (error) {
-        const errorMessage =
-            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
-
-        return { success: false, message: errorMessage };
+        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
     }
 }
 
 export async function DeleteGradesPeriod(groupId: string, periodSemester: number) {
     try {
-        const response = await fetch(`/api/v2/groups/${groupId}/grades?periodSemester=${periodSemester}`, {
-            method: 'DELETE',
-        });
-        return await handleApiResponse(response);
+        return await apiDelete(`/api/v2/groups/${groupId}/grades`, { query: { periodSemester } });
     } catch (error) {
-        const errorMessage =
-            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
-
-        return { success: false, message: errorMessage };
+        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
     }
 }
 
 export async function GetGrades(groupId: string, periodSemester?: number) {
     try {
-        const url = periodSemester 
-            ? `/api/v2/groups/${groupId}/grades?periodSemester=${periodSemester}`
-            : `/api/v2/groups/${groupId}/grades`;
-        const response = await fetch(url);
-        return await handleApiResponse(response);
+        return await apiGet(`/api/v2/groups/${groupId}/grades`, { query: { periodSemester } });
     } catch (error) {
-        const errorMessage =
-            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
-
-        return { success: false, message: errorMessage };
+        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
     }
 }
 
 export async function UpdateProfile(data: object) {
     try {
-        const response = await fetch('/api/v2/users', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        return await handleApiResponse(response);
+        return await apiPost('/api/v2/users', data);
     } catch (error) {
-        const errorMessage =
-            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
-
-        return { success: false, message: errorMessage };
+        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
     }
 }
 
 // Получение статистики преподавателя
 export async function GetTeacherStats() {
     try {
-        const response = await fetch('/api/v2/users/stats');
-        return await handleApiResponse(response);
+        return await apiGet('/api/v2/users/stats');
     } catch (error) {
-        const errorMessage =
-            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
-
-        return { success: false, message: errorMessage };
+        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
     }
 }
