@@ -1,35 +1,56 @@
-import {NextResponse } from "next/server";
-import {execute, query, queryOne} from "@/utils/mysql";
-import {createSession, getSession} from "@/utils/session";
+import { NextRequest } from "next/server";
+import { execute, query, queryOne } from "@/utils/mysql";
+import { createSession } from "@/utils/session";
 import bcrypt from "bcrypt";
+import {
+    requireAuth,
+    safeParseJson,
+    badRequest,
+    notFound,
+    serverError,
+    jsonResponse,
+    successResponse,
+    handleApiError,
+} from "@/utils/api";
 
 // Получение списка пользователей
-export async function GET() {
+export async function GET(request: NextRequest) {
+    const authResult = await requireAuth(request);
+    if (!authResult.success) {
+        return authResult.response;
+    }
+
     try {
-        const userData = await getSession();
-        if (!userData) {
-            return NextResponse.json({ success: false, message: "Необходима авторизация" }, { status: 401 });
-        }
-
         const users = await query('SELECT id, full_name FROM users');
-
-        return NextResponse.json({ success: true, data: users }, { status: 200 });
+        return jsonResponse(successResponse(users));
     } catch (error) {
-        console.log(error)
-        return NextResponse.json({ success: false, message: "Ошибка сервера" }, { status: 500 });
+        const { message } = handleApiError(error, "Ошибка сервера");
+        return serverError(message);
     }
 }
 
 // Обновление информации о пользователе
-export async function POST(req: Request) {
-    try {
-        const session = await getSession();
-        if (!session) {
-            return NextResponse.json({ success: false, message: "Нет доступа" }, { status: 401 });
-        }
+export async function POST(req: NextRequest) {
+    const authResult = await requireAuth(req);
+    if (!authResult.success) {
+        return authResult.response;
+    }
 
-        const { full_name, email, currentPassword, newPassword, confirmPassword } = await req.json();
-        const userId = session.uid;
+    const parseResult = await safeParseJson<{
+        full_name?: string;
+        email?: string;
+        currentPassword?: string;
+        newPassword?: string;
+        confirmPassword?: string;
+    }>(req);
+    if (!parseResult.success) {
+        return badRequest(parseResult.error);
+    }
+
+    try {
+        const { user: sessionUser } = authResult;
+        const { full_name, email, currentPassword, newPassword, confirmPassword } = parseResult.data;
+        const userId = sessionUser.uid;
 
         // 1. Сбор данных для обновления профиля
         const updateFields: string[] = [];
@@ -49,18 +70,18 @@ export async function POST(req: Request) {
         if (newPassword) {
             // Валидация совпадения
             if (newPassword !== confirmPassword) {
-                return NextResponse.json({ success: false, message: "Новые пароли не совпадают" }, { status: 400 });
+                return badRequest("Новые пароли не совпадают");
             }
 
             // Проверка текущего пароля
-            const user = await queryOne("SELECT password_hash FROM users WHERE id = ?", [userId]);
-            if (!user) {
-                return NextResponse.json({ success: false, message: "Пользователь не найден" }, { status: 404 });
+            const dbUser = await queryOne("SELECT password_hash FROM users WHERE id = ?", [userId]);
+            if (!dbUser) {
+                return notFound("Пользователь не найден");
             }
 
-            const isMatch = await bcrypt.compare(currentPassword || "", user.password_hash);
+            const isMatch = await bcrypt.compare(currentPassword || "", dbUser.password_hash);
             if (!isMatch) {
-                return NextResponse.json({ success: false, message: "Текущий пароль введен неверно" }, { status: 400 });
+                return badRequest("Текущий пароль введен неверно");
             }
 
             // Хеширование и добавление в запрос
@@ -71,7 +92,7 @@ export async function POST(req: Request) {
 
         // 3. Выполнение запроса, если есть что обновлять
         if (updateFields.length === 0) {
-            return NextResponse.json({ success: false, message: "Нет данных для обновления" }, { status: 400 });
+            return badRequest("Нет данных для обновления");
         }
 
         const sql = `UPDATE users SET ${updateFields.join(", ")} WHERE id = ?`;
@@ -81,30 +102,14 @@ export async function POST(req: Request) {
 
         await createSession({
             uid: userId,
-            email: email || session.email,
-            full_name: full_name || session.full_name
+            email: email || sessionUser.email,
+            full_name: full_name || sessionUser.full_name
         });
 
-        return NextResponse.json({
-            success: true,
-            message: newPassword ? "Данные и пароль успешно обновлены" : "Данные успешно обновлены"
-        });
+        return jsonResponse(successResponse(null, newPassword ? "Данные и пароль успешно обновлены" : "Данные успешно обновлены"));
 
     } catch (error) {
-        console.error("Ошибка работы API", error);
-        const errorMessage =
-            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
-
-        return NextResponse.json(
-            {
-                success: false,
-                message: "Внутренняя ошибка сервера",
-                error: {
-                    message: errorMessage,
-                    code: "SERVER_ERROR",
-                },
-            },
-            { status: 500 }
-        );
+        const { message } = handleApiError(error);
+        return serverError(message);
     }
 }

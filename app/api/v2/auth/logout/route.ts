@@ -1,35 +1,33 @@
-import {decryptSession, deleteSession} from "@/utils/session";
-import { NextRequest, NextResponse } from "next/server";
+import { deleteSession } from "@/utils/session";
+import { NextRequest } from "next/server";
+import {
+    unauthorized,
+    badRequest,
+    serverError,
+    jsonResponse,
+    successResponse,
+    handleApiError,
+    extractSession,
+} from "@/utils/api";
 
 export async function GET(request: NextRequest) {
     try {
-        const session = request.cookies.get('session')
-        if( session === undefined ){
-            return NextResponse.json({ success: false, error: 'Не авторизован' }, { status: 401 })
+        const sessionToken = request.cookies.get("session")?.value
+            ?? request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+
+        if (!sessionToken) {
+            return unauthorized("Не авторизован");
         }
 
-        const userData = await decryptSession(session?.value)
-        if( userData === null ){
-            return NextResponse.json({ success: false, error: 'Токен некорректен' }, { status: 422 })
+        const userData = await extractSession(request);
+        if (!userData) {
+            return badRequest("Токен некорректен");
         }
 
-        await deleteSession()
-        return NextResponse.json({ success: true, message: "Успешно" }, {status:200})
+        await deleteSession();
+        return jsonResponse(successResponse(null, "Успешно"));
     } catch (error) {
-        console.error("Ошибка работы API", error);
-        const errorMessage =
-            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
-
-        return NextResponse.json(
-            {
-                success: false,
-                message: "Внутренняя ошибка сервера",
-                error: {
-                    message: errorMessage,
-                    code: "SERVER_ERROR",
-                },
-            },
-            { status: 500 }
-        );
+        const { message } = handleApiError(error);
+        return serverError(message);
     }
 }

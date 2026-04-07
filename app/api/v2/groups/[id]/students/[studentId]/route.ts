@@ -1,22 +1,36 @@
-import { NextResponse } from 'next/server';
+import { NextRequest } from "next/server";
 import { queryOne, execute } from '@/utils/mysql';
 import { Student } from '@/utils/interfaces';
 import { RowDataPacket } from 'mysql2';
+import {
+    requireAuth,
+    badRequest,
+    notFound,
+    serverError,
+    jsonResponse,
+    successResponse,
+    handleApiError,
+} from "@/utils/api";
 
 type StudentRow = Student & RowDataPacket;
 
 // Обновление информации о студенте
 export async function PATCH(
-    req: Request,
+    req: NextRequest,
     { params }: { params: Promise<{ id: string; studentId: string }> }
 ) {
+    const authResult = await requireAuth(req);
+    if (!authResult.success) {
+        return authResult.response;
+    }
+
     try {
         const { full_name: newName } = await req.json();
         const { id, studentId } = await params;
         const groupId = id;
 
         if (!newName) {
-            return NextResponse.json({ error: 'Новое ФИО не указано' }, { status: 400 });
+            return badRequest("Новое ФИО не указано");
         }
 
         // 1. Получаем текущие данные студента, чтобы знать старое имя
@@ -26,7 +40,7 @@ export async function PATCH(
         );
 
         if (!oldStudent) {
-            return NextResponse.json({ error: 'Студент не найден в этой группе' }, { status: 404 });
+            return notFound("Студент не найден в этой группе");
         }
 
         const oldName = oldStudent.full_name;
@@ -49,22 +63,24 @@ export async function PATCH(
             [newName, groupId, oldName]
         );
 
-        return NextResponse.json({
-            success: true,
-            message: 'Данные студента и связанные записи обновлены'
-        });
+        return jsonResponse(successResponse(null, "Данные студента и связанные записи обновлены"));
 
     } catch (error) {
-        console.error('[STUDENT_PATCH_ERROR]', error);
-        return NextResponse.json({ error: 'Ошибка при обновлении данных студента' }, { status: 500 });
+        const { message } = handleApiError(error, "Ошибка при обновлении данных студента");
+        return serverError(message);
     }
 }
 
 // Удаление студента и всех связанных данных
 export async function DELETE(
-    req: Request,
+    req: NextRequest,
     { params }: { params: Promise<{ id: string; studentId: string }> }
 ) {
+    const authResult = await requireAuth(req);
+    if (!authResult.success) {
+        return authResult.response;
+    }
+
     try {
         const { id, studentId } = await params;
         const groupId = id;
@@ -76,7 +92,7 @@ export async function DELETE(
         );
 
         if (!student) {
-            return NextResponse.json({ error: 'Студент не найден' }, { status: 404 });
+            return notFound("Студент не найден");
         }
 
         const studentName = student.full_name;
@@ -96,13 +112,10 @@ export async function DELETE(
             [groupId, studentName]
         );
 
-        return NextResponse.json({
-            success: true,
-            message: 'Студент и все связанные данные успешно удалены'
-        });
+        return jsonResponse(successResponse(null, "Студент и все связанные данные успешно удалены"));
 
     } catch (error) {
-        console.error('[STUDENT_DELETE_ERROR]', error);
-        return NextResponse.json({ error: 'Ошибка при удалении студента' }, { status: 500 });
+        const { message } = handleApiError(error, "Ошибка при удалении студента");
+        return serverError(message);
     }
 }

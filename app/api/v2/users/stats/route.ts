@@ -1,12 +1,22 @@
-import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { queryOne } from "@/utils/mysql";
-import { getSession } from "@/utils/session";
+import {
+    requireAuth,
+    serverError,
+    jsonResponse,
+    successResponse,
+    handleApiError,
+} from "@/utils/api";
 
 // Получение статистики о группе пользователя
-export async function GET() {
+export async function GET(request: NextRequest) {
+    const authResult = await requireAuth(request);
+    if (!authResult.success) {
+        return authResult.response;
+    }
+
     try {
-        const session = await getSession();
-        if (!session) return NextResponse.json({ success: false }, { status: 401 });
+        const { user } = authResult;
 
         // 1. Считаем общее кол-во групп и студентов
         const counts = await queryOne(`
@@ -16,7 +26,7 @@ export async function GET() {
             FROM \`groups\` g
             LEFT JOIN students s ON s.fk_group = g.id
             WHERE g.fk_user = ?
-        `, [session.uid]);
+        `, [user.uid]);
 
         // 2. Считаем средний балл по всем управляемым группам
         const grades = await queryOne(`
@@ -24,7 +34,7 @@ export async function GET() {
             FROM grades gr
             JOIN \`groups\` g ON gr.fk_group = g.id
             WHERE g.fk_user = ?
-        `, [session.uid]);
+        `, [user.uid]);
 
         // 3. Считаем посещаемость
         const attendance = await queryOne(`
@@ -35,11 +45,10 @@ export async function GET() {
             FROM attendance a
             JOIN \`groups\` g ON a.fk_group = g.id
             WHERE g.fk_user = ?
-        `, [session.uid]);
+        `, [user.uid]);
 
-        return NextResponse.json({
-            success: true,
-            data: {
+        return jsonResponse(
+            successResponse({
                 groups: counts?.groupsCount || 0,
                 students: counts?.studentsCount || 0,
                 avgGrade: Number(grades?.avgGrade || 0).toFixed(2),
@@ -49,25 +58,12 @@ export async function GET() {
                     late: attendance?.late || 0,
                     percent: attendance?.total > 0
                         ? (((attendance?.total - attendance?.sick) / attendance?.total) * 100).toFixed(1)
-                        : 0
-                }
-            }
-        });
-    } catch (error) {
-        console.error("Ошибка работы API", error);
-        const errorMessage =
-            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
-
-        return NextResponse.json(
-            {
-                success: false,
-                message: "Внутренняя ошибка сервера",
-                error: {
-                    message: errorMessage,
-                    code: "SERVER_ERROR",
+                        : 0,
                 },
-            },
-            { status: 500 }
+            })
         );
+    } catch (error) {
+        const { message } = handleApiError(error);
+        return serverError(message);
     }
 }

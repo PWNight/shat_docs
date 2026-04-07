@@ -1,38 +1,32 @@
-import {NextRequest, NextResponse} from "next/server";
+import { NextRequest } from "next/server";
 import {queryOne} from "@/utils/mysql";
-import {getSession} from "@/utils/session";
+import {
+    requireAuth,
+    notFound,
+    serverError,
+    jsonResponse,
+    successResponse,
+    handleApiError,
+} from "@/utils/api";
 
 // Получение пользователя
 export async function GET(_request: NextRequest, {params}: { params: Promise<{ id: string }> }) {
-    try{
-        const userData = await getSession();
-        if (!userData){
-            return NextResponse.json({ success: false, message: "Для доступа требуется авторизоваться" }, {status:401})
-        }
+    const authResult = await requireAuth(_request);
+    if (!authResult.success) {
+        return authResult.response;
+    }
 
+    try{
         const {id} = await params;
         const user = await queryOne(
             'SELECT * FROM users WHERE id = ?', [id]
         );
         if (!user) {
-            return NextResponse.json({ success: false, message: `Пользователь с айди ${id} не найден` }, {status:404})
+            return notFound(`Пользователь с айди ${id} не найден`);
         }
-        return NextResponse.json({ success: true, data: user }, {status:200})
+        return jsonResponse(successResponse(user));
     } catch (error) {
-        console.error("Ошибка работы API", error);
-        const errorMessage =
-            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
-
-        return NextResponse.json(
-            {
-                success: false,
-                message: "Внутренняя ошибка сервера",
-                error: {
-                    message: errorMessage,
-                    code: "SERVER_ERROR",
-                },
-            },
-            { status: 500 }
-        );
+        const { message } = handleApiError(error);
+        return serverError(message);
     }
 }

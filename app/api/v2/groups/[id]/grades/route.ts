@@ -1,8 +1,22 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { execute, query } from "@/utils/mysql";
+import {
+    requireAuth,
+    safeParseJson,
+    badRequest,
+    serverError,
+    jsonResponse,
+    successResponse,
+    handleApiError,
+} from "@/utils/api";
 
 // Получение успеваемости за конкретный период
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const authResult = await requireAuth(request);
+    if (!authResult.success) {
+        return authResult.response;
+    }
+
     try {
         const { id } = await params;
         const { searchParams } = new URL(request.url);
@@ -14,8 +28,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         const queryParams: (string | number)[] = [id];
 
         if (periodSemester) {
+            const parsedSemester = Number.parseInt(periodSemester, 10);
+            if (Number.isNaN(parsedSemester)) {
+                return badRequest("periodSemester должен быть числом");
+            }
             sqlQuery += ` AND period_semester = ?`;
-            queryParams.push(parseInt(periodSemester));
+            queryParams.push(parsedSemester);
         }
 
         const rows = await query(sqlQuery, queryParams);
@@ -25,17 +43,39 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             subjects: typeof row.subjects === 'string' ? JSON.parse(row.subjects) : row.subjects
         }));
 
-        return NextResponse.json({ success: true, data });
+        return jsonResponse(successResponse(data));
     } catch (error) {
-        return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
+        const { message } = handleApiError(error);
+        return serverError(message);
     }
 }
 
 // Добавление успеваемости за конкретный период
 export async function POST(request: NextRequest) {
-    try {
-        const { groupId, students } = await request.json();
+    const authResult = await requireAuth(request);
+    if (!authResult.success) {
+        return authResult.response;
+    }
 
+    const parseResult = await safeParseJson<{
+        groupId?: string | number;
+        students?: Array<{
+            fullName: string;
+            subjects: unknown;
+            averageScore: number;
+            periodSemester?: number | null;
+        }>;
+    }>(request);
+    if (!parseResult.success) {
+        return badRequest(parseResult.error);
+    }
+
+    const { groupId, students } = parseResult.data;
+    if (!groupId || !Array.isArray(students)) {
+        return badRequest("Неверный формат данных");
+    }
+
+    try {
         for (const student of students) {
             await execute(
                 `INSERT INTO grades (fk_group, full_name, subjects_json, average_score, period_semester)
@@ -47,27 +87,38 @@ export async function POST(request: NextRequest) {
                 [groupId, student.fullName, JSON.stringify(student.subjects), student.averageScore, student.periodSemester || null]
             );
         }
-        return NextResponse.json({ success: true });
+        return jsonResponse(successResponse(null, "Успеваемость обновлена"));
     } catch (error) {
-        return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
+        const { message } = handleApiError(error);
+        return serverError(message);
     }
 }
 
 // Удаление успеваемости за конкретный период
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const authResult = await requireAuth(request);
+    if (!authResult.success) {
+        return authResult.response;
+    }
+
     try {
         const { id } = await params;
         const { searchParams } = new URL(request.url);
         const periodSemester = searchParams.get('periodSemester');
 
         if (!periodSemester) {
-            return NextResponse.json({ success: false, message: "Не указан период для удаления" }, { status: 400 });
+            return badRequest("Не указан период для удаления");
         }
 
-        await execute(`DELETE FROM grades WHERE fk_group = ? AND period_semester = ?`, [id, parseInt(periodSemester)]);
+        const parsedSemester = Number.parseInt(periodSemester, 10);
+        if (Number.isNaN(parsedSemester)) {
+            return badRequest("periodSemester должен быть числом");
+        }
 
-        return NextResponse.json({ success: true, message: "Записи удалены" });
+        await execute(`DELETE FROM grades WHERE fk_group = ? AND period_semester = ?`, [id, parsedSemester]);
+        return jsonResponse(successResponse(null, "Записи удалены"));
     } catch (error) {
-        return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
+        const { message } = handleApiError(error);
+        return serverError(message);
     }
 }

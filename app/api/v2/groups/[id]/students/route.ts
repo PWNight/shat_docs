@@ -1,54 +1,54 @@
-import {NextRequest, NextResponse} from "next/server";
+import { NextRequest } from "next/server";
 import {query, execute} from "@/utils/mysql";
-import {getSession} from "@/utils/session";
+import {
+    requireAuth,
+    safeParseJson,
+    badRequest,
+    serverError,
+    jsonResponse,
+    successResponse,
+    handleApiError,
+} from "@/utils/api";
 
 
 // Получение списка студентов
 export async function GET(_request: NextRequest, {params}: { params: Promise<{ id: string }> }) {
-    try{
-        const userData = await getSession();
-        if (!userData){
-            return NextResponse.json({ success: false, message: "Для доступа требуется авторизоваться" }, {status:401})
-        }
+    const authResult = await requireAuth(_request);
+    if (!authResult.success) {
+        return authResult.response;
+    }
 
+    try{
         const {id} = await params;
         const students = await query(
             'SELECT * FROM students WHERE fk_group = ?', [id]
         );
-        return NextResponse.json({ success: true, data: students }, {status:200})
+        return jsonResponse(successResponse(students));
     } catch (error) {
-        console.error("Ошибка работы API", error);
-        const errorMessage =
-            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
-
-        return NextResponse.json(
-            {
-                success: false,
-                message: "Внутренняя ошибка сервера",
-                error: {
-                    message: errorMessage,
-                    code: "SERVER_ERROR",
-                },
-            },
-            { status: 500 }
-        );
+        const { message } = handleApiError(error);
+        return serverError(message);
     }
 }
 
 // Создание нового студента
 export async function POST(request: NextRequest, {params}: { params: Promise<{ id: string }> }) {
+    const authResult = await requireAuth(request);
+    if (!authResult.success) {
+        return authResult.response;
+    }
+
+    const parseResult = await safeParseJson<{ students?: Array<{ fullName: string }> }>(request);
+    if (!parseResult.success) {
+        return badRequest(parseResult.error);
+    }
+
+    const students = parseResult.data.students;
+    if (!Array.isArray(students)) {
+        return badRequest("Неверный формат данных");
+    }
+
     try {
-        const userData = await getSession();
-        if (!userData) {
-            return NextResponse.json({ success: false, message: "Для доступа требуется авторизоваться" }, {status:401})
-        }
-
         const {id} = await params;
-        const { students } = await request.json();
-
-        if (!Array.isArray(students)) {
-            return NextResponse.json({ success: false, message: "Неверный формат данных" }, {status:400})
-        }
 
         for (const student of students) {
             await execute(
@@ -57,22 +57,9 @@ export async function POST(request: NextRequest, {params}: { params: Promise<{ i
             );
         }
 
-        return NextResponse.json({ success: true, message: "Студенты добавлены" }, {status:201})
+        return jsonResponse(successResponse(null, "Студенты добавлены"), 201);
     } catch (error) {
-        console.error("Ошибка создания студентов", error);
-        const errorMessage =
-            error instanceof Error ? error.message : "Неизвестная ошибка сервера";
-
-        return NextResponse.json(
-            {
-                success: false,
-                message: "Внутренняя ошибка сервера",
-                error: {
-                    message: errorMessage,
-                    code: "SERVER_ERROR",
-                },
-            },
-            { status: 500 }
-        );
+        const { message } = handleApiError(error);
+        return serverError(message);
     }
 }
