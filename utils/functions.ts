@@ -374,20 +374,42 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
-// Общий тип для API ответов с ошибкой
-interface ApiErrorResponse {
+type ApiResponseBody = {
+    success?: boolean;
     message?: string;
+    error?: string;
+    data?: unknown;
+};
+
+function parseResponseBody(response: Response): Promise<ApiResponseBody | null> {
+    return response
+        .text()
+        .then((raw) => {
+            if (!raw) return null;
+            try {
+                return JSON.parse(raw) as ApiResponseBody;
+            } catch {
+                return null;
+            }
+        });
 }
 
-// Утилита для обработки API ответов
-export async function handleApiResponse(response: Response) {
-    if (!response.ok) {
-        const errorData: ApiErrorResponse = await response.json();
-        console.log(errorData);
+// Утилита для обработки API ответов с защитой от невалидного JSON
+export async function handleApiResponse(response: Response): Promise<ApiResponseBody> {
+    const body = await parseResponseBody(response);
 
-        throw new Error(errorData.message
-            ? `${errorData.message} (err ${response.status})`
-            : `Неизвестная ошибка (err ${response.status})`);
+    if (!response.ok) {
+        const messageFromBody = body?.message ?? body?.error;
+        const message = messageFromBody
+            ? `${messageFromBody} (err ${response.status})`
+            : `Ошибка запроса (err ${response.status})`;
+
+        throw new Error(message);
     }
-    return response.json();
+
+    if (!body) {
+        return { success: true };
+    }
+
+    return body;
 }
