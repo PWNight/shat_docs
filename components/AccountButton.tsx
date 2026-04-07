@@ -1,5 +1,5 @@
 import Anchor from "@/components/ui/Anchor";
-import { LogIn, UserCircle, LogOut, ChevronDown } from "lucide-react";
+import { LogIn, UserCircle, LogOut, ChevronDown, GraduationCap } from "lucide-react";
 import { getSession, deleteSession } from "@/utils/session";
 import { redirect } from "next/navigation";
 import {
@@ -48,6 +48,15 @@ export async function AuthButton() {
                     >
                         <UserCircle className="w-4 h-4 text-blue-500" />
                         <span className="font-medium">Профиль</span>
+                    </Anchor>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <Anchor
+                        href="/profile/groups"
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors hover:bg-muted"
+                    >
+                        <GraduationCap className="w-4 h-4 text-blue-500" />
+                        <span className="font-medium">Группы</span>
                     </Anchor>
                 </DropdownMenuItem>
 
