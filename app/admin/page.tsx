@@ -10,6 +10,7 @@ import { getSession } from "@/utils/session";
 import { useRouter } from "next/navigation";
 import NotifyAlert from "@/components/NotifyAlert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/Dialog";
+import { Button } from "@/components/ui/Button";
 
 type AdminUser = {
     id: number;
@@ -378,7 +379,7 @@ export default function AdminPage() {
                                     <p>Посещаемость: {attendancePercent}% | Опоздания: {stat?.late_total ?? 0}</p>
                                 </div>
                                 <div className="flex sm:flex-row flex-col gap-2 w-full items-center mt-auto">
-                                    <button
+                                    <Button
                                         className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-3 py-2 text-sm font-medium transition-all"
                                         onClick={() => {
                                             setGroupDrafts((prev) => ({ ...prev, [group.id]: { name: group.name, fk_user: String(group.fk_user) } }));
@@ -386,7 +387,7 @@ export default function AdminPage() {
                                         }}
                                     >
                                         Редактировать
-                                    </button>
+                                    </Button>
                                     <ActionButton loading={actionKey === `delete-group-${group.id}`} disabled={busy} onClick={() => setGroupDeleteId(group.id)} className="w-full rounded-lg bg-red-50 dark:bg-zinc-700/50 text-red-600 dark:text-red-500 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 dark:hover:text-white px-3 py-2 text-sm font-medium transition-colors disabled:opacity-60 flex items-center justify-center gap-2"><Trash2 className="w-4 h-4" /> Удалить</ActionButton>
                                     </div>
                                 </div>
@@ -400,15 +401,24 @@ export default function AdminPage() {
                 <section className="grid gap-5">
                     <h2 className="text-xl font-bold">Пользователи и безопасность</h2>
                     <div className="grid gap-2">
-                        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                             {data.users.map((item) => {
                                 return (
-                                    <div key={`manage-${item.id}`} className="border border-border rounded-xl p-3 grid gap-2">
-                                        <p className="text-xs text-muted-foreground">ID: {item.id} {item.isRoot ? "| root" : ""}</p>
-                                        <p className="text-sm">{item.full_name}</p>
-                                        <p className="text-sm text-muted-foreground">{item.email}</p>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <button
+                                    <div key={`manage-${item.id}`} className="group relative flex flex-col p-5 rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-all">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div className="p-3 rounded-xl bg-muted text-muted-foreground">
+                                                <Users className="w-6 h-6" />
+                                            </div>
+                                            <div className="flex sm:flex-row flex-col items-end gap-2">
+                                                {item.isRoot ? <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 bg-muted text-foreground rounded-full border border-border">Root</span> : null}
+                                                {item.canAccessAdmin ? <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 bg-muted text-foreground rounded-full border border-border">Админ доступ</span> : null}
+                                                <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 bg-muted text-muted-foreground rounded-full border border-border">ID: {item.id}</span>
+                                            </div>
+                                        </div>
+                                        <h3 className="text-lg font-bold tracking-tight">{item.full_name}</h3>
+                                        <p className="text-sm text-muted-foreground mb-4">{item.email}</p>
+                                        <div className="grid grid-cols-2 gap-2 mt-auto">
+                                            <Button
                                                 className="flex items-center justify-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-medium rounded-lg text-sm transition-all"
                                                 onClick={() => {
                                                     setUserDrafts((prev) => ({ ...prev, [item.id]: { full_name: item.full_name, email: item.email } }));
@@ -416,14 +426,19 @@ export default function AdminPage() {
                                                 }}
                                             >
                                                 <Save className="w-4 h-4" /> Редактировать
-                                            </button>
-                                            <button className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white text-sm font-medium transition-all" onClick={() => { setResetPasswordDraft(""); setUserResetId(item.id); }}>
-                                                Сброс пароля
-                                            </button>
+                                            </Button>
+                                            <ActionButton loading={actionKey === `delete-user-${item.id}`} disabled={busy || item.isRoot === 1} className="px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 dark:hover:text-white text-sm font-medium transition-colors disabled:opacity-60" onClick={() => setUserDeleteId(item.id)}>
+                                                Удалить
+                                            </ActionButton>
                                         </div>
-                                        <ActionButton loading={actionKey === `delete-user-${item.id}`} disabled={busy || item.isRoot === 1} className="px-3 py-2 rounded-lg bg-red-50 dark:bg-zinc-700/50 text-red-600 dark:text-red-500 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 dark:hover:text-white text-sm font-medium transition-colors disabled:opacity-60" onClick={() => setUserDeleteId(item.id)}>
-                                            Удалить пользователя
-                                        </ActionButton>
+                                        <div className="grid grid-cols-2 gap-2 mt-2">
+                                            <Button className="px-3 py-2 rounded-lg border border-border bg-muted/80 dark:bg-zinc-800/80 hover:bg-muted dark:hover:bg-zinc-700 text-foreground text-sm font-medium transition-all" onClick={() => { setResetPasswordDraft(""); setUserResetId(item.id); }}>
+                                                Сброс пароля
+                                            </Button>
+                                            <ActionButton loading={actionKey === `toggle-${item.id}`} disabled={busy || item.isRoot === 1} className="px-3 py-2 rounded-lg border border-border bg-muted/80 dark:bg-zinc-800/80 hover:bg-muted dark:hover:bg-zinc-700 text-foreground text-sm font-medium transition-all disabled:opacity-60" onClick={() => toggleAccess(item.id)}>
+                                                {item.canAccessAdmin ? "Забрать доступ" : "Выдать доступ"}
+                                            </ActionButton>
+                                        </div>
                                     </div>
                                 );
                             })}
@@ -444,19 +459,6 @@ export default function AdminPage() {
                         ))}
                         </div>
                     </div>
-                    <div className="grid gap-2">
-                        <h3 className="font-semibold">Права на админ-панель</h3>
-                        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-2">
-                        {data.users.map((item) => (
-                            <div key={item.id} className="border border-border rounded-xl p-3 grid gap-3">
-                                <div><p>{item.full_name} {item.isRoot ? "(root)" : ""}</p><p className="text-sm text-muted-foreground">{item.email}</p></div>
-                                <ActionButton loading={actionKey === `toggle-${item.id}`} disabled={busy || item.isRoot === 1} className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white text-sm font-medium transition-all disabled:opacity-60" onClick={() => toggleAccess(item.id)}>
-                                    {item.canAccessAdmin ? "Забрать доступ" : "Выдать доступ"}
-                                </ActionButton>
-                            </div>
-                        ))}
-                        </div>
-                    </div>
                     {data.passwordResetRequests.length === 0 ? <p className="text-sm text-muted-foreground">Нет заявок</p> : null}
                     <div className="grid gap-2">
                     <h3 className="font-semibold">Заявки на сброс пароля</h3>
@@ -467,9 +469,9 @@ export default function AdminPage() {
                             <p className="text-sm text-muted-foreground">Статус: {item.status}</p>
                             {item.status === "pending" ? (
                                 <div className="grid sm:grid-cols-[1fr_auto] gap-2">
-                                    <button className="rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-3 py-2 text-sm font-medium transition-all" onClick={() => setResetRequestDialogId(item.id)}>
+                                    <Button className="rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-3 py-2 text-sm font-medium transition-all" onClick={() => setResetRequestDialogId(item.id)}>
                                         Открыть диалог сброса
-                                    </button>
+                                    </Button>
                                 </div>
                             ) : null}
                         </div>
@@ -647,11 +649,11 @@ function ActionButton({
     ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & { loading?: boolean }) {
     return (
-        <button {...props} disabled={props.disabled || loading} className={className}>
+        <Button {...props} disabled={props.disabled || loading} className={className}>
             <span className="inline-flex items-center justify-center gap-2">
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                 {children}
             </span>
-        </button>
+        </Button>
     );
 }
