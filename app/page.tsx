@@ -151,17 +151,17 @@ export default function MainPage() {
                     <FeatureCard title="Документация" desc="Инструкции и рекомендации по использованию приложения." icon={<FileText/>} href="/wiki" />
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
                     {!loading && (
-                        <section className="relative overflow-hidden rounded-3xl border border-blue-500/20 bg-card/30 backdrop-blur-2xl p-6 md:p-10 shadow-2xl flex flex-col min-h-105 lg:min-h-full transition-all duration-300 hover:border-blue-500/40 group">
+                        <section className="relative overflow-hidden rounded-3xl border border-blue-500/20 bg-card/30 backdrop-blur-2xl p-6 md:p-10 shadow-2xl flex flex-col transition-all duration-300 hover:border-blue-500/40 group">
                             <div className="absolute inset-0 bg-linear-to-br from-blue-600/10 via-transparent to-transparent opacity-100" />
                             <div className="absolute top-0 right-0 p-0 opacity-15 pointer-events-none translate-x-1/4 -translate-y-1/4 rotate-12">
                                 <Sparkles size={320} className="text-blue-500" strokeWidth={0.5} />
                             </div>
 
-                            <div className="relative z-10 flex flex-col h-full justify-between">
+                            <div className="relative z-10 flex flex-col h-full">
                                 {latestMajor ? (
-                                    <div className="flex flex-col h-full gap-8">
+                                    <div className="flex flex-col h-full gap-6">
                                         <div className="space-y-4">
                                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 w-fit">
                                                 <Sparkles size={14} className="animate-pulse shrink-0" />
@@ -177,10 +177,10 @@ export default function MainPage() {
                                                 </span>
                                             </div>
                                         </div>
-                                        <p className="text-muted-foreground text-base md:text-lg max-w-sm leading-relaxed font-medium flex-1">
+                                        <p className="text-muted-foreground text-base md:text-lg max-w-sm leading-relaxed font-medium">
                                             Стабильное обновление с ключевыми изменениями и новыми возможностями системы.
                                         </p>
-                                        <div className="mt-auto">
+                                        <div className="pt-2">
                                             <Dialog>
                                                 <DialogTrigger asChild>
                                                     <button className="group/btn relative inline-flex items-center justify-center gap-3 px-8 py-4 w-full sm:w-fit rounded-2xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/25 active:scale-95">
@@ -226,7 +226,16 @@ export default function MainPage() {
                                                 <Boxes size={14} className="animate-pulse" />
                                                 <span className="text-[10px] font-bold uppercase tracking-widest">Последняя бета</span>
                                             </div>
-                                            <h2 className="text-2xl md:text-3xl font-black tracking-tight text-foreground/90">{latestBeta.name}</h2>
+                                            <div className="space-y-2">
+                                                <h2 className="text-2xl md:text-3xl font-black tracking-tight text-foreground/90">{latestBeta.name}</h2>
+                                                <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                                                    <Calendar size={15} className="text-blue-500" />
+                                                    {new Date(latestBeta.published_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                                </span>
+                                            </div>
+                                            <p className="text-sm text-muted-foreground leading-relaxed">
+                                                Тестовая версия с новыми функциями перед выходом в стабильный релиз.
+                                            </p>
                                         </div>
                                         <Dialog>
                                             <DialogTrigger asChild>
@@ -271,7 +280,16 @@ export default function MainPage() {
                                             <Bug size={14} />
                                             <span className="text-[10px] font-bold uppercase tracking-widest">Последний патч</span>
                                         </div>
-                                        <h2 className="text-2xl md:text-3xl font-black tracking-tight text-foreground/80">{latestPatch.name}</h2>
+                                        <div className="space-y-2">
+                                            <h2 className="text-2xl md:text-3xl font-black tracking-tight text-foreground/80">{latestPatch.name}</h2>
+                                            <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                                                <Calendar size={15} className="text-muted-foreground" />
+                                                {new Date(latestPatch.published_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                            </span>
+                                        </div>
+                                        <p className="text-sm text-muted-foreground leading-relaxed">
+                                            Небольшой релиз с исправлениями ошибок и улучшением стабильности.
+                                        </p>
                                     </div>
                                     <Dialog>
                                         <DialogTrigger asChild>
