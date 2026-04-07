@@ -105,8 +105,8 @@ export function getPreviousNext(path: string) {
 }
 
 function sluggify(text: string) {
-    const slug = text.toLowerCase().replace(/\s+/g, "-");
-    return slug.replace(/[^а-я0-9-]/g, "");
+    const slug = text.trim().toLowerCase().replace(/\s+/g, "-");
+    return slug.replace(/[^a-zа-яё0-9-]/g, "");
 }
 
 function getWikiContentPath(slug: string) {

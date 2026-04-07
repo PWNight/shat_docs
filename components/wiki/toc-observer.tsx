@@ -22,7 +22,7 @@ export default function TocObserver({ data }: { data: TocItem[] }) {
 
         observer.current = new IntersectionObserver(handleIntersect, {
             rootMargin: "-10% 0px -80% 0px", // Активация в верхней части экрана
-            threshold: 1.0,
+            threshold: 0.2,
         });
 
         data.forEach((item) => {
@@ -34,17 +34,17 @@ export default function TocObserver({ data }: { data: TocItem[] }) {
     }, [data]);
 
     return (
-        <nav className="flex flex-col gap-2 text-sm">
+        <nav className="flex flex-col gap-1.5 text-sm">
             {data.map(({ href, level, text }, index) => (
                 <Link
                     key={index}
                     href={href}
                     className={clsx(
-                        "transition-colors hover:text-foreground",
+                        "rounded-md px-2 py-1.5 transition-colors hover:bg-muted/70 hover:text-foreground",
                         level === 3 && "pl-4",
                         level === 4 && "pl-8",
                         activeId === href.slice(1)
-                            ? "font-medium text-primary"
+                            ? "bg-blue-500/10 font-medium text-primary"
                             : "text-muted-foreground"
                     )}
                 >
