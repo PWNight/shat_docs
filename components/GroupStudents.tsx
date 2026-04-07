@@ -252,7 +252,7 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
                     </p>
                 </div>
             ) : (
-                <div className="grid gap-3">
+                <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {students.map((student) => (
                         <div key={student.id} className="flex items-center justify-between p-4 bg-card border border-gray-100 dark:border-zinc-700 rounded-lg">
                             <div className="flex-1">
