@@ -1,0 +1,750 @@
+---
+title: API Reference
+description: Подробная документация по API v2 на основе исходного кода.
+update_date: 07-04-2026
+---
+
+## Область действия
+
+Эта страница описывает только **API v2** с базовым префиксом:
+
+`/api/v2`
+
+Документация составлена по реальному коду роутов в `app/api/v2`.
+
+## Аутентификация
+
+Для защищенных endpoint используется проверка сессии через:
+
+- cookie `session`, или
+- заголовок `Authorization: Bearer <token>`.
+
+Если авторизация не пройдена, обычно возвращается:
+
+```json
+{
+  "success": false,
+  "message": "Необходима авторизация",
+  "code": "UNAUTHORIZED"
+}
+```
+
+Статус: `401`.
+
+## Единый формат ответов
+
+### Успех
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Опционально"
+}
+```
+
+### Ошибка
+
+```json
+{
+  "success": false,
+  "message": "Текст ошибки",
+  "code": "BAD_REQUEST",
+  "fieldErrors": {
+    "email": ["Введите корректную почту"]
+  }
+}
+```
+
+Где `fieldErrors` присутствует только для ошибок валидации.
+
+## Раздел Auth
+
+### POST `/auth/login`
+
+Логин пользователя по email/паролю.
+
+**Body (JSON):**
+
+```json
+{
+  "email": "teacher@example.com",
+  "password": "password123"
+}
+```
+
+**Валидация:**
+
+- `email`: корректный email;
+- `password`: строка, минимум 8 символов.
+
+**Успешный ответ `200`:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "uid": 1,
+    "email": "teacher@example.com",
+    "full_name": "Иванов И.И.",
+    "token": "jwt_or_encrypted_session_token"
+  }
+}
+```
+
+**Ошибки:**
+
+- `400 BAD_REQUEST`
+  - `Некорректный JSON в теле запроса`
+  - `Ошибка валидации` + `fieldErrors`
+- `401 UNAUTHORIZED`
+  - `Пользователь с такой почтой не найден`
+  - `Неправильный пароль`
+- `500 SERVER_ERROR` - любая внутренняя ошибка.
+
+### POST `/auth/register`
+
+Регистрация нового пользователя.
+
+**Body (JSON):**
+
+```json
+{
+  "email": "teacher@example.com",
+  "full_name": "Иванов И.И.",
+  "password": "password123"
+}
+```
+
+**Валидация:**
+
+- `email`: корректный email;
+- `full_name`: обязательная непустая строка;
+- `password`: минимум 8 символов.
+
+**Успешный ответ `200`:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "uid": 2,
+    "email": "teacher@example.com",
+    "full_name": "Иванов И.И.",
+    "token": "jwt_or_encrypted_session_token"
+  }
+}
+```
+
+**Ошибки:**
+
+- `400 BAD_REQUEST`
+  - `Некорректный JSON в теле запроса`
+  - `Ошибка валидации` + `fieldErrors`
+- `401 UNAUTHORIZED`
+  - `Пользователь с такой почтой уже существует`
+- `500 SERVER_ERROR`.
+
+### GET `/auth/logout`
+
+Завершение сессии.
+
+**Требования:**
+
+- должен быть либо cookie `session`, либо Bearer токен.
+
+**Успешный ответ `200`:**
+
+```json
+{
+  "success": true,
+  "data": null,
+  "message": "Успешно"
+}
+```
+
+**Ошибки:**
+
+- `401 UNAUTHORIZED` - `Не авторизован` (если токен вообще не передан);
+- `400 BAD_REQUEST` - `Токен некорректен`;
+- `500 SERVER_ERROR`.
+
+## Раздел Groups
+
+### GET `/groups`
+
+Возвращает список групп.
+
+**Успешный ответ `200`:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "name": "10А",
+      "created_by": "2026-04-01T12:00:00.000Z",
+      "fk_user": 3,
+      "leader": "Петров П.П."
+    }
+  ]
+}
+```
+
+**Ошибки:** `401`, `500`.
+
+### POST `/groups`
+
+Создание новой группы.
+
+**Body (JSON):**
+
+```json
+{
+  "name": "10А",
+  "fk_user": "3"
+}
+```
+
+`fk_user` ожидается строкой (по текущей схеме валидации).
+
+**Успешный ответ `200`:**
+
+```json
+{
+  "success": true,
+  "data": null,
+  "message": "Группа 10А успешно создана"
+}
+```
+
+**Ошибки:**
+
+- `400 BAD_REQUEST`
+  - `Некорректный JSON в теле запроса`
+  - `Ошибка валидации` + `fieldErrors`
+  - `Группа с названием ... уже существует`
+- `401 UNAUTHORIZED`
+- `404 NOT_FOUND`
+  - `Пользователь с айди ... не найден`
+- `500 SERVER_ERROR`.
+
+### GET `/groups/{id}`
+
+Получение группы по ID.
+
+**Path params:**
+
+- `id` - ID группы.
+
+**Успешный ответ `200`:** объект группы.
+
+**Ошибки:**
+
+- `401 UNAUTHORIZED`
+- `404 NOT_FOUND` - `Группа с айди ... не найдена`
+- `500 SERVER_ERROR`.
+
+### POST `/groups/{id}`
+
+Обновление группы.
+
+**Path params:** `id`.
+
+**Body (JSON):**
+
+```json
+{
+  "name": "10Б",
+  "fk_user": "4"
+}
+```
+
+Можно передавать одно или оба поля.
+
+**Успешный ответ `200`:**
+
+```json
+{
+  "success": true,
+  "data": null,
+  "message": "Группа успешно обновлена"
+}
+```
+
+**Ошибки:**
+
+- `400 BAD_REQUEST`
+  - `Некорректный JSON в теле запроса`
+  - `Ошибка валидации` + `fieldErrors`
+  - `Данные из формы совпадают с данными в базе`
+- `401 UNAUTHORIZED`
+- `403 FORBIDDEN`
+  - `Вы не можете обновить эту группу`
+- `404 NOT_FOUND`
+  - `Группа с айди ... не найдена`
+- `500 SERVER_ERROR`.
+
+### DELETE `/groups/{id}`
+
+Удаление группы.
+
+**Path params:** `id`.
+
+**Успешный ответ `200`:**
+
+```json
+{
+  "success": true,
+  "data": null,
+  "message": "Группа с айди ... успешно удалена"
+}
+```
+
+**Ошибки:**
+
+- `401 UNAUTHORIZED`
+- `403 FORBIDDEN` - `Вы не можете удалить эту группу`
+- `404 NOT_FOUND` - `Группа с айди ... не найдена`
+- `500 SERVER_ERROR`.
+
+## Раздел Attendance
+
+### GET `/groups/{id}/attendance`
+
+Получение посещаемости группы.
+
+**Path params:** `id`.
+
+**Query params (optional):**
+
+- `periodMonth` - число месяца.
+
+**Успешный ответ `200`:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "number": 1,
+      "fullName": "Иванов И.И.",
+      "fullDaysTotal": 20,
+      "fullDaysSick": 2,
+      "lessonsTotal": 120,
+      "lessonsSick": 8,
+      "late": 1,
+      "periodMonth": 3
+    }
+  ]
+}
+```
+
+**Ошибки:**
+
+- `400 BAD_REQUEST` - `periodMonth должен быть числом`
+- `401 UNAUTHORIZED`
+- `500 SERVER_ERROR`.
+
+### POST `/groups/{id}/attendance`
+
+Создание/обновление посещаемости (upsert по БД-ключам).
+
+**Body (JSON):**
+
+```json
+{
+  "groupId": 1,
+  "students": [
+    {
+      "fullName": "Иванов И.И.",
+      "fullDaysTotal": 20,
+      "fullDaysSick": 2,
+      "lessonsTotal": 120,
+      "lessonsSick": 8,
+      "late": 1,
+      "periodMonth": 3
+    }
+  ]
+}
+```
+
+`groupId` обязателен. `students` обязателен и должен быть массивом.
+
+**Успешный ответ `200`:**
+
+```json
+{
+  "success": true,
+  "data": null,
+  "message": "Посещаемость обновлена"
+}
+```
+
+**Ошибки:**
+
+- `400 BAD_REQUEST`
+  - `Некорректный JSON в теле запроса`
+  - `Неверный формат данных`
+- `401 UNAUTHORIZED`
+- `500 SERVER_ERROR`.
+
+### DELETE `/groups/{id}/attendance`
+
+Удаление посещаемости за период.
+
+**Path params:** `id`.
+
+**Query params (required):**
+
+- `periodMonth` - номер месяца.
+
+**Успешный ответ `200`:**
+
+```json
+{
+  "success": true,
+  "data": null,
+  "message": "Записи удалены"
+}
+```
+
+**Ошибки:**
+
+- `400 BAD_REQUEST`
+  - `Не указан период для удаления`
+  - `periodMonth должен быть числом`
+- `401 UNAUTHORIZED`
+- `500 SERVER_ERROR`.
+
+## Раздел Grades
+
+### GET `/groups/{id}/grades`
+
+Получение успеваемости группы.
+
+**Path params:** `id`.
+
+**Query params (optional):**
+
+- `periodSemester` - номер полугодия.
+
+**Успешный ответ `200`:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "fullName": "Иванов И.И.",
+      "subjects": [
+        { "name": "Алгебра", "grade": "5" }
+      ],
+      "averageScore": 4.8,
+      "periodSemester": 1
+    }
+  ]
+}
+```
+
+`subjects` в БД хранится как JSON-строка и на выходе парсится в объект/массив.
+
+**Ошибки:**
+
+- `400 BAD_REQUEST` - `periodSemester должен быть числом`
+- `401 UNAUTHORIZED`
+- `500 SERVER_ERROR`.
+
+### POST `/groups/{id}/grades`
+
+Создание/обновление успеваемости (upsert).
+
+**Body (JSON):**
+
+```json
+{
+  "groupId": 1,
+  "students": [
+    {
+      "fullName": "Иванов И.И.",
+      "subjects": [
+        { "name": "Алгебра", "grade": "5" }
+      ],
+      "averageScore": 4.8,
+      "periodSemester": 1
+    }
+  ]
+}
+```
+
+**Успешный ответ `200`:**
+
+```json
+{
+  "success": true,
+  "data": null,
+  "message": "Успеваемость обновлена"
+}
+```
+
+**Ошибки:**
+
+- `400 BAD_REQUEST`
+  - `Некорректный JSON в теле запроса`
+  - `Неверный формат данных`
+- `401 UNAUTHORIZED`
+- `500 SERVER_ERROR`.
+
+### DELETE `/groups/{id}/grades`
+
+Удаление успеваемости за полугодие.
+
+**Path params:** `id`.
+
+**Query params (required):**
+
+- `periodSemester` - номер полугодия.
+
+**Успешный ответ `200`:**
+
+```json
+{
+  "success": true,
+  "data": null,
+  "message": "Записи удалены"
+}
+```
+
+**Ошибки:**
+
+- `400 BAD_REQUEST`
+  - `Не указан период для удаления`
+  - `periodSemester должен быть числом`
+- `401 UNAUTHORIZED`
+- `500 SERVER_ERROR`.
+
+## Раздел Students
+
+### GET `/groups/{id}/students`
+
+Получение списка студентов группы.
+
+**Path params:** `id`.
+
+**Успешный ответ `200`:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 101,
+      "full_name": "Иванов И.И.",
+      "fk_group": 1
+    }
+  ]
+}
+```
+
+**Ошибки:** `401`, `500`.
+
+### POST `/groups/{id}/students`
+
+Массовое добавление студентов.
+
+**Path params:** `id`.
+
+**Body (JSON):**
+
+```json
+{
+  "students": [
+    { "fullName": "Иванов И.И." },
+    { "fullName": "Петров П.П." }
+  ]
+}
+```
+
+**Успешный ответ `201`:**
+
+```json
+{
+  "success": true,
+  "data": null,
+  "message": "Студенты добавлены"
+}
+```
+
+**Ошибки:**
+
+- `400 BAD_REQUEST`
+  - `Некорректный JSON в теле запроса`
+  - `Неверный формат данных`
+- `401 UNAUTHORIZED`
+- `500 SERVER_ERROR`.
+
+### PATCH `/groups/{id}/students/{studentId}`
+
+Обновление ФИО студента и синхронизация имени в `attendance` и `grades`.
+
+**Path params:**
+
+- `id` - ID группы;
+- `studentId` - ID студента.
+
+**Body (JSON):**
+
+```json
+{
+  "full_name": "Новое ФИО"
+}
+```
+
+**Успешный ответ `200`:**
+
+```json
+{
+  "success": true,
+  "data": null,
+  "message": "Данные студента и связанные записи обновлены"
+}
+```
+
+**Ошибки:**
+
+- `400 BAD_REQUEST` - `Новое ФИО не указано`
+- `401 UNAUTHORIZED`
+- `404 NOT_FOUND` - `Студент не найден в этой группе`
+- `500 SERVER_ERROR`.
+
+### DELETE `/groups/{id}/students/{studentId}`
+
+Удаление студента и связанных записей из `attendance` и `grades`.
+
+**Path params:** `id`, `studentId`.
+
+**Успешный ответ `200`:**
+
+```json
+{
+  "success": true,
+  "data": null,
+  "message": "Студент и все связанные данные успешно удалены"
+}
+```
+
+**Ошибки:**
+
+- `401 UNAUTHORIZED`
+- `404 NOT_FOUND` - `Студент не найден`
+- `500 SERVER_ERROR`.
+
+## Раздел Users
+
+### GET `/users`
+
+Список пользователей (краткий).
+
+**Успешный ответ `200`:**
+
+```json
+{
+  "success": true,
+  "data": [
+    { "id": 1, "full_name": "Иванов И.И." }
+  ]
+}
+```
+
+**Ошибки:** `401`, `500`.
+
+### POST `/users`
+
+Обновление профиля текущего пользователя.
+
+Можно обновлять:
+
+- `full_name`
+- `email`
+- пароль (`currentPassword`, `newPassword`, `confirmPassword`)
+
+**Body (JSON, пример):**
+
+```json
+{
+  "full_name": "Новое ФИО",
+  "email": "new@example.com",
+  "currentPassword": "old-password",
+  "newPassword": "new-password-123",
+  "confirmPassword": "new-password-123"
+}
+```
+
+**Успешный ответ `200`:**
+
+- `Данные успешно обновлены`, или
+- `Данные и пароль успешно обновлены`.
+
+**Ошибки:**
+
+- `400 BAD_REQUEST`
+  - `Некорректный JSON в теле запроса`
+  - `Нет данных для обновления`
+  - `Новые пароли не совпадают`
+  - `Текущий пароль введен неверно`
+- `401 UNAUTHORIZED`
+- `404 NOT_FOUND`
+  - `Пользователь не найден` (при проверке пароля)
+- `500 SERVER_ERROR`.
+
+### GET `/users/{id}`
+
+Получение пользователя по ID.
+
+**Path params:** `id`.
+
+**Успешный ответ `200`:** полный объект пользователя из таблицы `users`.
+
+**Ошибки:**
+
+- `401 UNAUTHORIZED`
+- `404 NOT_FOUND` - `Пользователь с айди ... не найден`
+- `500 SERVER_ERROR`.
+
+### GET `/users/stats`
+
+Статистика текущего пользователя (по его группам).
+
+**Успешный ответ `200`:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "groups": 3,
+    "students": 67,
+    "avgGrade": "4.27",
+    "attendance": {
+      "total": 1200,
+      "sick": 90,
+      "late": 14,
+      "percent": "92.5"
+    }
+  }
+}
+```
+
+**Примечание по типам:** `avgGrade` и `attendance.percent` в ответе формируются через `toFixed`, фактически приходят строкой.
+
+**Ошибки:** `401`, `500`.
+
+## Сводка по статусам и кодам
+
+- `200` - успешное чтение/обновление/удаление.
+- `201` - успешное создание (используется в `POST /groups/{id}/students`).
+- `400 BAD_REQUEST` - некорректный JSON, невалидные данные, ошибки параметров.
+- `401 UNAUTHORIZED` - отсутствует/некорректна авторизация.
+- `403 FORBIDDEN` - недостаточно прав (операции с чужой группой).
+- `404 NOT_FOUND` - сущность не найдена.
+- `500 SERVER_ERROR` - непредвиденные ошибки сервера.
