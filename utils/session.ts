@@ -59,6 +59,8 @@ export async function createSession(userData: { uid: number; email: string, full
         path: "/",
         expires: expiresAt,
     });
+
+    return session;
 }
 
 export async function deleteSession() {
