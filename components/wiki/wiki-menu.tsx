@@ -10,26 +10,28 @@ export default function WikiMenu({ isSheet = false }) {
   if (!pathname.startsWith("/wiki")) return null;
 
   return (
-      <div className={'px-2'}>
+      <div className="">
       {isSheet && (
-          <section>
-              <div className="space-y-1">
-                  <div className="flex items-center gap-2 mb-3 text-blue-500">
-                      <Book className="w-4 h-4" />
-                      <h2 className="text-[10px] font-bold uppercase tracking-[0.2em]">Документация</h2>
-                  </div>
+          <section className="px-2 pb-2">
+            <div className="space-y-1">
+              <div className="mb-2 flex items-center gap-2 text-blue-500">
+                <Book className="h-4 w-4" />
+                <h2 className="text-[10px] font-bold uppercase tracking-[0.2em]">Документация</h2>
               </div>
+            </div>
           </section>
       )}
-      {ROUTES.map((item, index) => {
-        const modifiedItems = {
-          ...item,
-          href: `/wiki${item.href}`,
-          level: 0,
-          isSheet,
-        };
-        return <SubLink key={item.title + index} {...modifiedItems} />;
-      })}
+      <div className="flex flex-col gap-0.5">
+        {ROUTES.map((item, index) => {
+          const modifiedItems = {
+            ...item,
+            href: `/wiki${item.href}`,
+            level: 0,
+            isSheet,
+          };
+          return <SubLink key={item.title + index} {...modifiedItems} />;
+        })}
+      </div>
       </div>
   );
 }

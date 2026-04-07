@@ -28,10 +28,14 @@ export default function SubLink({
 
   const Comp = (
     <Anchor
-      activeClassName="text-primary dark:font-medium font-semibold"
+      className={cn(
+        "group/link relative flex w-full items-start rounded-lg px-3 py-2 text-[15px] leading-5 text-foreground/80 transition-all duration-200",
+        "hover:bg-muted/70 hover:text-foreground"
+      )}
+      activeClassName="bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold shadow-xs"
       href={href}
     >
-      {title}
+      <span className="block whitespace-normal break-words">{title}</span>
     </Anchor>
   );
 
@@ -42,7 +46,7 @@ export default function SubLink({
       Comp
     )
   ) : (
-    <h4 className="font-medium sm:text-lg text-primary">{title}</h4>
+    <h4 className="px-3 py-2 text-sm font-semibold text-primary">{title}</h4>
   );
 
   if (!items) {
@@ -52,10 +56,10 @@ export default function SubLink({
   return (
     <div className="flex flex-col gap-1 w-full">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CollapsibleTrigger className="w-full pr-5">
-          <div className="flex items-center justify-between cursor-pointer w-full">
+        <CollapsibleTrigger className="w-full">
+          <div className="flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-foreground/80 transition-colors hover:bg-muted/70 hover:text-foreground">
             {titleOrLink}
-            <span>
+            <span className="text-muted-foreground">
               {!isOpen ? (
                 <ChevronRight className="h-[0.9rem] w-[0.9rem]" />
               ) : (
@@ -67,8 +71,8 @@ export default function SubLink({
         <CollapsibleContent>
           <div
             className={cn(
-              "flex flex-col items-start sm:text-sm dark:text-stone-300/85 text-stone-800 ml-0.5 mt-2.5 gap-3",
-              level > 0 && "pl-4 border-l ml-1.5"
+              "mt-1 flex flex-col items-start gap-1",
+              level > 0 && "ml-2 border-l border-border/70 pl-2"
             )}
           >
             {items?.map((innerLink) => {
