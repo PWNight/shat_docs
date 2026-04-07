@@ -12,9 +12,10 @@ import {
     successResponse,
     handleApiError
 } from "@/utils/api";
-import { createSession } from '@/utils/session';
+import { ensureRootAccount } from "@/utils/admin";
 
 export async function POST(request: NextRequest) {
+    await ensureRootAccount();
     // Безопасно парсим JSON
     const parseResult = await safeParseJson(request);
     if (!parseResult.success) {
@@ -38,15 +39,11 @@ export async function POST(request: NextRequest) {
 
         // Шифруем пароль и добавляем запись в БД
         const passwordHash = await bcrypt.hash(password, 10);
-        const result = await execute(
-            'INSERT INTO users (email, full_name, password_hash) VALUES (?, ?, ?)',
+        await execute(
+            "INSERT INTO users (email, full_name, password_hash, registration_status, canAccessAdmin) VALUES (?, ?, ?, 'pending', 0)",
             [email, full_name, passwordHash]
         );
-
-        // Получаем ID пользователя и возвращаем ответ
-        const userId = result.insertId;
-        const token = await createSession({ uid: userId, email, full_name });
-        return jsonResponse(successResponse({ uid: userId, email, full_name, token }));
+        return jsonResponse(successResponse(null, "Заявка на регистрацию отправлена. Ожидайте подтверждения администратором."));
     } catch (error) {
         const { message } = handleApiError(error);
         return serverError(message);

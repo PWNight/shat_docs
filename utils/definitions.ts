@@ -64,6 +64,7 @@ export type LoginFormState = {
 
 export type RegisterFormState = {
     success?: boolean;
+    requiresApproval?: boolean;
     message?: string;
     fieldErrors?: Record<string, string | string[]>;
     values?: {

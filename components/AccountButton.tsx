@@ -1,5 +1,5 @@
 import Anchor from "@/components/ui/Anchor";
-import { LogIn, UserCircle, LogOut, ChevronDown, GraduationCap } from "lucide-react";
+import { LogIn, UserCircle, LogOut, ChevronDown, GraduationCap, ShieldCheck } from "lucide-react";
 import { getSession, deleteSession } from "@/utils/session";
 import { redirect } from "next/navigation";
 import {
@@ -9,10 +9,18 @@ import {
     DropdownMenuTrigger,
     DropdownMenuSeparator,
 } from "@/components/ui/DropdownMenu";
+import { queryOne } from "@/utils/mysql";
 
 export async function AuthButton() {
     const session = await getSession();
     const isLoggedIn = !!session;
+    const adminAccess = isLoggedIn
+        ? await queryOne<{ canAccessAdmin: number; isRoot: number }>(
+            "SELECT canAccessAdmin, isRoot FROM users WHERE id = ? LIMIT 1",
+            [session.uid]
+        )
+        : null;
+    const canOpenAdmin = !!adminAccess && (Number(adminAccess.canAccessAdmin) === 1 || Number(adminAccess.isRoot) === 1);
 
     async function handleLogout() {
         "use server";
@@ -59,6 +67,17 @@ export async function AuthButton() {
                         <span className="font-medium">Группы</span>
                     </Anchor>
                 </DropdownMenuItem>
+                {canOpenAdmin ? (
+                    <DropdownMenuItem asChild>
+                        <Anchor
+                            href="/admin"
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors hover:bg-muted"
+                        >
+                            <ShieldCheck className="w-4 h-4 text-blue-500" />
+                            <span className="font-medium">Админ панель</span>
+                        </Anchor>
+                    </DropdownMenuItem>
+                ) : null}
 
                 <DropdownMenuSeparator className="my-1" />
 

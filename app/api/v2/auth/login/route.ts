@@ -13,8 +13,10 @@ import {
     handleApiError
 } from "@/utils/api";
 import { createSession } from '@/utils/session';
+import { ensureRootAccount } from "@/utils/admin";
 
 export async function POST(request: NextRequest) {
+    await ensureRootAccount();
     // Безопасно парсим JSON
     const parseResult = await safeParseJson(request);
     if (!parseResult.success) {
@@ -32,11 +34,15 @@ export async function POST(request: NextRequest) {
     try {
         // Получаем пользователя из базы данных
         const user = await queryOne(
-            'SELECT id, email, full_name, password_hash FROM users WHERE email = ? LIMIT 1',
+            "SELECT id, email, full_name, password_hash, registration_status FROM users WHERE email = ? LIMIT 1",
             [email]
         );
         if (!user) {
             return unauthorized('Пользователь с такой почтой не найден');
+        }
+
+        if (user.registration_status !== "approved") {
+            return unauthorized("Ваша регистрация ожидает подтверждения администратором");
         }
 
         // Сравниваем пароли

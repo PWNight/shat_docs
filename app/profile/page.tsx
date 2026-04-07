@@ -21,6 +21,7 @@ import {
     UpdateProfileFormData,
     UserProfile
 } from "@/utils/interfaces";
+import { apiPost } from "@/utils/http-client";
 
 type TabType = 'name' | 'email' | 'password';
 
@@ -114,6 +115,18 @@ export default function ProfilePage() {
         setPending(false);
     };
 
+    const handlePasswordResetRequest = async () => {
+        setPending(true);
+        try {
+            const response = await apiPost<{ message?: string }>("/api/v2/password-resets/request");
+            setNotify({ message: response.message || "Заявка отправлена", type: "success" });
+        } catch (error) {
+            setNotify({ message: error instanceof Error ? error.message : "Ошибка отправки заявки", type: "error" });
+        } finally {
+            setPending(false);
+        }
+    };
+
     if (loading) return (
         <div className="flex h-[80vh] items-center justify-center">
             <Loader2 className="animate-spin text-primary w-10 h-10" />
@@ -143,9 +156,18 @@ export default function ProfilePage() {
                     <h1 className="text-3xl font-bold tracking-tight text-foreground">Личный кабинет</h1>
                     <p className="text-sm text-muted-foreground font-medium mt-1">Управление профилем и обзор статистики групп</p>
                 </div>
-                <div className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-2xl shadow-sm self-start md:self-center">
-                    <Fingerprint className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">ID: {user?.id}</span>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={handlePasswordResetRequest}
+                        className="rounded-xl bg-orange-600 px-4 py-2 text-white text-sm font-semibold hover:bg-orange-700 disabled:opacity-60"
+                        disabled={pending}
+                    >
+                        Запросить сброс пароля
+                    </button>
+                    <div className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-2xl shadow-sm self-start md:self-center">
+                        <Fingerprint className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">ID: {user?.id}</span>
+                    </div>
                 </div>
             </div>
 
