@@ -27,7 +27,7 @@ export async function Login(_prevState: LoginFormState, formData: FormData): Pro
 
     try {
         // Отправляем POST запрос в авторизацию
-        const loginResponse = await fetch('/api/v1/auth/login', {
+        const loginResponse = await fetch('/api/v2/auth/login', {
             method: 'POST',
             body: JSON.stringify({ email, password }),
             headers: { 'Content-Type': 'application/json' }
@@ -37,7 +37,7 @@ export async function Login(_prevState: LoginFormState, formData: FormData): Pro
         const { data } = await handleApiResponse(loginResponse);
 
         // Создаём сессию
-        const response = await fetch('/api/v1/auth/create-session', {
+        const response = await fetch('/api/v2/auth/create-session', {
             method: 'POST',
             body: JSON.stringify({ uid: data.uid, email, full_name: data.full_name }),
             headers: { 'Content-Type': 'application/json' }
@@ -80,7 +80,7 @@ export async function Register(_prevState: RegisterFormState, formData: FormData
 
     try {
     // Отправляем POST запрос в регистрацию
-    const registerResponse = await fetch('/api/v1/auth/register', {
+    const registerResponse = await fetch('/api/v2/auth/register', {
         method: 'POST',
         body: JSON.stringify({ email, full_name, password }),
         headers: { 'Content-Type': 'application/json' }
@@ -90,7 +90,7 @@ export async function Register(_prevState: RegisterFormState, formData: FormData
     const { data } = await handleApiResponse(registerResponse);
 
     // Создаём сессию
-    const response = await fetch('/api/v1/auth/create-session', {
+    const response = await fetch('/api/v2/auth/create-session', {
         method: 'POST',
         body: JSON.stringify({ uid: data.uid, email, full_name }),
         headers: { 'Content-Type': 'application/json' }
@@ -126,7 +126,7 @@ export async function CreateGroup(_state: GroupFormState, formData: FormData) {
         const { name, fk_user } = parsed.data;
 
         // Отправляем POST запрос в авторизацию
-        const response = await fetch('/api/v1/groups', {
+        const response = await fetch('/api/v2/groups', {
             method: 'POST',
             body: JSON.stringify({ name, fk_user }),
             headers: { 'Content-Type': 'application/json' }
@@ -143,7 +143,7 @@ export async function CreateGroup(_state: GroupFormState, formData: FormData) {
 
 export async function UpdateGroup(id: string, data: object) {
     try {
-        const response = await fetch(`/api/v1/groups/${id}`, {
+        const response = await fetch(`/api/v2/groups/${id}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),
@@ -159,7 +159,7 @@ export async function UpdateGroup(id: string, data: object) {
 // Код удаления группы
 export async function DeleteGroup(id: string) {
     try {
-        const response = await fetch(`/api/v1/groups/${id}`, { method: 'DELETE' });
+        const response = await fetch(`/api/v2/groups/${id}`, { method: 'DELETE' });
         return await handleApiResponse(response);
     } catch (error) {
         console.log( error )
@@ -169,7 +169,7 @@ export async function DeleteGroup(id: string) {
 
 export async function SaveAttendance(groupId: string, students: AttendanceStudent[]) {
     try {
-        const response = await fetch(`/api/v1/groups/${groupId}/attendance`, {
+        const response = await fetch(`/api/v2/groups/${groupId}/attendance`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ groupId, students }),
@@ -185,7 +185,7 @@ export async function SaveAttendance(groupId: string, students: AttendanceStuden
 
 export async function GetAttendance(groupId: string, periodMonth?: number) {
     try {
-        const url = new URL(`/api/v1/groups/${groupId}/attendance`, typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+        const url = new URL(`/api/v2/groups/${groupId}/attendance`, typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
         if (periodMonth !== undefined) {
             url.searchParams.append('periodMonth', String(periodMonth));
         }
@@ -203,7 +203,7 @@ export async function GetAttendance(groupId: string, periodMonth?: number) {
 
 export async function GetAllGroups(){
     try {
-        const response = await fetch("/api/v1/groups/")
+        const response = await fetch("/api/v2/groups/")
         const { data } = await handleApiResponse(response);
 
         return { success: true, message: "Успешно", data }
@@ -217,7 +217,7 @@ export async function GetAllGroups(){
 
 export async function GetGroup(id: string){
     try {
-        const response = await fetch(`/api/v1/groups/${id}`)
+        const response = await fetch(`/api/v2/groups/${id}`)
         const { data } = await handleApiResponse(response);
 
         return { success: true, message: "Успешно", data }
@@ -231,7 +231,7 @@ export async function GetGroup(id: string){
 
 export async function GetUsersList() {
     try {
-        const response = await fetch('/api/v1/users');
+        const response = await fetch('/api/v2/users');
         const { data } = await handleApiResponse(response);
 
         return { success: true, data };
@@ -245,7 +245,7 @@ export async function GetUsersList() {
 
 export async function GetUser(id: number) {
     try {
-        const response = await fetch(`/api/v1/users/${id}`);
+        const response = await fetch(`/api/v2/users/${id}`);
         const { data } = await handleApiResponse(response);
 
         return { success: true, data };
@@ -259,7 +259,7 @@ export async function GetUser(id: number) {
 
 export async function GetStudents(groupId: string) {
     try {
-        const response = await fetch(`/api/v1/groups/${groupId}/students`);
+        const response = await fetch(`/api/v2/groups/${groupId}/students`);
         const { data } = await handleApiResponse(response);
 
         return { success: true, data };
@@ -273,7 +273,7 @@ export async function GetStudents(groupId: string) {
 
 export async function CreateStudents(groupId: string, students: { fullName: string }[]) {
     try {
-        const response = await fetch(`/api/v1/groups/${groupId}/students`, {
+        const response = await fetch(`/api/v2/groups/${groupId}/students`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ students }),
@@ -289,7 +289,7 @@ export async function CreateStudents(groupId: string, students: { fullName: stri
 
 export async function UpdateStudent(groupId: string, studentId: number, newName: string) {
     try {
-        const response = await fetch(`/api/v1/groups/${groupId}/students/${studentId}`, {
+        const response = await fetch(`/api/v2/groups/${groupId}/students/${studentId}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ full_name: newName }),
@@ -305,7 +305,7 @@ export async function UpdateStudent(groupId: string, studentId: number, newName:
 
 export async function DeleteStudent(groupId: string, studentId: number) {
     try {
-        const response = await fetch(`/api/v1/groups/${groupId}/students/${studentId}`, {
+        const response = await fetch(`/api/v2/groups/${groupId}/students/${studentId}`, {
             method: 'DELETE',
         });
         return await handleApiResponse(response);
@@ -319,7 +319,7 @@ export async function DeleteStudent(groupId: string, studentId: number) {
 
 export async function SaveGrades(groupId: string, students: GradeStudent[]) {
     try {
-        const response = await fetch(`/api/v1/groups/${groupId}/grades`, {
+        const response = await fetch(`/api/v2/groups/${groupId}/grades`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ groupId, students }),
@@ -335,7 +335,7 @@ export async function SaveGrades(groupId: string, students: GradeStudent[]) {
 
 export async function DeleteAttendancePeriod(groupId: string, periodMonth: number) {
     try {
-        const response = await fetch(`/api/v1/groups/${groupId}/attendance?periodMonth=${periodMonth}`, {
+        const response = await fetch(`/api/v2/groups/${groupId}/attendance?periodMonth=${periodMonth}`, {
             method: 'DELETE',
         });
         return await handleApiResponse(response);
@@ -349,7 +349,7 @@ export async function DeleteAttendancePeriod(groupId: string, periodMonth: numbe
 
 export async function DeleteGradesPeriod(groupId: string, periodSemester: number) {
     try {
-        const response = await fetch(`/api/v1/groups/${groupId}/grades?periodSemester=${periodSemester}`, {
+        const response = await fetch(`/api/v2/groups/${groupId}/grades?periodSemester=${periodSemester}`, {
             method: 'DELETE',
         });
         return await handleApiResponse(response);
@@ -364,8 +364,8 @@ export async function DeleteGradesPeriod(groupId: string, periodSemester: number
 export async function GetGrades(groupId: string, periodSemester?: number) {
     try {
         const url = periodSemester 
-            ? `/api/v1/groups/${groupId}/grades?periodSemester=${periodSemester}`
-            : `/api/v1/groups/${groupId}/grades`;
+            ? `/api/v2/groups/${groupId}/grades?periodSemester=${periodSemester}`
+            : `/api/v2/groups/${groupId}/grades`;
         const response = await fetch(url);
         return await handleApiResponse(response);
     } catch (error) {
@@ -378,7 +378,7 @@ export async function GetGrades(groupId: string, periodSemester?: number) {
 
 export async function UpdateProfile(data: object) {
     try {
-        const response = await fetch('/api/v1/users', {
+        const response = await fetch('/api/v2/users', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
@@ -395,7 +395,7 @@ export async function UpdateProfile(data: object) {
 // Получение статистики преподавателя
 export async function GetTeacherStats() {
     try {
-        const response = await fetch('/api/v1/users/stats');
+        const response = await fetch('/api/v2/users/stats');
         return await handleApiResponse(response);
     } catch (error) {
         const errorMessage =
