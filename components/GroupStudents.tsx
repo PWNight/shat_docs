@@ -28,6 +28,7 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
     const [isGenerating, setIsGenerating] = useState(false);
 
     useEffect(() => {
+        isMountedRef.current = true;
         return () => {
             isMountedRef.current = false;
         };

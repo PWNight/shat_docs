@@ -41,7 +41,7 @@ export async function apiRequest<T = unknown>(
         body,
         query,
         headers,
-        timeoutMs = 10000,
+        timeoutMs = 20000,
         retries = 1,
     } = options;
 

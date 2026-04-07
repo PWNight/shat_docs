@@ -33,6 +33,7 @@ export default function GroupAttendance({ groupId, group, isOwner, setNotify }: 
     const [isDragging, setIsDragging] = useState(false);
 
     useEffect(() => {
+        isMountedRef.current = true;
         return () => {
             isMountedRef.current = false;
         };
@@ -106,18 +107,26 @@ export default function GroupAttendance({ groupId, group, isOwner, setNotify }: 
         }
 
         setIsAttendanceLoading(true);
-        const result = await GetAttendance(groupId, period);
-        if (!isMountedRef.current) return;
-        setIsAttendanceLoading(false);
+        try {
+            const result = await GetAttendance(groupId, period);
+            if (!isMountedRef.current) return;
 
-        if (result.success && result.data && result.data.length > 0) {
-            setAttendanceStudents(result.data);
-            setIsAttendanceModified(false);
-            setNotify({ message: `Загружены данные за ${MONTH_NAMES[period as keyof typeof MONTH_NAMES]}`, type: 'success' });
-        } else {
-            setAttendanceStudents([]);
-            setIsAttendanceModified(false);
-            setNotify({ message: `Нет данных за ${MONTH_NAMES[period as keyof typeof MONTH_NAMES]}`, type: 'warning' });
+            if (result.success && result.data && result.data.length > 0) {
+                setAttendanceStudents(result.data);
+                setIsAttendanceModified(false);
+                setNotify({ message: `Загружены данные за ${MONTH_NAMES[period as keyof typeof MONTH_NAMES]}`, type: "success" });
+            } else {
+                setAttendanceStudents([]);
+                setIsAttendanceModified(false);
+                setNotify({ message: result.message || `Нет данных за ${MONTH_NAMES[period as keyof typeof MONTH_NAMES]}`, type: "warning" });
+            }
+        } catch (error) {
+            if (!isMountedRef.current) return;
+            setNotify({ message: error instanceof Error ? error.message : "Ошибка загрузки посещаемости", type: "error" });
+        } finally {
+            if (isMountedRef.current) {
+                setIsAttendanceLoading(false);
+            }
         }
     };
 

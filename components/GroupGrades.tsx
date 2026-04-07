@@ -32,6 +32,7 @@ export default function GroupGrades({ groupId, group, isOwner, setNotify }: Grou
     const [isDraggingGrades, setIsDraggingGrades] = useState(false);
 
     useEffect(() => {
+        isMountedRef.current = true;
         return () => {
             isMountedRef.current = false;
         };
@@ -119,18 +120,26 @@ export default function GroupGrades({ groupId, group, isOwner, setNotify }: Grou
         }
 
         setIsGradesLoading(true);
-        const result = await GetGrades(groupId, period);
-        if (!isMountedRef.current) return;
-        setIsGradesLoading(false);
+        try {
+            const result = await GetGrades(groupId, period);
+            if (!isMountedRef.current) return;
 
-        if (result.success && result.data && result.data.length > 0) {
-            setGradesStudents(result.data);
-            setIsGradesModified(false);
-            setNotify({ message: `Загружены данные за ${SEMESTER_NAMES[period as keyof typeof SEMESTER_NAMES]}`, type: 'success' });
-        } else {
-            setGradesStudents([]);
-            setIsGradesModified(false);
-            setNotify({ message: `Нет данных за ${SEMESTER_NAMES[period as keyof typeof SEMESTER_NAMES]}`, type: 'warning' });
+            if (result.success && result.data && result.data.length > 0) {
+                setGradesStudents(result.data);
+                setIsGradesModified(false);
+                setNotify({ message: `Загружены данные за ${SEMESTER_NAMES[period as keyof typeof SEMESTER_NAMES]}`, type: "success" });
+            } else {
+                setGradesStudents([]);
+                setIsGradesModified(false);
+                setNotify({ message: result.message || `Нет данных за ${SEMESTER_NAMES[period as keyof typeof SEMESTER_NAMES]}`, type: "warning" });
+            }
+        } catch (error) {
+            if (!isMountedRef.current) return;
+            setNotify({ message: error instanceof Error ? error.message : "Ошибка загрузки успеваемости", type: "error" });
+        } finally {
+            if (isMountedRef.current) {
+                setIsGradesLoading(false);
+            }
         }
     };
 
