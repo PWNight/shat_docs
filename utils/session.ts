@@ -10,13 +10,25 @@ export interface SessionPayload {
     expiresAt: number;
 }
 
-const secretKey = process.env.SESSION_SECRET;
-if (!secretKey) throw new Error("SESSION_SECRET is not set");
+let cachedEncodedKey: Uint8Array | null = null;
 
-const encodedKey = new TextEncoder().encode(secretKey);
+function getEncodedSessionKey(): Uint8Array {
+    if (cachedEncodedKey) {
+        return cachedEncodedKey;
+    }
+
+    const secretKey = process.env.SESSION_SECRET;
+    if (!secretKey) {
+        throw new Error("SESSION_SECRET is not set. Set it before using session utilities.");
+    }
+
+    cachedEncodedKey = new TextEncoder().encode(secretKey);
+    return cachedEncodedKey;
+}
 
 // Шифруем payload
 export async function encryptSession(payload: JWTPayload): Promise<string> {
+    const encodedKey = getEncodedSessionKey();
     return await new SignJWT(payload)
         .setProtectedHeader({ alg: "HS256" })
         .setIssuedAt()
@@ -29,12 +41,21 @@ export async function decryptSession(session: string | undefined): Promise<Sessi
     if (!session) return null;
 
     try {
+        const encodedKey = getEncodedSessionKey();
         const { payload } = await jwtVerify(session, encodedKey, {
             algorithms: ["HS256"],
         });
 
-        return payload as unknown as SessionPayload;
-    } catch {
+        const typedPayload = payload as unknown as SessionPayload;
+        if (typeof typedPayload.expiresAt === "number" && Date.now() > typedPayload.expiresAt) {
+            return null;
+        }
+
+        return typedPayload;
+    } catch (error) {
+        if (process.env.NODE_ENV !== "production") {
+            console.warn("decryptSession failed:", error);
+        }
         return null;
     }
 }
