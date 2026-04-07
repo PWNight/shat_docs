@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"; // Импорт для 
 import {
     Loader2, Trash2,
     ShieldAlert, Save,
-    ClipboardCheck, GraduationCap, Calendar, UserStar
+    ClipboardCheck, GraduationCap, Calendar, UserStar, ArrowLeft
 } from "lucide-react";
 import {
     Dialog, DialogTrigger, DialogContent,
@@ -66,6 +66,16 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
     return (
         <div className="w-full space-y-5 sm:space-y-6 pb-8 sm:pb-10 animate-in fade-in duration-500">
             {notify.message && <ErrorMessage message={notify.message} type={notify.type} onClose={() => setNotify({ message: '', type: '' })} />}
+
+            <div className="flex items-center gap-4">
+                <button
+                    onClick={() => router.push('/profile/groups')}
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors"
+                >
+                    <ArrowLeft size={18} />
+                    Назад к списку групп
+                </button>
+            </div>
 
             <div className="bg-card rounded-lg border border-gray-100 dark:border-zinc-700 shadow-sm">
                 <div className="flex flex-col md:flex-row justify-between items-center lg:p-6 p-4">
