@@ -18,7 +18,7 @@ const pool = mysql.createPool({
     keepAliveInitialDelay: 0,
 });
 
-// Универсальная функция
+// Универсальный запрос к БД с типизацией, который возвращает массив записей
 export async function query<T extends RowDataPacket[]>(
     sql: string,
     params?: unknown[] | object
@@ -27,7 +27,7 @@ export async function query<T extends RowDataPacket[]>(
     return rows;
 }
 
-// Для одной строки — красиво и типобезопасно
+// Запрос к БД, который возвращает одну запись или null
 export async function queryOne<T extends RowDataPacket>(
     sql: string,
     params?: unknown[] | object
@@ -36,6 +36,7 @@ export async function queryOne<T extends RowDataPacket>(
     return (rows[0] as T) || null;
 }
 
+// Запрос к БД для операций INSERT/UPDATE/DELETE, возвращает результат выполнения
 export async function execute(
     sql: string,
     params?: unknown[] | object
