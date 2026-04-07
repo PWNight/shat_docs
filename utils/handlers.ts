@@ -36,14 +36,6 @@ export async function Login(_prevState: LoginFormState, formData: FormData): Pro
         // Получаем данные из ответа
         const { data } = await handleApiResponse(loginResponse);
 
-        // Создаём сессию
-        const response = await fetch('/api/v2/auth/create-session', {
-            method: 'POST',
-            body: JSON.stringify({ uid: data.uid, email, full_name: data.full_name }),
-            headers: { 'Content-Type': 'application/json' }
-        });
-        await handleApiResponse(response);
-
         // Возвращаем успех
         return { success: true };
     } catch (err) {
@@ -88,14 +80,6 @@ export async function Register(_prevState: RegisterFormState, formData: FormData
 
     // Получаем данные из ответа
     const { data } = await handleApiResponse(registerResponse);
-
-    // Создаём сессию
-    const response = await fetch('/api/v2/auth/create-session', {
-        method: 'POST',
-        body: JSON.stringify({ uid: data.uid, email, full_name }),
-        headers: { 'Content-Type': 'application/json' }
-    });
-    await handleApiResponse(response);
 
     // Возвращаем успех
     return { success: true };
