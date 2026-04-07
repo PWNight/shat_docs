@@ -207,7 +207,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
             <div className="flex gap-4 lg:justify-start justify-between border-b dark:border-zinc-700 relative">
                 <button
                     onClick={() => setActiveTab('attendance')}
-                    className={`relative pb-3 px-4 flex items-center gap-2 font-bold text-sm transition-all ${activeTab === 'attendance' ? 'text-blue-600 dark:text-blue-400' : 'text-neutral-500'}`}
+                    className={`relative pb-3 sm:px-4 flex items-center gap-2 font-bold text-sm transition-all ${activeTab === 'attendance' ? 'text-blue-600 dark:text-blue-400' : 'text-neutral-500'}`}
                 >
                     <ClipboardCheck size={18} /> Посещаемость
                     {activeTab === 'attendance' && (
@@ -216,7 +216,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                 </button>
                 <button
                     onClick={() => setActiveTab('grades')}
-                    className={`relative pb-3 px-4 flex items-center gap-2 font-bold text-sm transition-all ${activeTab === 'grades' ? 'text-purple-600 dark:text-purple-400' : 'text-neutral-500'}`}
+                    className={`relative pb-3 sm:px-4 flex items-center gap-2 font-bold text-sm transition-all ${activeTab === 'grades' ? 'text-purple-600 dark:text-purple-400' : 'text-neutral-500'}`}
                 >
                     <GraduationCap size={18} /> Успеваемость
                     {activeTab === 'grades' && (
@@ -225,7 +225,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                 </button>
                 <button
                     onClick={() => setActiveTab('students')}
-                    className={`relative pb-3 px-4 flex items-center gap-2 font-bold text-sm transition-all ${activeTab === 'students' ? 'text-green-600 dark:text-green-400' : 'text-neutral-500'}`}
+                    className={`relative pb-3 sm:px-4 flex items-center gap-2 font-bold text-sm transition-all ${activeTab === 'students' ? 'text-green-600 dark:text-green-400' : 'text-neutral-500'}`}
                 >
                     <UserStar size={18} /> Студенты
                     {activeTab === 'students' && (

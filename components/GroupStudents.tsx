@@ -154,8 +154,8 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-foreground">Управление студентами</h3>
-                <div className="flex items-center gap-2">
+                <h3 className="text-sm sm:text-lg font-semibold text-foreground">Управление студентами</h3>
+                <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
                     <span className="text-sm text-muted-foreground">{students.length} студентов</span>
                     <button
                         onClick={refreshStudents}
