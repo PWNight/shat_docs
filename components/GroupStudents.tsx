@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Edit, Trash2, Save, X, User, Loader2, RefreshCw } from "lucide-react";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogClose } from "@/components/ui/Dialog";
 import { GetAttendance, GetGrades, GetStudents, UpdateStudent, DeleteStudent } from "@/utils/handlers";
@@ -16,6 +16,7 @@ interface GroupStudentsProps {
 }
 
 export default function GroupStudents({ groupId, groupName, students, setStudents, isOwner, setNotify }: GroupStudentsProps) {
+    const isMountedRef = useRef(true);
     const [editingStudent, setEditingStudent] = useState<number | null>(null);
     const [editName, setEditName] = useState("");
     const [deleteStudentId, setDeleteStudentId] = useState<number | null>(null);
@@ -25,6 +26,12 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
     const [reportType, setReportType] = useState<'attendance' | 'grades'>('attendance');
     const [reportPeriod, setReportPeriod] = useState<number | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
+
+    useEffect(() => {
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
 
     const selectedStudents = students.filter(student => selectedStudentIds.includes(student.id));
     const selectedStudentNames = selectedStudents.map(student => student.full_name);
@@ -102,7 +109,9 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
         } catch (error) {
             setNotify({ message: error instanceof Error ? error.message : 'Ошибка при формировании отчёта', type: 'error' });
         } finally {
-            setIsGenerating(false);
+            if (isMountedRef.current) {
+                setIsGenerating(false);
+            }
         }
     };
 
@@ -129,6 +138,7 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
 
         setIsDeleting(true);
         const result = await DeleteStudent(groupId, deleteStudentId);
+        if (!isMountedRef.current) return;
         setIsDeleting(false);
         if (result.success) {
             setStudents(prev => prev.filter(s => s.id !== deleteStudentId));
@@ -142,6 +152,7 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
     const refreshStudents = async () => {
         setIsRefreshing(true);
         const result = await GetStudents(groupId);
+        if (!isMountedRef.current) return;
         setIsRefreshing(false);
         if (result.success) {
             setStudents(result.data);

@@ -6,9 +6,21 @@ import {
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/utils/http-client";
 import {z} from "zod";
 import {AttendanceStudent, GradeStudent} from "@/utils/interfaces";
+import { ApiResponseError } from "@/utils/functions";
+import { logger } from "@/utils/logger";
+import { isValidEntityId, isValidMonth, isValidSemester } from "@/utils/validators";
 
-function toErrorMessage(error: unknown, fallback: string): string {
-    return error instanceof Error ? error.message : fallback;
+function toErrorResult(error: unknown, fallback: string) {
+    if (error instanceof ApiResponseError) {
+        return { success: false, message: error.message, code: error.code, status: error.status };
+    }
+
+    if (error instanceof Error) {
+        logger.error("Handler request failed", { message: error.message });
+        return { success: false, message: error.message };
+    }
+
+    return { success: false, message: fallback };
 }
 
 // Код авторизации
@@ -105,42 +117,47 @@ export async function CreateGroup(_state: GroupFormState, formData: FormData) {
         // Возвращаем успех и redirectTo
         return { success: true };
     } catch (error) {
-        return { success: false, message: toErrorMessage(error, "Произошла ошибка") };
+        return toErrorResult(error, "Произошла ошибка");
     }
 }
 
 export async function UpdateGroup(id: string, data: object) {
+    if (!isValidEntityId(id)) return { success: false, message: "Некорректный id группы" };
     try {
         return await apiPost(`/api/v2/groups/${id}`, data);
     } catch (error) {
-        return { success: false, message: toErrorMessage(error, "Ошибка обновления") };
+        return toErrorResult(error, "Ошибка обновления");
     }
 }
 
 // Код удаления группы
 export async function DeleteGroup(id: string) {
+    if (!isValidEntityId(id)) return { success: false, message: "Некорректный id группы" };
     try {
         return await apiDelete(`/api/v2/groups/${id}`);
     } catch (error) {
-        return { success: false, message: toErrorMessage(error, "Ошибка обновления") };
+        return toErrorResult(error, "Ошибка обновления");
     }
 }
 
 export async function SaveAttendance(groupId: string, students: AttendanceStudent[]) {
+    if (!isValidEntityId(groupId)) return { success: false, message: "Некорректный id группы" };
     try {
         return await apiPost(`/api/v2/groups/${groupId}/attendance`, { groupId, students });
     } catch (error) {
-        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
+        return toErrorResult(error, "Неизвестная ошибка сервера");
     }
 }
 
 export async function GetAttendance(groupId: string, periodMonth?: number) {
+    if (!isValidEntityId(groupId)) return { success: false, message: "Некорректный id группы" };
+    if (periodMonth !== undefined && !isValidMonth(periodMonth)) return { success: false, message: "Некорректный месяц" };
     try {
         return await apiGet(`/api/v2/groups/${groupId}/attendance`, {
             query: { periodMonth },
         });
     } catch (error) {
-        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
+        return toErrorResult(error, "Неизвестная ошибка сервера");
     }
 }
 
@@ -150,17 +167,18 @@ export async function GetAllGroups(){
 
         return { success: true, message: "Успешно", data }
     } catch (error) {
-        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
+        return toErrorResult(error, "Неизвестная ошибка сервера");
     }
 }
 
 export async function GetGroup(id: string){
+    if (!isValidEntityId(id)) return { success: false, message: "Некорректный id группы" };
     try {
         const { data } = await apiGet<{ data?: unknown }>(`/api/v2/groups/${id}`);
 
         return { success: true, message: "Успешно", data }
     } catch (error) {
-        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
+        return toErrorResult(error, "Неизвестная ошибка сервера");
     }
 }
 
@@ -170,83 +188,93 @@ export async function GetUsersList() {
 
         return { success: true, data };
     } catch (error) {
-        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
+        return toErrorResult(error, "Неизвестная ошибка сервера");
     }
 }
 
 export async function GetUser(id: number) {
+    if (!isValidEntityId(id)) return { success: false, message: "Некорректный id пользователя" };
     try {
         const { data } = await apiGet<{ data?: unknown }>(`/api/v2/users/${id}`);
 
         return { success: true, data };
     } catch (error) {
-        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
+        return toErrorResult(error, "Неизвестная ошибка сервера");
     }
 }
 
 export async function GetStudents(groupId: string) {
+    if (!isValidEntityId(groupId)) return { success: false, message: "Некорректный id группы" };
     try {
         const { data } = await apiGet<{ data?: unknown }>(`/api/v2/groups/${groupId}/students`);
 
         return { success: true, data };
     } catch (error) {
-        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
+        return toErrorResult(error, "Неизвестная ошибка сервера");
     }
 }
 
 export async function CreateStudents(groupId: string, students: { fullName: string }[]) {
+    if (!isValidEntityId(groupId)) return { success: false, message: "Некорректный id группы" };
     try {
         return await apiPost(`/api/v2/groups/${groupId}/students`, { students });
     } catch (error) {
-        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
+        return toErrorResult(error, "Неизвестная ошибка сервера");
     }
 }
 
 export async function UpdateStudent(groupId: string, studentId: number, newName: string) {
+    if (!isValidEntityId(groupId) || !isValidEntityId(studentId)) return { success: false, message: "Некорректный id студента или группы" };
     try {
         return await apiPatch(`/api/v2/groups/${groupId}/students/${studentId}`, { full_name: newName });
     } catch (error) {
-        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
+        return toErrorResult(error, "Неизвестная ошибка сервера");
     }
 }
 
 export async function DeleteStudent(groupId: string, studentId: number) {
+    if (!isValidEntityId(groupId) || !isValidEntityId(studentId)) return { success: false, message: "Некорректный id студента или группы" };
     try {
         return await apiDelete(`/api/v2/groups/${groupId}/students/${studentId}`);
     } catch (error) {
-        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
+        return toErrorResult(error, "Неизвестная ошибка сервера");
     }
 }
 
 export async function SaveGrades(groupId: string, students: GradeStudent[]) {
+    if (!isValidEntityId(groupId)) return { success: false, message: "Некорректный id группы" };
     try {
         return await apiPost(`/api/v2/groups/${groupId}/grades`, { groupId, students });
     } catch (error) {
-        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
+        return toErrorResult(error, "Неизвестная ошибка сервера");
     }
 }
 
 export async function DeleteAttendancePeriod(groupId: string, periodMonth: number) {
+    if (!isValidEntityId(groupId) || !isValidMonth(periodMonth)) return { success: false, message: "Некорректный период или id группы" };
     try {
         return await apiDelete(`/api/v2/groups/${groupId}/attendance`, { query: { periodMonth } });
     } catch (error) {
-        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
+        return toErrorResult(error, "Неизвестная ошибка сервера");
     }
 }
 
 export async function DeleteGradesPeriod(groupId: string, periodSemester: number) {
+    if (!isValidEntityId(groupId) || !isValidSemester(periodSemester)) return { success: false, message: "Некорректный период или id группы" };
     try {
         return await apiDelete(`/api/v2/groups/${groupId}/grades`, { query: { periodSemester } });
     } catch (error) {
-        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
+        return toErrorResult(error, "Неизвестная ошибка сервера");
     }
 }
 
 export async function GetGrades(groupId: string, periodSemester?: number) {
+    if (!isValidEntityId(groupId)) return { success: false, message: "Некорректный id группы" };
+    if (periodSemester !== undefined && !isValidSemester(periodSemester)) return { success: false, message: "Некорректный семестр" };
     try {
         return await apiGet(`/api/v2/groups/${groupId}/grades`, { query: { periodSemester } });
     } catch (error) {
-        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
+        return toErrorResult(error, "Неизвестная ошибка сервера");
     }
 }
 
@@ -254,7 +282,7 @@ export async function UpdateProfile(data: object) {
     try {
         return await apiPost('/api/v2/users', data);
     } catch (error) {
-        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
+        return toErrorResult(error, "Неизвестная ошибка сервера");
     }
 }
 
@@ -263,6 +291,6 @@ export async function GetTeacherStats() {
     try {
         return await apiGet('/api/v2/users/stats');
     } catch (error) {
-        return { success: false, message: toErrorMessage(error, "Неизвестная ошибка сервера") };
+        return toErrorResult(error, "Неизвестная ошибка сервера");
     }
 }

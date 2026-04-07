@@ -82,13 +82,15 @@ export default function ProfileGroups() {
     const [pageLoaded, setPageLoaded] = useState(false);
     const [notify, setNotify] = useState<Notify>({ message: '', type: '' });
     const [open, setOpen] = useState(false);
+    const [pageError, setPageError] = useState<string | null>(null);
 
     // Функция загрузки списка групп
     const loadData = useCallback(async () => {
         const response = await GetAllGroups();
         if (!response.success) {
-            setNotify({ message: response.message || "Ошибка загрузки групп", type: 'error' });
+            setPageError(response.message || "Ошибка загрузки групп");
         } else {
+            setPageError(null);
             setGroups(response.data || []);
         }
     }, []);
@@ -135,6 +137,20 @@ export default function ProfileGroups() {
         return (
             <div className="flex h-[60vh] w-full items-center justify-center">
                 <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
+            </div>
+        );
+    }
+
+    if (pageError) {
+        return (
+            <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
+                <p className="text-lg font-semibold">{pageError}</p>
+                <button
+                    onClick={() => loadData()}
+                    className="rounded-xl bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                >
+                    Повторить
+                </button>
             </div>
         );
     }

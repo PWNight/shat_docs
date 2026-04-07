@@ -33,13 +33,29 @@ export default function ProfilePage() {
     const [activeTab, setActiveTab] = useState<TabType>("name");
     const [notify, setNotify] = useState<Notify>({ message: "", type: "" });
     const [pending, setPending] = useState(false);
+    const [pageError, setPageError] = useState<string | null>(null);
 
-    const loadData = useCallback(async () => {
-        const response = await GetTeacherStats();
-        if (!response.success) {
-            setNotify({ message: response.message || "Ошибка загрузки статистики", type: 'error' });
+    const loadData = useCallback(async (userId: number) => {
+        const [userResponse, statsResponse] = await Promise.allSettled([
+            GetUser(userId),
+            GetTeacherStats(),
+        ]);
+
+        let hasFatalError = false;
+        if (userResponse.status === "fulfilled" && userResponse.value.success) {
+            setUser(userResponse.value.data);
         } else {
-            setStats(response.data);
+            hasFatalError = true;
+        }
+
+        if (statsResponse.status === "fulfilled" && statsResponse.value.success) {
+            setStats(statsResponse.value.data);
+        } else {
+            setNotify({ message: "Не удалось загрузить статистику, показываем профиль без нее", type: "warning" });
+        }
+
+        if (hasFatalError) {
+            setPageError("Не удалось загрузить данные профиля");
         }
     }, []);
 
@@ -54,10 +70,7 @@ export default function ProfilePage() {
                 return;
             }
 
-            const response = await GetUser(session.uid);
-            setUser(response.data)
-
-            await loadData();
+            await loadData(session.uid);
             setLoading(false);
         });
 
@@ -106,6 +119,20 @@ export default function ProfilePage() {
             <Loader2 className="animate-spin text-primary w-10 h-10" />
         </div>
     );
+
+    if (pageError) {
+        return (
+            <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
+                <p className="text-lg font-semibold">{pageError}</p>
+                <button
+                    onClick={() => window.location.reload()}
+                    className="rounded-xl bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                >
+                    Повторить загрузку
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full space-y-8 animate-in fade-in duration-500 bg-background min-h-screen">

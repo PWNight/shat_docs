@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Loader2, Trash2, Upload, FileText, Database, Download, Calendar } from "lucide-react";
 import {
@@ -19,6 +19,7 @@ interface GroupAttendanceProps {
 }
 
 export default function GroupAttendance({ groupId, group, isOwner, setNotify }: GroupAttendanceProps) {
+    const isMountedRef = useRef(true);
     const [attendanceStudents, setAttendanceStudents] = useState<AttendanceStudent[]>([]);
     const [attendanceTotal, setAttendanceTotal] = useState<AttendanceTotal>({ fullDaysTotal: 0, fullDaysSick: 0, lessonsTotal: 0, lessonsSick: 0, late: 0 });
     const [attendanceDialogMode, setAttendanceDialogMode] = useState<'load' | 'import'>('load');
@@ -30,6 +31,12 @@ export default function GroupAttendance({ groupId, group, isOwner, setNotify }: 
     const [isAttendanceLoading, setIsAttendanceLoading] = useState(false);
     const [showDeleteAttendanceDialog, setShowDeleteAttendanceDialog] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
+
+    useEffect(() => {
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
 
     useEffect(() => {
         const total = attendanceStudents.reduce((acc, curr) => ({
@@ -100,6 +107,7 @@ export default function GroupAttendance({ groupId, group, isOwner, setNotify }: 
 
         setIsAttendanceLoading(true);
         const result = await GetAttendance(groupId, period);
+        if (!isMountedRef.current) return;
         setIsAttendanceLoading(false);
 
         if (result.success && result.data.length > 0) {
@@ -133,6 +141,7 @@ export default function GroupAttendance({ groupId, group, isOwner, setNotify }: 
         })) as AttendanceStudent[];
 
         const result = await SaveAttendance(groupId, studentsToSave);
+        if (!isMountedRef.current) return;
         setIsAttendanceSaving(false);
 
         if (result.success) {
@@ -152,6 +161,7 @@ export default function GroupAttendance({ groupId, group, isOwner, setNotify }: 
         setShowDeleteAttendanceDialog(false);
         setIsAttendanceLoading(true);
         const result = await DeleteAttendancePeriod(groupId, selectedAttendancePeriod);
+        if (!isMountedRef.current) return;
         setIsAttendanceLoading(false);
 
         if (result.success) {

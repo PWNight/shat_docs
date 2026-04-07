@@ -1,5 +1,6 @@
 import { twMerge } from "tailwind-merge";
 import clsx, { ClassValue } from "clsx";
+import { logger } from "@/utils/logger";
 import {
     AlignmentType,
     Document,
@@ -381,6 +382,18 @@ type ApiResponseBody = {
     data?: unknown;
 };
 
+export class ApiResponseError extends Error {
+    status: number;
+    code?: string;
+
+    constructor(message: string, status: number, code?: string) {
+        super(message);
+        this.name = "ApiResponseError";
+        this.status = status;
+        this.code = code;
+    }
+}
+
 function parseResponseBody(response: Response): Promise<ApiResponseBody | null> {
     return response
         .text()
@@ -404,7 +417,8 @@ export async function handleApiResponse(response: Response): Promise<ApiResponse
             ? `${messageFromBody} (err ${response.status})`
             : `Ошибка запроса (err ${response.status})`;
 
-        throw new Error(message);
+        logger.warn("API request failed", { status: response.status, code: body?.error, message: messageFromBody });
+        throw new ApiResponseError(message, response.status, body?.error);
     }
 
     if (!body) {

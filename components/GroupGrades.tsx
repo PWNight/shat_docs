@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Loader2, Trash2, Upload, Database, Download, Calendar, GraduationCap } from "lucide-react";
 import {
@@ -19,6 +19,7 @@ interface GroupGradesProps {
 }
 
 export default function GroupGrades({ groupId, group, isOwner, setNotify }: GroupGradesProps) {
+    const isMountedRef = useRef(true);
     const [gradesStudents, setGradesStudents] = useState<GradeStudent[]>([]);
     const [gradesDialogMode, setGradesDialogMode] = useState<'load' | 'import'>('load');
     const [showGradesPeriodDialog, setShowGradesPeriodDialog] = useState(false);
@@ -29,6 +30,12 @@ export default function GroupGrades({ groupId, group, isOwner, setNotify }: Grou
     const [isGradesLoading, setIsGradesLoading] = useState(false);
     const [showDeleteGradesDialog, setShowDeleteGradesDialog] = useState(false);
     const [isDraggingGrades, setIsDraggingGrades] = useState(false);
+
+    useEffect(() => {
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
 
     const handleGradesFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!isOwner) return;
@@ -113,6 +120,7 @@ export default function GroupGrades({ groupId, group, isOwner, setNotify }: Grou
 
         setIsGradesLoading(true);
         const result = await GetGrades(groupId, period);
+        if (!isMountedRef.current) return;
         setIsGradesLoading(false);
 
         if (result.success && result.data.length > 0) {
@@ -146,6 +154,7 @@ export default function GroupGrades({ groupId, group, isOwner, setNotify }: Grou
         })) as GradeStudent[];
 
         const result = await SaveGrades(groupId, studentsToSave);
+        if (!isMountedRef.current) return;
         setIsGradesSaving(false);
 
         if (result.success) {
@@ -165,6 +174,7 @@ export default function GroupGrades({ groupId, group, isOwner, setNotify }: Grou
         setShowDeleteGradesDialog(false);
         setIsGradesLoading(true);
         const result = await DeleteGradesPeriod(groupId, selectedGradesPeriod);
+        if (!isMountedRef.current) return;
         setIsGradesLoading(false);
 
         if (result.success) {

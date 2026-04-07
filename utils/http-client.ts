@@ -1,4 +1,6 @@
 import { handleApiResponse } from "@/utils/functions";
+import { ApiResponseError } from "@/utils/functions";
+import { logger } from "@/utils/logger";
 
 type QueryValue = string | number | boolean | undefined | null;
 
@@ -60,12 +62,17 @@ export async function apiRequest<T = unknown>(
     while (attempt <= retries) {
         try {
             const response = await fetch(url, requestInit);
-            if (response.status === 401 && typeof window !== "undefined") {
+            if ((response.status === 401 || response.status === 403) && typeof window !== "undefined") {
                 window.location.href = "/login";
             }
             return await handleApiResponse(response) as T;
         } catch (error) {
             lastError = error;
+            if (error instanceof ApiResponseError && error.status < 500) {
+                // 4xx retries usually do not help.
+                throw error;
+            }
+            logger.debug("apiRequest retry", { path, method, attempt: attempt + 1 });
             attempt += 1;
             if (attempt > retries) break;
         }

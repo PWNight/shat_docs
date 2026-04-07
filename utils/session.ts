@@ -2,6 +2,7 @@
 
 import {SignJWT, jwtVerify, JWTPayload} from "jose";
 import { cookies } from "next/headers";
+import { logger } from "@/utils/logger";
 
 export interface SessionPayload {
     uid: number;
@@ -54,7 +55,7 @@ export async function decryptSession(session: string | undefined): Promise<Sessi
         return typedPayload;
     } catch (error) {
         if (process.env.NODE_ENV !== "production") {
-            console.warn("decryptSession failed:", error);
+            logger.warn("decryptSession failed", { error });
         }
         return null;
     }

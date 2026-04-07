@@ -35,20 +35,29 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
     const [updateFormData, setUpdateFormData] = useState({ name: '', fk_user: '' });
     const [students, setStudents] = useState<Student[]>([]);
     const [isPending, startTransition] = useTransition();
+    const [pageError, setPageError] = useState<string | null>(null);
 
     const loadData = useCallback(async (id: string) => {
         const groupRes = await GetGroup(id);
-        if (!groupRes.success) return router.replace(`/profile/groups`);
+        if (!groupRes.success) {
+            setPageError(groupRes.message || "Группа не найдена или недоступна");
+            return;
+        }
 
         setGroup(groupRes.data);
         setUpdateFormData({ name: groupRes.data.name, fk_user: String(groupRes.data.fk_user) });
 
-        const usersRes = await GetUsersList();
-        setUsers(usersRes.data ?? []);
-
-        // Загружаем список студентов
-        const studentsRes = await GetStudents(id);
-        setStudents(studentsRes.data ?? []);
+        const [usersRes, studentsRes] = await Promise.allSettled([GetUsersList(), GetStudents(id)]);
+        if (usersRes.status === "fulfilled" && usersRes.value.success) {
+            setUsers(usersRes.value.data ?? []);
+        } else {
+            setNotify({ message: "Не удалось загрузить список преподавателей", type: "warning" });
+        }
+        if (studentsRes.status === "fulfilled" && studentsRes.value.success) {
+            setStudents(studentsRes.value.data ?? []);
+        } else {
+            setNotify({ message: "Не удалось загрузить список студентов", type: "warning" });
+        }
     }, [router]);
 
     useEffect(() => {
@@ -60,6 +69,20 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
     }, [groupId, loadData, router]);
 
     const isOwner = userData?.uid === group?.fk_user;
+
+    if (pageError) {
+        return (
+            <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
+                <p className="text-lg font-semibold">{pageError}</p>
+                <button
+                    onClick={() => router.push("/profile/groups")}
+                    className="rounded-xl bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                >
+                    К списку групп
+                </button>
+            </div>
+        );
+    }
 
     if (!group) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-blue-600" /></div>;
 
@@ -107,7 +130,15 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                     </div>
                                 </div>
                                 {isOwner && (
-                                    <button onClick={() => startTransition(async () => { await UpdateGroup(groupId, updateFormData); setNotify({ message: "Сохранено", type: 'success' }); await loadData(groupId); })} className="absolute right-0 top-1 text-blue-600 hover:scale-110 transition-all">
+                                    <button onClick={() => startTransition(async () => {
+                                        const result = await UpdateGroup(groupId, updateFormData);
+                                        if (!result.success) {
+                                            setNotify({ message: result.message || "Ошибка сохранения", type: "error" });
+                                            return;
+                                        }
+                                        setNotify({ message: "Сохранено", type: 'success' });
+                                        await loadData(groupId);
+                                    })} className="absolute right-0 top-1 text-blue-600 hover:scale-110 transition-all">
                                         {isPending ? <Loader2 className="animate-spin" size={18} /> : <Save size={20} />}
                                     </button>
                                 )}
@@ -153,7 +184,11 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                             onClick={() => {
                                                 if (!updateFormData.fk_user) return;
                                                 startTransition(async () => {
-                                                    await UpdateGroup(groupId, updateFormData);
+                                                    const result = await UpdateGroup(groupId, updateFormData);
+                                                    if (!result.success) {
+                                                        setNotify({ message: result.message || "Ошибка передачи прав", type: "error" });
+                                                        return;
+                                                    }
                                                     router.push('/profile/groups');
                                                 });
                                             }}
@@ -186,7 +221,11 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                     <DialogFooter className="gap-3 sm:gap-4">
                                         <button
                                             onClick={() => startTransition(async () => {
-                                                await DeleteGroup(groupId);
+                                                const result = await DeleteGroup(groupId);
+                                                if (!result.success) {
+                                                    setNotify({ message: result.message || "Ошибка удаления", type: "error" });
+                                                    return;
+                                                }
                                                 router.push('/profile/groups');
                                             })}
                                             className="flex-1 bg-red-600 hover:bg-red-500 text-white py-3 rounded-lg font-bold"
