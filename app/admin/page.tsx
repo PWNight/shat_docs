@@ -348,7 +348,7 @@ export default function AdminPage() {
                             </ActionButton>
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4 gap-4">
                     {data.groups.map((group) => {
                         const isOwner = group.fk_user === userData.uid;
                         const stat = data.groupStats.find((g) => g.id === group.id);
@@ -405,7 +405,7 @@ export default function AdminPage() {
                 <section className="grid gap-5">
                     <h2 className="text-xl font-bold">Пользователи и безопасность</h2>
                     <div className="grid gap-2">
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4 gap-4">
                             {data.users.map((item) => {
                                 return (
                                     <div key={`manage-${item.id}`} className="group relative flex flex-col p-5 rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-all">
@@ -451,7 +451,7 @@ export default function AdminPage() {
                     <div className="grid gap-2">
                         <h3 className="font-semibold">Заявки на регистрацию</h3>
                         {data.pendingRegistrations.length === 0 ? <p className="text-sm text-muted-foreground">Нет заявок</p> : null}
-                        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-2">
+                        <div className="grid md:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4 gap-2">
                         {data.pendingRegistrations.map((item) => (
                             <div key={item.id} className="border border-border rounded-xl p-3 grid gap-3">
                                 <div><p>{item.full_name}</p><p className="text-sm text-muted-foreground">{item.email}</p></div>
@@ -466,7 +466,7 @@ export default function AdminPage() {
                     {data.passwordResetRequests.length === 0 ? <p className="text-sm text-muted-foreground">Нет заявок</p> : null}
                     <div className="grid gap-2">
                     <h3 className="font-semibold">Заявки на сброс пароля</h3>
-                    <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-2">
+                    <div className="grid md:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4 gap-2">
                     {data.passwordResetRequests.map((item) => (
                         <div key={item.id} className="border border-border rounded-xl p-3 grid gap-2">
                             <p>{item.full_name} ({item.email})</p>
