@@ -24,12 +24,14 @@ export default function GlobalError({
             <AlertTriangle className="h-12 w-12 text-red-500" />
             <h2 className="text-2xl font-bold">Что-то пошло не так</h2>
             <p className="max-w-md text-muted-foreground">
-                Во время загрузки страницы произошла ошибка. Попробуйте обновить страницу или вернуться на главную.
+                {isDbOfflineError(error)
+                    ? "Нет подключения к базе данных. Проверьте доступность БД и повторите попытку."
+                    : "Во время загрузки страницы произошла ошибка. Попробуйте обновить страницу или вернуться на главную."}
             </p>
             <div className="flex gap-3">
                 <button
                     onClick={reset}
-                    className="rounded-xl bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                    className="rounded-xl bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90"
                 >
                     Повторить
                 </button>
@@ -41,5 +43,17 @@ export default function GlobalError({
                 </Link>
             </div>
         </div>
+    );
+}
+
+function isDbOfflineError(error: Error): boolean {
+    const msg = (error?.message ?? "").toLowerCase();
+    return (
+        msg.includes("etimedout") ||
+        msg.includes("econnrefused") ||
+        msg.includes("enotfound") ||
+        msg.includes("connect") && msg.includes("timeout") ||
+        msg.includes("pool") && msg.includes("connect") ||
+        msg.includes("mysql")
     );
 }

@@ -16,6 +16,8 @@ import GroupAttendance from "@/components/GroupAttendance";
 import GroupGrades from "@/components/GroupGrades";
 import GroupStudents from "@/components/GroupStudents";
 import ErrorMessage from "@/components/NotifyAlert";
+import PageErrorState from "@/components/ui/PageErrorState";
+import { isDbOfflineText } from "@/utils/ui-errors";
 import { getSession, SessionPayload } from "@/utils/session";
 import { GetGroup, GetUsersList, UpdateGroup, DeleteGroup, GetStudents } from "@/utils/handlers";
 import { Group, Notify, Student } from "@/utils/interfaces";
@@ -72,16 +74,16 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
     const isOwner = userData?.uid === group?.fk_user;
 
     if (pageError) {
+        const dbOffline = isDbOfflineText(pageError);
         return (
-            <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
-                <p className="text-lg font-semibold">{pageError}</p>
-                <button
-                    onClick={() => router.push("/profile/groups")}
-                    className="rounded-xl bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                >
-                    К списку групп
-                </button>
-            </div>
+            <PageErrorState
+                kind={dbOffline ? "db" : "generic"}
+                title={dbOffline ? "Нет подключения к базе данных" : "Не удалось загрузить группу"}
+                description={dbOffline ? "Проверьте доступность БД и повторите попытку." : undefined}
+                details={dbOffline ? pageError : undefined}
+                actionLabel="К списку групп"
+                onAction={() => router.push("/profile/groups")}
+            />
         );
     }
 

@@ -10,15 +10,24 @@ import {
     DropdownMenuSeparator,
 } from "@/components/ui/DropdownMenu";
 import { queryOne } from "@/utils/mysql";
+import { DatabaseZap } from "lucide-react";
 
 export async function AuthButton() {
     const session = await getSession();
     const isLoggedIn = !!session;
+    let dbOffline = false;
     const adminAccess = isLoggedIn
-        ? await queryOne<{ canAccessAdmin: number; isRoot: number }>(
-            "SELECT canAccessAdmin, isRoot FROM users WHERE id = ? LIMIT 1",
-            [session.uid]
-        )
+        ? await (async () => {
+            try {
+                return await queryOne<{ canAccessAdmin: number; isRoot: number }>(
+                    "SELECT canAccessAdmin, isRoot FROM users WHERE id = ? LIMIT 1",
+                    [session.uid]
+                );
+            } catch {
+                dbOffline = true;
+                return null;
+            }
+        })()
         : null;
     const canOpenAdmin = !!adminAccess && (Number(adminAccess.canAccessAdmin) === 1 || Number(adminAccess.isRoot) === 1);
 
@@ -49,6 +58,20 @@ export async function AuthButton() {
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end" className="w-56 p-2 mt-2">
+                {dbOffline ? (
+                    <>
+                        <div className="px-3 py-2 mb-1 rounded-lg border border-destructive/30 bg-destructive/10 text-destructive">
+                            <div className="flex items-center gap-2">
+                                <DatabaseZap className="h-4 w-4" />
+                                <span className="text-xs font-bold uppercase tracking-widest">Нет подключения к БД</span>
+                            </div>
+                            <p className="mt-1 text-xs leading-snug opacity-90">
+                                Часть функций может быть недоступна.
+                            </p>
+                        </div>
+                        <DropdownMenuSeparator className="my-1" />
+                    </>
+                ) : null}
                 <DropdownMenuItem asChild>
                     <Anchor
                         href="/profile"

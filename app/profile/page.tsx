@@ -12,6 +12,8 @@ import {
     UserCheck, AtSign
 } from "lucide-react";
 import ErrorMessage from "@/components/NotifyAlert";
+import PageErrorState from "@/components/ui/PageErrorState";
+import { isDbOfflineText } from "@/utils/ui-errors";
 import {
     InfoItemProps,
     Notify,
@@ -156,16 +158,16 @@ export default function ProfilePage() {
     }
 
     if (pageError) {
+        const dbOffline = isDbOfflineText(pageError);
         return (
-            <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
-                <p className="text-lg font-semibold">{pageError}</p>
-                <button
-                    onClick={() => window.location.reload()}
-                    className="rounded-xl bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                >
-                    Повторить загрузку
-                </button>
-            </div>
+            <PageErrorState
+                kind={dbOffline ? "db" : "generic"}
+                title={dbOffline ? "Нет подключения к базе данных" : "Не удалось загрузить данные профиля"}
+                description={dbOffline ? "Проверьте доступность БД и повторите попытку." : undefined}
+                details={dbOffline ? pageError : undefined}
+                actionLabel="Повторить загрузку"
+                onAction={() => window.location.reload()}
+            />
         );
     }
 

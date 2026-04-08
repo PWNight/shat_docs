@@ -16,6 +16,8 @@ import {
 import Link from "next/link";
 import {GroupFormState} from "@/utils/definitions";
 import {CreateFormProps, Group, Notify} from "@/utils/interfaces";
+import PageErrorState from "@/components/ui/PageErrorState";
+import { isDbOfflineText } from "@/utils/ui-errors";
 import { motion } from "framer-motion";
 
 // Форма создания группы
@@ -165,21 +167,20 @@ export default function ProfileGroups() {
     }
 
     if (pageError) {
+        const dbOffline = isDbOfflineText(pageError);
         return (
-            <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
-                <p className="text-lg font-semibold">{pageError}</p>
-                <button
-                    onClick={() => loadData()}
-                    className="rounded-xl bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                >
-                    Повторить
-                </button>
-            </div>
+            <PageErrorState
+                kind={dbOffline ? "db" : "generic"}
+                title={dbOffline ? "Нет подключения к базе данных" : "Не удалось загрузить группы"}
+                description={dbOffline ? "Проверьте доступность БД и повторите попытку." : undefined}
+                details={dbOffline ? pageError : undefined}
+                onAction={() => loadData()}
+            />
         );
     }
 
     return (
-        <div className={'space-y-8 animate-in fade-in duration-500 bg-background min-h-screen'}>
+        <div className="space-y-8 animate-in fade-in duration-500 bg-background min-h-screen">
             {notify.message && (
                 <ErrorMessage
                     message={notify.message}
