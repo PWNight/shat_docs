@@ -209,30 +209,8 @@ export default function MainPage() {
                                 ) : (
                                     <div className="flex flex-col items-center justify-center flex-1 h-full py-20 text-center">
                                         {releasesError ? (
-                                            <PageErrorState
-                                                kind="network"
-                                                title="Нет подключения к интернету"
-                                                description="Не удалось загрузить блок последних изменений."
-                                                details={releasesError}
-                                                actionLabel="Повторить"
-                                                onAction={() => {
-                                                    setLoading(true);
-                                                    // повторяем загрузку
-                                                    fetch(`https://api.github.com/repos/PWNight/shat_docs/releases`)
-                                                        .then((r) => r.json())
-                                                        .then((data: GitHubRelease[]) => {
-                                                            const major = data.find(rel => isMajorRelease(rel.name) && !isBetaRelease(rel.name));
-                                                            const patch = data.find(rel => !isMajorRelease(rel.name) && !isBetaRelease(rel.name));
-                                                            const beta = data.find(rel => isBetaRelease(rel.name));
-                                                            if (major) setLatestMajor({ ...major, formattedBody: formatReleaseBody(major.body) });
-                                                            if (patch) setLatestPatch({ ...patch, formattedBody: formatReleaseBody(patch.body) });
-                                                            if (beta) setLatestBeta({ ...beta, formattedBody: formatReleaseBody(beta.body) });
-                                                            setReleasesError(null);
-                                                        })
-                                                        .catch((e) => setReleasesError(e instanceof Error ? e.message : "Нет подключения к интернету"))
-                                                        .finally(() => setLoading(false));
-                                                }}
-                                            />
+                                            <div>
+                                            </div>
                                         ) : (
                                             <div className="opacity-40">
                                                 <Sparkles size={48} className="mb-4 mx-auto" />
@@ -298,7 +276,7 @@ export default function MainPage() {
                                                 <span className="text-[10px] font-bold uppercase tracking-widest">Последняя бета</span>
                                             </div>
                                             {releasesError ? (
-                                                <div className="rounded-2xl border border-blue-500/20 bg-card/30 p-4">
+                                                <div>
                                                     <p className="text-sm font-bold">Нет подключения к интернету</p>
                                                     <p className="text-sm text-muted-foreground mt-1">Бета-изменения недоступны.</p>
                                                 </div>
@@ -339,9 +317,43 @@ export default function MainPage() {
                                                 <p className="text-sm text-muted-foreground leading-relaxed">
                                                     Небольшой релиз с исправлениями ошибок и улучшением стабильности.
                                                 </p>
+                                                <Dialog>
+                                                <DialogTrigger asChild>
+                                                    <button
+                                                        disabled={!latestPatch || !!releasesError}
+                                                        className="mt-4 inline-flex items-center justify-center gap-2 px-6 py-2.5 w-full sm:w-fit rounded-xl bg-muted/80 border border-border text-foreground text-sm font-bold hover:bg-muted transition-all disabled:opacity-40 disabled:pointer-events-none"
+                                                    >
+                                                        Список исправлений
+                                                    </button>
+                                                </DialogTrigger>
+                                                <DialogContent className="max-w-[95vw] sm:max-w-xl bg-card/95 backdrop-blur-3xl border-border shadow-2xl rounded-4xl p-0 overflow-hidden">
+                                                    <div>
+                                                        <DialogHeader className="p-6 bg-muted/30 border-b">
+                                                            <DialogTitle className="text-xl flex items-center gap-3 font-bold">
+                                                                <Bug size={24} className="text-muted-foreground shrink-0" />
+                                                                <span>Патч {latestPatch?.name ?? ""}</span>
+                                                            </DialogTitle>
+                                                        </DialogHeader>
+                                                        {releasesError ? (
+                                                            <PageErrorState
+                                                                kind="network"
+                                                                title="Нет подключения к интернету"
+                                                                description="Не удалось загрузить список исправлений."
+                                                                details={releasesError}
+                                                            />
+                                                        ) : latestPatch?.formattedBody ? (
+                                                            <div className="overflow-y-auto px-6 pb-4 max-h-[60vh] custom-scrollbar prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: latestPatch.formattedBody || "" }} />
+                                                        ) : (
+                                                            <div className="p-6 text-sm text-muted-foreground">
+                                                                Описание изменений отсутствует.
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </DialogContent>
+                                            </Dialog>
                                             </>
                                         ) : releasesError ? (
-                                            <div className="rounded-2xl border border-border bg-card/30 p-4">
+                                            <div>
                                                 <p className="text-sm font-bold">Нет подключения к интернету</p>
                                                 <p className="text-sm text-muted-foreground mt-1">Патч-изменения недоступны.</p>
                                             </div>
@@ -352,41 +364,6 @@ export default function MainPage() {
                                             </div>
                                         )}
                                     </div>
-
-                                    <Dialog>
-                                        <DialogTrigger asChild>
-                                            <button
-                                                disabled={!latestPatch || !!releasesError}
-                                                className="mt-4 inline-flex items-center justify-center gap-2 px-6 py-2.5 w-full sm:w-fit rounded-xl bg-muted/80 border border-border text-foreground text-sm font-bold hover:bg-muted transition-all disabled:opacity-40 disabled:pointer-events-none"
-                                            >
-                                                Список исправлений
-                                            </button>
-                                        </DialogTrigger>
-                                        <DialogContent className="max-w-[95vw] sm:max-w-xl bg-card/95 backdrop-blur-3xl border-border shadow-2xl rounded-4xl p-0 overflow-hidden">
-                                            <div>
-                                                <DialogHeader className="p-6 bg-muted/30 border-b">
-                                                    <DialogTitle className="text-xl flex items-center gap-3 font-bold">
-                                                        <Bug size={24} className="text-muted-foreground shrink-0" />
-                                                        <span>Патч {latestPatch?.name ?? ""}</span>
-                                                    </DialogTitle>
-                                                </DialogHeader>
-                                                {releasesError ? (
-                                                    <PageErrorState
-                                                        kind="network"
-                                                        title="Нет подключения к интернету"
-                                                        description="Не удалось загрузить список исправлений."
-                                                        details={releasesError}
-                                                    />
-                                                ) : latestPatch?.formattedBody ? (
-                                                    <div className="overflow-y-auto px-6 pb-4 max-h-[60vh] custom-scrollbar prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: latestPatch.formattedBody || "" }} />
-                                                ) : (
-                                                    <div className="p-6 text-sm text-muted-foreground">
-                                                        Описание изменений отсутствует.
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </DialogContent>
-                                    </Dialog>
                                 </div>
                             </section>
                         )}

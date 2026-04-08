@@ -44,11 +44,11 @@ export default function ProfilePage() {
             GetTeacherStats(),
         ]);
 
-        let hasFatalError = false;
-        if (userResponse.status === "fulfilled" && userResponse.value.success && "data" in userResponse.value) {
+        let fatalErrorMessage: string | null = null;
+        if (userResponse.status === "fulfilled" && userResponse.value.success && "data" in userResponse.value && userResponse.value.data) {
             setUser((userResponse.value.data ?? null) as UserProfile | null);
         } else {
-            hasFatalError = true;
+            fatalErrorMessage = userResponse.status === "fulfilled" ? (userResponse.value.message || null) : null;
         }
 
         if (statsResponse.status === "fulfilled" && statsResponse.value.success && "data" in statsResponse.value) {
@@ -57,8 +57,8 @@ export default function ProfilePage() {
             setNotify({ message: "Не удалось загрузить статистику, показываем профиль без нее", type: "warning" });
         }
 
-        if (hasFatalError) {
-            setPageError("Не удалось загрузить данные профиля");
+        if (fatalErrorMessage) {
+            setPageError(fatalErrorMessage);
         }
     }, []);
 
@@ -164,8 +164,7 @@ export default function ProfilePage() {
                 kind={dbOffline ? "db" : "generic"}
                 title={dbOffline ? "Нет подключения к базе данных" : "Не удалось загрузить данные профиля"}
                 description={dbOffline ? "Проверьте доступность БД и повторите попытку." : undefined}
-                details={dbOffline ? pageError : undefined}
-                actionLabel="Повторить загрузку"
+                details={pageError}
                 onAction={() => window.location.reload()}
             />
         );

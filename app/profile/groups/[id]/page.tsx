@@ -81,8 +81,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                 title={dbOffline ? "Нет подключения к базе данных" : "Не удалось загрузить группу"}
                 description={dbOffline ? "Проверьте доступность БД и повторите попытку." : undefined}
                 details={dbOffline ? pageError : undefined}
-                actionLabel="К списку групп"
-                onAction={() => router.push("/profile/groups")}
+                onAction={() => window.location.reload()}
             />
         );
     }
@@ -91,7 +90,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
     if (!group) {
         return (
             <div className="min-h-[70vh] flex items-center justify-center p-6">
-                <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-sm">
+                <div className="w-full max-w-lg rounded-3xl border border-border bg-card p-6 shadow-sm">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="h-10 w-10 rounded-xl bg-blue-600 text-white flex items-center justify-center">
                             <Loader2 className="w-5 h-5 animate-spin" />

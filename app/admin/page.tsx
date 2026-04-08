@@ -4,12 +4,14 @@ import { useCallback, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { apiGet, apiPost } from "@/utils/http-client";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, Clock3, Shield, Users, UserCog, Layers, KeyRound, Trash2, Save, PlusCircle, Loader2, ArrowUpRight } from "lucide-react";
+import { CheckCircle2, Clock3, Shield, Users, UserCog, Layers, KeyRound, Trash2, Save, PlusCircle, Loader2 } from "lucide-react";
 import { getSession } from "@/utils/session";
 import { useRouter } from "next/navigation";
 import NotifyAlert from "@/components/NotifyAlert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
+import PageErrorState from "@/components/ui/PageErrorState";
+import { isDbOfflineText } from "@/utils/ui-errors";
 
 type AdminUser = {
     id: number;
@@ -59,7 +61,6 @@ export default function AdminPage() {
     const [userDrafts, setUserDrafts] = useState<Record<number, { full_name: string; email: string }>>({});
     const [busy, setBusy] = useState(false);
     const [actionKey, setActionKey] = useState<string | null>(null);
-    const [selectedAccessUserId, setSelectedAccessUserId] = useState("");
     const [groupEditId, setGroupEditId] = useState<number | null>(null);
     const [groupDeleteId, setGroupDeleteId] = useState<number | null>(null);
     const [userEditId, setUserEditId] = useState<number | null>(null);
@@ -277,6 +278,19 @@ export default function AdminPage() {
             </div>
         );
     }
+    if (error) {
+        const dbOffline = isDbOfflineText(error);
+        return (
+            <PageErrorState
+                kind={dbOffline ? "db" : "generic"}
+                title={dbOffline ? "Нет подключения к базе данных" : "Не удалось загрузить админ-панель"}
+                description={dbOffline ? "Проверьте доступность БД и повторите попытку." : "Не удалось загрузить данные. Повторите попытку позже."}
+                details={error}
+                onAction={() => void load()}
+            />
+        );
+    }
+
     if (!data) return null;
     const teacherOptions = data.users.filter((u) => u.registration_status === "approved");
     const editingGroup = groupEditId ? data.groups.find((g) => g.id === groupEditId) : null;
