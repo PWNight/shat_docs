@@ -17,6 +17,7 @@ const config: Config = {
       padding: '2rem',
       screens: {
         '2xl': '1536px', // Updated 2xl breakpoint to match Tailwind CSS v3 default
+        '3xl': '2560px', 
       },
     },
     extend: {
