@@ -85,7 +85,7 @@ export default function AdminPage() {
             
             setUserData({ email: session.email, uid: session.uid });
 
-            const response = await apiGet<{ data: AdminOverview }>("/api/v2/admin/overview");
+            const response = await apiGet<{ data: AdminOverview }>("/api/admin/overview");
             setData(response.data);
             
         } catch (e) {
@@ -137,19 +137,19 @@ export default function AdminPage() {
 
     const approve = async (userId: number) => {
         await runAction(async () => {
-            await apiPost(`/api/v2/admin/registrations/${userId}/approve`);
+            await apiPost(`/api/admin/registrations/${userId}/approve`);
         }, `approve-${userId}`, "Заявка подтверждена");
     };
 
     const reject = async (userId: number) => {
         await runAction(async () => {
-            await apiPost(`/api/v2/admin/registrations/${userId}/reject`);
+            await apiPost(`/api/admin/registrations/${userId}/reject`);
         }, `reject-${userId}`, "Заявка отклонена");
     };
 
     const toggleAccess = async (userId: number) => {
         await runAction(async () => {
-            const response = await apiPost<{ data?: { userId: number; canAccessAdmin: number } }>(`/api/v2/admin/users/${userId}/access`);
+            const response = await apiPost<{ data?: { userId: number; canAccessAdmin: number } }>(`/api/admin/users/${userId}/access`);
             const next = response.data;
             if (!next) return;
             setData((prev) => {
@@ -178,7 +178,7 @@ export default function AdminPage() {
             return;
         }
         await runAction(async () => {
-            await apiPost(`/api/v2/admin/password-resets/${requestId}/resolve`, { newPassword: nextPassword });
+            await apiPost(`/api/admin/password-resets/${requestId}/resolve`, { newPassword: nextPassword });
             setNewPasswords((prev) => ({ ...prev, [requestId]: "" }));
             setResetRequestDialogId(null);
         }, `reset-${requestId}`, "Пароль по заявке обновлен");
@@ -191,7 +191,7 @@ export default function AdminPage() {
             return;
         }
         await runAction(async () => {
-            await apiPost("/api/v2/admin/groups", { name: newGroupName.trim(), fk_user: fkUser });
+            await apiPost("/api/admin/groups", { name: newGroupName.trim(), fk_user: fkUser });
             setNewGroupName("");
             setNewGroupTeacherId("");
         }, "create-group", "Группа создана");
@@ -204,14 +204,14 @@ export default function AdminPage() {
         if (draft.name.trim()) payload.name = draft.name.trim();
         if (draft.fk_user.trim()) payload.fk_user = Number(draft.fk_user.trim());
         await runAction(async () => {
-            await apiPatch(`/api/v2/admin/groups/${groupId}`, payload);
+            await apiPatch(`/api/admin/groups/${groupId}`, payload);
             setGroupEditId(null);
         }, `save-group-${groupId}`, "Группа обновлена");
     };
 
     const deleteGroup = async (groupId: number) => {
         await runAction(async () => {
-            await apiDelete(`/api/v2/admin/groups/${groupId}`);
+            await apiDelete(`/api/admin/groups/${groupId}`);
             setGroupDeleteId(null);
         }, `delete-group-${groupId}`, "Группа удалена");
     };
@@ -220,7 +220,7 @@ export default function AdminPage() {
         const draft = userDrafts[userId];
         if (!draft) return;
         await runAction(async () => {
-            await apiPatch(`/api/v2/admin/users/${userId}`, {
+            await apiPatch(`/api/admin/users/${userId}`, {
                 full_name: draft.full_name.trim(),
                 email: draft.email.trim(),
             });
@@ -230,7 +230,7 @@ export default function AdminPage() {
 
     const deleteUser = async (userId: number) => {
         await runAction(async () => {
-            await apiDelete(`/api/v2/admin/users/${userId}`);
+            await apiDelete(`/api/admin/users/${userId}`);
             setUserDeleteId(null);
         }, `delete-user-${userId}`, "Пользователь удален");
     };
@@ -242,7 +242,7 @@ export default function AdminPage() {
             return;
         }
         await runAction(async () => {
-            await apiPost(`/api/v2/admin/users/${userId}/reset-password`, { newPassword });
+            await apiPost(`/api/admin/users/${userId}/reset-password`, { newPassword });
             setUserResetId(null);
             setResetPasswordDraft("");
         }, `direct-reset-${userId}`, "Пароль пользователя обновлен");

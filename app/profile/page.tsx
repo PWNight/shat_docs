@@ -128,7 +128,7 @@ export default function ProfilePage() {
     const handlePasswordResetRequest = async () => {
         setPending(true);
         try {
-            const response = await apiPost<{ message?: string }>("/api/v2/password-resets/request");
+            const response = await apiPost<{ message?: string }>("/api/password-resets/request");
             setNotify({ message: response.message || "Заявка отправлена", type: "success" });
         } catch (error) {
             if (error instanceof ApiResponseError) {
