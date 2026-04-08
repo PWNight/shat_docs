@@ -1,6 +1,6 @@
 "use client"
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState, useTransition, use, useCallback } from "react";
+import { useEffect, useState, useTransition, use, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion"; // Импорт для анимаций
 import {
     Loader2, Trash2,

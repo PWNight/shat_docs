@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { AlertTriangle, DatabaseZap, WifiOff, RefreshCw } from "lucide-react";
 import { cn } from "@/utils/functions";
 

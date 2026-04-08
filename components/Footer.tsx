@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { buttonVariants } from "./ui/Button";
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import {LifeBuoy, Info, Loader2, Calendar, ChevronRight, Sparkles, ChevronLeft, Bug} from "lucide-react";
 import {

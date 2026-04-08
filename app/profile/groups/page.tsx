@@ -1,5 +1,5 @@
 "use client"
-import React, {useActionState, useCallback, useEffect, useState} from "react";
+import {useActionState, useCallback, useEffect, useState} from "react";
 import {useRouter} from "next/navigation";
 import {getSession} from "@/utils/session";
 import {CreateGroup, GetAllGroups} from "@/utils/handlers";

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { AlertCircle, CheckCircle2, AlertTriangle, X } from "lucide-react"; // Используем lucide для единообразия с вашим кодом
 interface ErrorMessageProps {
   message: string;
