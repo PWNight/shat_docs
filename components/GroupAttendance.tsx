@@ -10,6 +10,7 @@ import PeriodSelectionDialog from "@/components/PeriodSelectionDialog";
 import { GetAttendance, SaveAttendance, DeleteAttendancePeriod, CreateStudents } from "@/utils/handlers";
 import { exportToWord } from "@/utils/functions";
 import { AttendanceStudent, AttendanceTotal, Group, Notify, MONTH_NAMES } from "@/utils/interfaces";
+import { getDbOfflineToastMessage, isDbOfflineMeta } from "@/utils/ui-errors";
 
 interface GroupAttendanceProps {
     groupId: string;
@@ -115,10 +116,18 @@ export default function GroupAttendance({ groupId, group, isOwner, setNotify }: 
                 setAttendanceStudents(result.data);
                 setIsAttendanceModified(false);
                 setNotify({ message: `Загружены данные за ${MONTH_NAMES[period as keyof typeof MONTH_NAMES]}`, type: "success" });
+            } else if (!result.success) {
+                const dbOffline = isDbOfflineMeta(result.status, result.code);
+                setAttendanceStudents([]);
+                setIsAttendanceModified(false);
+                setNotify({
+                    message: dbOffline ? getDbOfflineToastMessage() : (result.message || "Ошибка загрузки посещаемости"),
+                    type: dbOffline ? "warning" : "error",
+                });
             } else {
                 setAttendanceStudents([]);
                 setIsAttendanceModified(false);
-                setNotify({ message: result.message || `Нет данных за ${MONTH_NAMES[period as keyof typeof MONTH_NAMES]}`, type: "warning" });
+                setNotify({ message: `Нет данных за ${MONTH_NAMES[period as keyof typeof MONTH_NAMES]}`, type: "warning" });
             }
         } catch (error) {
             if (!isMountedRef.current) return;
@@ -160,7 +169,11 @@ export default function GroupAttendance({ groupId, group, isOwner, setNotify }: 
             await CreateStudents(groupId, studentNames);
             setNotify({ message: "Посещаемость сохранена в БД", type: 'success' });
         } else {
-            setNotify({ message: result.message || "Ошибка записи в БД", type: 'error' });
+            const dbOffline = isDbOfflineMeta(result.status, result.code);
+            setNotify({
+                message: dbOffline ? getDbOfflineToastMessage() : (result.message || "Ошибка записи в БД"),
+                type: dbOffline ? "warning" : "error",
+            });
         }
     };
 
@@ -179,7 +192,11 @@ export default function GroupAttendance({ groupId, group, isOwner, setNotify }: 
             setIsAttendanceModified(false);
             setNotify({ message: "Записи за период удалены из БД", type: 'success' });
         } else {
-            setNotify({ message: result.message || "Не удалось удалить период", type: 'error' });
+            const dbOffline = isDbOfflineMeta(result.status, result.code);
+            setNotify({
+                message: dbOffline ? getDbOfflineToastMessage() : (result.message || "Не удалось удалить период"),
+                type: dbOffline ? "warning" : "error",
+            });
         }
     };
 

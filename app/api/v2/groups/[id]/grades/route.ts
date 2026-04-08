@@ -45,8 +45,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         return jsonResponse(successResponse(data));
     } catch (error) {
-        const { message } = handleApiError(error);
-        return serverError(message);
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
     }
 }
 
@@ -89,8 +89,8 @@ export async function POST(request: NextRequest) {
         }
         return jsonResponse(successResponse(null, "Успеваемость обновлена"));
     } catch (error) {
-        const { message } = handleApiError(error);
-        return serverError(message);
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
     }
 }
 
@@ -118,7 +118,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         await execute(`DELETE FROM grades WHERE fk_group = ? AND period_semester = ?`, [id, parsedSemester]);
         return jsonResponse(successResponse(null, "Записи удалены"));
     } catch (error) {
-        const { message } = handleApiError(error);
-        return serverError(message);
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
     }
 }

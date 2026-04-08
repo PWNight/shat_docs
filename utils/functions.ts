@@ -378,6 +378,7 @@ export function cn(...inputs: ClassValue[]) {
 type ApiResponseBody = {
     success?: boolean;
     message?: string;
+    code?: string;
     error?: string;
     data?: unknown;
 };
@@ -417,8 +418,9 @@ export async function handleApiResponse(response: Response): Promise<ApiResponse
             ? `${messageFromBody} (err ${response.status})`
             : `Ошибка запроса (err ${response.status})`;
 
-        logger.warn("API request failed", { status: response.status, code: body?.error, message: messageFromBody });
-        throw new ApiResponseError(message, response.status, body?.error);
+        const apiCode = body?.code ?? body?.error;
+        logger.warn("API request failed", { status: response.status, code: apiCode, message: messageFromBody });
+        throw new ApiResponseError(message, response.status, apiCode);
     }
 
     if (!body) {

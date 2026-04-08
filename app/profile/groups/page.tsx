@@ -17,7 +17,7 @@ import Link from "next/link";
 import {GroupFormState} from "@/utils/definitions";
 import {CreateFormProps, Group, Notify} from "@/utils/interfaces";
 import PageErrorState from "@/components/ui/PageErrorState";
-import { isDbOfflineText } from "@/utils/ui-errors";
+import { getErrorKindByMeta } from "@/utils/ui-errors";
 import { motion } from "framer-motion";
 
 // Форма создания группы
@@ -85,17 +85,29 @@ export default function ProfileGroups() {
     const [pageLoaded, setPageLoaded] = useState(false);
     const [notify, setNotify] = useState<Notify>({ message: '', type: '' });
     const [open, setOpen] = useState(false);
-    const [pageError, setPageError] = useState<string | null>(null);
+    const [pageError, setPageError] = useState<{ message: string; status?: number; code?: string } | null>(null);
 
     // Функция загрузки списка групп
     const loadData = useCallback(async () => {
         const response = await GetAllGroups();
-        if (!response.success || !("data" in response)) {
-            setPageError(response.message || "Ошибка загрузки групп");
-        } else {
-            setPageError(null);
-            setGroups((response.data as Group[]) || []);
+        if (!response.success) {
+            setPageError({
+                message: response.message || "Ошибка загрузки групп",
+                status: response.status,
+                code: response.code,
+            });
+            return;
         }
+
+        if (!("data" in response) || !response.data) {
+            setPageError({
+                message: response.message || "Ошибка загрузки групп",
+            });
+            return;
+        }
+
+        setPageError(null);
+        setGroups((response.data as Group[]) || []);
     }, []);
 
     // useActionState для создания группы
@@ -167,13 +179,13 @@ export default function ProfileGroups() {
     }
 
     if (pageError) {
-        const dbOffline = isDbOfflineText(pageError);
+        const kind = getErrorKindByMeta(pageError.status, pageError.code);
         return (
             <PageErrorState
-                kind={dbOffline ? "db" : "generic"}
-                title={dbOffline ? "Нет подключения к базе данных" : "Не удалось загрузить группы"}
-                description={dbOffline ? "Проверьте доступность БД и повторите попытку." : undefined}
-                details={dbOffline ? pageError : undefined}
+                kind={kind}
+                title={kind === "db" ? "Нет подключения к базе данных" : "Не удалось загрузить группы"}
+                description={kind === "db" ? "Проверьте доступность БД и повторите попытку." : undefined}
+                details={pageError.message}
                 onAction={() => loadData()}
             />
         );

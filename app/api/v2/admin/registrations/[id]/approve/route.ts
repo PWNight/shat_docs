@@ -27,7 +27,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
         return jsonResponse(successResponse({ userId: targetId }, "Регистрация подтверждена"));
     } catch (error) {
-        const { message } = handleApiError(error);
-        return serverError(message);
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
     }
 }

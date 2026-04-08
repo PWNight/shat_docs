@@ -25,8 +25,8 @@ export async function GET(_request: NextRequest, {params}: { params: Promise<{ i
         );
         return jsonResponse(successResponse(students));
     } catch (error) {
-        const { message } = handleApiError(error);
-        return serverError(message);
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
     }
 }
 
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest, {params}: { params: Promise<{ i
 
         return jsonResponse(successResponse(null, "Студенты добавлены"), 201);
     } catch (error) {
-        const { message } = handleApiError(error);
-        return serverError(message);
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
     }
 }

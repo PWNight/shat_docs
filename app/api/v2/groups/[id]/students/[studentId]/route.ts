@@ -66,8 +66,8 @@ export async function PATCH(
         return jsonResponse(successResponse(null, "Данные студента и связанные записи обновлены"));
 
     } catch (error) {
-        const { message } = handleApiError(error, "Ошибка при обновлении данных студента");
-        return serverError(message);
+        const { message, code } = handleApiError(error, "Ошибка при обновлении данных студента");
+        return serverError(message, code);
     }
 }
 
@@ -115,7 +115,7 @@ export async function DELETE(
         return jsonResponse(successResponse(null, "Студент и все связанные данные успешно удалены"));
 
     } catch (error) {
-        const { message } = handleApiError(error, "Ошибка при удалении студента");
-        return serverError(message);
+        const { message, code } = handleApiError(error, "Ошибка при удалении студента");
+        return serverError(message, code);
     }
 }

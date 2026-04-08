@@ -17,7 +17,7 @@ import GroupGrades from "@/components/GroupGrades";
 import GroupStudents from "@/components/GroupStudents";
 import ErrorMessage from "@/components/NotifyAlert";
 import PageErrorState from "@/components/ui/PageErrorState";
-import { isDbOfflineText } from "@/utils/ui-errors";
+import { getErrorKindByMeta } from "@/utils/ui-errors";
 import { getSession, SessionPayload } from "@/utils/session";
 import { GetGroup, GetUsersList, UpdateGroup, DeleteGroup, GetStudents } from "@/utils/handlers";
 import { Group, Notify, Student } from "@/utils/interfaces";
@@ -37,12 +37,23 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
     const [updateFormData, setUpdateFormData] = useState({ name: '', fk_user: '' });
     const [students, setStudents] = useState<Student[]>([]);
     const [isPending, startTransition] = useTransition();
-    const [pageError, setPageError] = useState<string | null>(null);
+    const [pageError, setPageError] = useState<{ message: string; status?: number; code?: string } | null>(null);
 
     const loadData = useCallback(async (id: string) => {
         const groupRes = await GetGroup(id);
-        if (!groupRes.success || !("data" in groupRes) || !groupRes.data) {
-            setPageError(groupRes.message || "Группа не найдена или недоступна");
+        if (!groupRes.success) {
+            setPageError({
+                message: groupRes.message || "Группа не найдена или недоступна",
+                status: groupRes.status,
+                code: groupRes.code,
+            });
+            return;
+        }
+
+        if (!("data" in groupRes) || !groupRes.data) {
+            setPageError({
+                message: groupRes.message || "Группа не найдена или недоступна",
+            });
             return;
         }
 
@@ -74,13 +85,13 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
     const isOwner = userData?.uid === group?.fk_user;
 
     if (pageError) {
-        const dbOffline = isDbOfflineText(pageError);
+        const kind = getErrorKindByMeta(pageError.status, pageError.code);
         return (
             <PageErrorState
-                kind={dbOffline ? "db" : "generic"}
-                title={dbOffline ? "Нет подключения к базе данных" : "Не удалось загрузить группу"}
-                description={dbOffline ? "Проверьте доступность БД и повторите попытку." : undefined}
-                details={dbOffline ? pageError : undefined}
+                kind={kind}
+                title={kind === "db" ? "Нет подключения к базе данных" : "Не удалось загрузить группу"}
+                description={kind === "db" ? "Проверьте доступность БД и повторите попытку." : undefined}
+                details={pageError.message}
                 onAction={() => window.location.reload()}
             />
         );

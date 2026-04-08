@@ -10,6 +10,7 @@ import PeriodSelectionDialog from "@/components/PeriodSelectionDialog";
 import { GetGrades, SaveGrades, DeleteGradesPeriod, CreateStudents } from "@/utils/handlers";
 import { exportGradesToWord } from "@/utils/functions";
 import { Group, GradeStudent, Notify, SEMESTER_NAMES } from "@/utils/interfaces";
+import { getDbOfflineToastMessage, isDbOfflineMeta } from "@/utils/ui-errors";
 
 interface GroupGradesProps {
     groupId: string;
@@ -128,10 +129,18 @@ export default function GroupGrades({ groupId, group, isOwner, setNotify }: Grou
                 setGradesStudents(result.data);
                 setIsGradesModified(false);
                 setNotify({ message: `Загружены данные за ${SEMESTER_NAMES[period as keyof typeof SEMESTER_NAMES]}`, type: "success" });
+            } else if (!result.success) {
+                const dbOffline = isDbOfflineMeta(result.status, result.code);
+                setGradesStudents([]);
+                setIsGradesModified(false);
+                setNotify({
+                    message: dbOffline ? getDbOfflineToastMessage() : (result.message || "Ошибка загрузки успеваемости"),
+                    type: dbOffline ? "warning" : "error",
+                });
             } else {
                 setGradesStudents([]);
                 setIsGradesModified(false);
-                setNotify({ message: result.message || `Нет данных за ${SEMESTER_NAMES[period as keyof typeof SEMESTER_NAMES]}`, type: "warning" });
+                setNotify({ message: `Нет данных за ${SEMESTER_NAMES[period as keyof typeof SEMESTER_NAMES]}`, type: "warning" });
             }
         } catch (error) {
             if (!isMountedRef.current) return;
@@ -173,7 +182,11 @@ export default function GroupGrades({ groupId, group, isOwner, setNotify }: Grou
             await CreateStudents(groupId, studentNames);
             setNotify({ message: "Успеваемость сохранена в БД", type: 'success' });
         } else {
-            setNotify({ message: result.message || "Ошибка записи в БД", type: 'error' });
+            const dbOffline = isDbOfflineMeta(result.status, result.code);
+            setNotify({
+                message: dbOffline ? getDbOfflineToastMessage() : (result.message || "Ошибка записи в БД"),
+                type: dbOffline ? "warning" : "error",
+            });
         }
     };
 
@@ -192,7 +205,11 @@ export default function GroupGrades({ groupId, group, isOwner, setNotify }: Grou
             setIsGradesModified(false);
             setNotify({ message: "Записи за период удалены из БД", type: 'success' });
         } else {
-            setNotify({ message: result.message || "Не удалось удалить период", type: 'error' });
+            const dbOffline = isDbOfflineMeta(result.status, result.code);
+            setNotify({
+                message: dbOffline ? getDbOfflineToastMessage() : (result.message || "Не удалось удалить период"),
+                type: dbOffline ? "warning" : "error",
+            });
         }
     };
 

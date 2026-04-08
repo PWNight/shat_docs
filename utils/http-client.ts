@@ -68,9 +68,11 @@ export async function apiRequest<T = unknown>(
             return await handleApiResponse(response) as T;
         } catch (error) {
             lastError = error;
-            if (error instanceof ApiResponseError && error.status < 500) {
-                // 4xx retries usually do not help.
-                throw error;
+            if (error instanceof ApiResponseError) {
+                // 503 (например, недоступность БД) не имеет смысла ретраить.
+                if (error.status === 503) throw error;
+                // 4xx обычно не имеют смысла для ретрая.
+                if (error.status < 500) throw error;
             }
             logger.debug("apiRequest retry", { path, method, attempt: attempt + 1 });
             attempt += 1;

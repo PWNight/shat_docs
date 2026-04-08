@@ -53,8 +53,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
         return jsonResponse(successResponse(null, "Пользователь обновлен"));
     } catch (error) {
-        const { message } = handleApiError(error);
-        return serverError(message);
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
     }
 }
 
@@ -80,7 +80,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
         return jsonResponse(successResponse(null, "Пользователь удален"));
     } catch (error) {
-        const { message } = handleApiError(error);
-        return serverError(message);
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
     }
 }

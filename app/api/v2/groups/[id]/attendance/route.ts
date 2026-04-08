@@ -108,8 +108,8 @@ export async function POST(request: NextRequest) {
 
         return jsonResponse(successResponse(null, "Посещаемость обновлена"));
     } catch (error) {
-        const { message } = handleApiError(error);
-        return serverError(message);
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
     }
 }
 
@@ -138,7 +138,7 @@ export async function DELETE(request: NextRequest, {params}: { params: Promise<{
 
         return jsonResponse(successResponse(null, "Записи удалены"));
     } catch (error) {
-        const { message } = handleApiError(error);
-        return serverError(message);
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
     }
 }

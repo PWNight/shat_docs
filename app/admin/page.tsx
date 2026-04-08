@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { apiGet, apiPost } from "@/utils/http-client";
+import { apiDelete, apiGet, apiPatch, apiPost } from "@/utils/http-client";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, Clock3, Shield, Users, UserCog, Layers, KeyRound, Trash2, Save, PlusCircle, Loader2 } from "lucide-react";
 import { getSession } from "@/utils/session";
@@ -11,7 +11,8 @@ import NotifyAlert from "@/components/NotifyAlert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
 import PageErrorState from "@/components/ui/PageErrorState";
-import { isDbOfflineText } from "@/utils/ui-errors";
+import { getDbOfflineToastMessage, getErrorKindByMeta, isDbOfflineMeta } from "@/utils/ui-errors";
+import { ApiResponseError } from "@/utils/functions";
 
 type AdminUser = {
     id: number;
@@ -51,7 +52,7 @@ export default function AdminPage() {
     const [data, setData] = useState<AdminOverview | null>(null);
     const [userData, setUserData] = useState<{ email: string; uid: number }>(Object);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError] = useState<{ message: string; status?: number; code?: string } | null>(null);
     const [notify, setNotify] = useState<{ message: string; type: string }>({ message: "", type: "" });
     const [tab, setTab] = useState<TabType>("groups");
     const [newPasswords, setNewPasswords] = useState<Record<number, string>>({});
@@ -88,9 +89,13 @@ export default function AdminPage() {
             setData(response.data);
             
         } catch (e) {
-            const message = e instanceof Error ? e.message : "Ошибка загрузки админ панели";
-            setError(message);
-            setNotify({ message, type: "error" });
+            const fallbackMessage = e instanceof Error ? e.message : "Ошибка загрузки админ панели";
+            if (e instanceof ApiResponseError) {
+                setError({ message: fallbackMessage, status: e.status, code: e.code });
+            } else {
+                setError({ message: fallbackMessage });
+            }
+            setNotify({ message: fallbackMessage, type: "error" });
         } finally {
             if (!silent) {
                 setLoading(false);
@@ -114,6 +119,14 @@ export default function AdminPage() {
                 await load(true);
             }
         } catch (e) {
+            if (e instanceof ApiResponseError) {
+                const dbOffline = isDbOfflineMeta(e.status, e.code);
+                setNotify({
+                    message: dbOffline ? getDbOfflineToastMessage() : e.message,
+                    type: dbOffline ? "warning" : "error",
+                });
+                return;
+            }
             const message = e instanceof Error ? e.message : "Ошибка выполнения операции";
             setNotify({ message, type: "error" });
         } finally {
@@ -191,22 +204,14 @@ export default function AdminPage() {
         if (draft.name.trim()) payload.name = draft.name.trim();
         if (draft.fk_user.trim()) payload.fk_user = Number(draft.fk_user.trim());
         await runAction(async () => {
-            await fetch(`/api/v2/admin/groups/${groupId}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            }).then(async (res) => {
-                if (!res.ok) throw new Error((await res.json()).message || "Ошибка обновления группы");
-            });
+            await apiPatch(`/api/v2/admin/groups/${groupId}`, payload);
             setGroupEditId(null);
         }, `save-group-${groupId}`, "Группа обновлена");
     };
 
     const deleteGroup = async (groupId: number) => {
         await runAction(async () => {
-            await fetch(`/api/v2/admin/groups/${groupId}`, { method: "DELETE" }).then(async (res) => {
-                if (!res.ok) throw new Error((await res.json()).message || "Ошибка удаления группы");
-            });
+            await apiDelete(`/api/v2/admin/groups/${groupId}`);
             setGroupDeleteId(null);
         }, `delete-group-${groupId}`, "Группа удалена");
     };
@@ -215,15 +220,9 @@ export default function AdminPage() {
         const draft = userDrafts[userId];
         if (!draft) return;
         await runAction(async () => {
-            await fetch(`/api/v2/admin/users/${userId}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    full_name: draft.full_name.trim(),
-                    email: draft.email.trim(),
-                }),
-            }).then(async (res) => {
-                if (!res.ok) throw new Error((await res.json()).message || "Ошибка обновления пользователя");
+            await apiPatch(`/api/v2/admin/users/${userId}`, {
+                full_name: draft.full_name.trim(),
+                email: draft.email.trim(),
             });
             setUserEditId(null);
         }, `save-user-${userId}`, "Пользователь обновлен");
@@ -231,9 +230,7 @@ export default function AdminPage() {
 
     const deleteUser = async (userId: number) => {
         await runAction(async () => {
-            await fetch(`/api/v2/admin/users/${userId}`, { method: "DELETE" }).then(async (res) => {
-                if (!res.ok) throw new Error((await res.json()).message || "Ошибка удаления пользователя");
-            });
+            await apiDelete(`/api/v2/admin/users/${userId}`);
             setUserDeleteId(null);
         }, `delete-user-${userId}`, "Пользователь удален");
     };
@@ -279,13 +276,13 @@ export default function AdminPage() {
         );
     }
     if (error) {
-        const dbOffline = isDbOfflineText(error);
+        const kind = getErrorKindByMeta(error.status, error.code);
         return (
             <PageErrorState
-                kind={dbOffline ? "db" : "generic"}
-                title={dbOffline ? "Нет подключения к базе данных" : "Не удалось загрузить админ-панель"}
-                description={dbOffline ? "Проверьте доступность БД и повторите попытку." : "Не удалось загрузить данные. Повторите попытку позже."}
-                details={error}
+                kind={kind}
+                title={kind === "db" ? "Нет подключения к базе данных" : "Не удалось загрузить админ-панель"}
+                description={kind === "db" ? "Проверьте доступность БД и повторите попытку." : "Не удалось загрузить данные. Повторите попытку позже."}
+                details={error.message}
                 onAction={() => void load()}
             />
         );

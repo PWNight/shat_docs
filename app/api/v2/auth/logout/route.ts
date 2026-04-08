@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         await deleteSession();
         return jsonResponse(successResponse(null, "Успешно"));
     } catch (error) {
-        const { message } = handleApiError(error);
-        return serverError(message);
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
     }
 }

@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import { NextRequest, NextResponse } from "next/server";
 import { execute, query, queryOne } from "@/utils/mysql";
-import { requireAuth, forbidden, serverError } from "@/utils/api";
+import { handleApiError, requireAuth, forbidden, serverError } from "@/utils/api";
 
 type AdminUserRow = {
     id: number;
@@ -77,8 +77,9 @@ export async function requireAdmin(request: NextRequest): Promise<
             return { success: false, response: forbidden("Нет доступа к админ-панели") };
         }
         return { success: true, actor };
-    } catch {
-        return { success: false, response: serverError("Ошибка проверки прав администратора") };
+    } catch (error) {
+        const { message, code } = handleApiError(error, "Ошибка проверки прав администратора");
+        return { success: false, response: serverError(message, code) };
     }
 }
 

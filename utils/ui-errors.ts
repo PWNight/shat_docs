@@ -24,3 +24,21 @@ export function isNetworkOfflineText(text: string | null | undefined): boolean {
     );
 }
 
+export type UiErrorKind = "db" | "network" | "generic";
+
+export const DB_OFFLINE_MESSAGE =
+    "Нет подключения к базе данных. Проверьте доступность БД и повторите попытку.";
+
+export function isDbOfflineMeta(status?: number, code?: string): boolean {
+    return status === 503 || code === "DB_OFFLINE";
+}
+
+export function getErrorKindByMeta(status?: number, code?: string): UiErrorKind {
+    if (isDbOfflineMeta(status, code)) return "db";
+    return "generic";
+}
+
+export function getDbOfflineToastMessage(): string {
+    return DB_OFFLINE_MESSAGE;
+}
+

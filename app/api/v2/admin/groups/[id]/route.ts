@@ -42,8 +42,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         await writeAdminLog(adminCheck.actor.id, "ADMIN_UPDATE_GROUP", `groupId=${groupId}`);
         return jsonResponse(successResponse(null, "Группа обновлена"));
     } catch (error) {
-        const { message } = handleApiError(error);
-        return serverError(message);
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
     }
 }
 
@@ -63,7 +63,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         await writeAdminLog(adminCheck.actor.id, "ADMIN_DELETE_GROUP", `groupId=${groupId}`);
         return jsonResponse(successResponse(null, "Группа удалена"));
     } catch (error) {
-        const { message } = handleApiError(error);
-        return serverError(message);
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
     }
 }

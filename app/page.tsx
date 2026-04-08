@@ -156,7 +156,7 @@ export default function MainPage() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-                    {!loading && (
+                    {!loading && !releasesError && (
                         <section className="relative overflow-hidden rounded-3xl border border-blue-500/20 bg-card/30 backdrop-blur-2xl p-6 md:p-10 shadow-2xl flex flex-col transition-all duration-300 hover:border-blue-500/40 group">
                             <div className="absolute inset-0 bg-linear-to-br from-blue-600/10 via-transparent to-transparent opacity-100" />
                             <div className="absolute top-0 right-0 p-0 opacity-15 pointer-events-none translate-x-1/4 -translate-y-1/4 rotate-12">
@@ -225,7 +225,7 @@ export default function MainPage() {
                     )}
 
                     <div className="flex flex-col gap-6">
-                        {!loading && (
+                        {!loading && !releasesError && (
                             <section className="relative overflow-hidden rounded-3xl border border-blue-500/30 bg-card/30 backdrop-blur-2xl p-6 md:p-8 shadow-xl flex-1 transition-all duration-300 hover:border-blue-500/50 group/beta flex flex-col justify-between min-h-55">
                                 <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none group-hover/beta:scale-110 transition-transform">
                                     <Boxes size={100} className="text-blue-500" strokeWidth={1} />
@@ -292,7 +292,7 @@ export default function MainPage() {
                             </section>
                         )}
 
-                        {!loading && (
+                        {!loading && !releasesError && (
                             <section className="relative overflow-hidden rounded-3xl border border-border bg-card/30 backdrop-blur-2xl p-6 md:p-8 shadow-xl flex-1 transition-all duration-300 hover:border-foreground/10 group/patch flex flex-col justify-between min-h-55">
                                 <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none group-hover/patch:rotate-12 transition-transform">
                                     <Bug size={100} className="text-foreground" strokeWidth={1} />
@@ -375,6 +375,16 @@ export default function MainPage() {
                         <Loader2 className="animate-spin text-blue-500" size={24} />
                         <p className="text-muted-foreground font-medium">Загружаю блок последних изменений</p>
                     </div>
+                )}
+
+                {!loading && releasesError && (
+                    <PageErrorState
+                        kind="network"
+                        title="Нет подключения к интернету"
+                        description="Не удалось загрузить информацию о последних релизах."
+                        details={releasesError}
+                        onAction={() => window.location.reload()}
+                    />
                 )}
             </div>
         </div>

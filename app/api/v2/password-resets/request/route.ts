@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 
         return jsonResponse(successResponse(null, "Заявка на сброс пароля отправлена"));
     } catch (error) {
-        const { message } = handleApiError(error);
-        return serverError(message);
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
     }
 }

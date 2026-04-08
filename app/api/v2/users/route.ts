@@ -24,8 +24,8 @@ export async function GET(request: NextRequest) {
         const users = await query('SELECT id, full_name FROM users');
         return jsonResponse(successResponse(users));
     } catch (error) {
-        const { message } = handleApiError(error, "Ошибка сервера");
-        return serverError(message);
+        const { message, code } = handleApiError(error, "Ошибка сервера");
+        return serverError(message, code);
     }
 }
 
@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
         return jsonResponse(successResponse(null, newPassword ? "Данные и пароль успешно обновлены" : "Данные успешно обновлены"));
 
     } catch (error) {
-        const { message } = handleApiError(error);
-        return serverError(message);
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
     }
 }

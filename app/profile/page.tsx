@@ -13,7 +13,8 @@ import {
 } from "lucide-react";
 import ErrorMessage from "@/components/NotifyAlert";
 import PageErrorState from "@/components/ui/PageErrorState";
-import { isDbOfflineText } from "@/utils/ui-errors";
+import { getDbOfflineToastMessage, getErrorKindByMeta, isDbOfflineMeta } from "@/utils/ui-errors";
+import { ApiResponseError } from "@/utils/functions";
 import {
     InfoItemProps,
     Notify,
@@ -36,7 +37,7 @@ export default function ProfilePage() {
     const [activeTab, setActiveTab] = useState<TabType>("name");
     const [notify, setNotify] = useState<Notify>({ message: "", type: "" });
     const [pending, setPending] = useState(false);
-    const [pageError, setPageError] = useState<string | null>(null);
+    const [pageError, setPageError] = useState<{ message: string; status?: number; code?: string } | null>(null);
 
     const loadData = useCallback(async (userId: number) => {
         const [userResponse, statsResponse] = await Promise.allSettled([
@@ -44,11 +45,18 @@ export default function ProfilePage() {
             GetTeacherStats(),
         ]);
 
-        let fatalErrorMessage: string | null = null;
+        let fatalError: { message: string; status?: number; code?: string } | null = null;
         if (userResponse.status === "fulfilled" && userResponse.value.success && "data" in userResponse.value && userResponse.value.data) {
             setUser((userResponse.value.data ?? null) as UserProfile | null);
         } else {
-            fatalErrorMessage = userResponse.status === "fulfilled" ? (userResponse.value.message || null) : null;
+            if (userResponse.status === "fulfilled") {
+                const value = userResponse.value;
+                fatalError = {
+                    message: value.message || "Ошибка загрузки данных",
+                    status: value.success === false ? value.status : undefined,
+                    code: value.success === false ? value.code : undefined,
+                };
+            }
         }
 
         if (statsResponse.status === "fulfilled" && statsResponse.value.success && "data" in statsResponse.value) {
@@ -57,8 +65,8 @@ export default function ProfilePage() {
             setNotify({ message: "Не удалось загрузить статистику, показываем профиль без нее", type: "warning" });
         }
 
-        if (fatalErrorMessage) {
-            setPageError(fatalErrorMessage);
+        if (fatalError) {
+            setPageError(fatalError);
         }
     }, []);
 
@@ -123,6 +131,14 @@ export default function ProfilePage() {
             const response = await apiPost<{ message?: string }>("/api/v2/password-resets/request");
             setNotify({ message: response.message || "Заявка отправлена", type: "success" });
         } catch (error) {
+            if (error instanceof ApiResponseError) {
+                const dbOffline = isDbOfflineMeta(error.status, error.code);
+                setNotify({
+                    message: dbOffline ? getDbOfflineToastMessage() : error.message,
+                    type: dbOffline ? "warning" : "error",
+                });
+                return;
+            }
             setNotify({ message: error instanceof Error ? error.message : "Ошибка отправки заявки", type: "error" });
         } finally {
             setPending(false);
@@ -158,13 +174,13 @@ export default function ProfilePage() {
     }
 
     if (pageError) {
-        const dbOffline = isDbOfflineText(pageError);
+        const kind = getErrorKindByMeta(pageError.status, pageError.code);
         return (
             <PageErrorState
-                kind={dbOffline ? "db" : "generic"}
-                title={dbOffline ? "Нет подключения к базе данных" : "Не удалось загрузить данные профиля"}
-                description={dbOffline ? "Проверьте доступность БД и повторите попытку." : undefined}
-                details={pageError}
+                kind={kind}
+                title={kind === "db" ? "Нет подключения к базе данных" : "Не удалось загрузить данные профиля"}
+                description={kind === "db" ? "Проверьте доступность БД и повторите попытку." : undefined}
+                details={pageError.message}
                 onAction={() => window.location.reload()}
             />
         );

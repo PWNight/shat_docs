@@ -84,8 +84,8 @@ export function Footer() {
             }));
 
             setReleases(formattedReleases);
-        } catch (e) {
-            console.error("Failed to fetch releases:", e);
+        } catch {
+            // При отсутствии интернета просто не показываем список изменений
         } finally {
             setIsLoading(false);
         }

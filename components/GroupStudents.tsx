@@ -5,6 +5,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import { GetAttendance, GetGrades, GetStudents, UpdateStudent, DeleteStudent } from "@/utils/handlers";
 import { exportGradesToWord, exportToWord } from "@/utils/functions";
 import { Group, Notify, Student, MONTH_NAMES, SEMESTER_NAMES, AttendanceStudent, AttendanceTotal, GradeStudent } from "@/utils/interfaces";
+import { getDbOfflineToastMessage, isDbOfflineMeta } from "@/utils/ui-errors";
 
 interface GroupStudentsProps {
     groupId: string;
@@ -58,7 +59,19 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
         try {
             if (reportType === 'attendance') {
                 const attendanceRes = await GetAttendance(groupId, reportPeriod);
-                if (!attendanceRes.success || !attendanceRes.data) throw new Error(attendanceRes.message || 'Ошибка загрузки посещаемости');
+                if (!attendanceRes.success) {
+                    const dbOffline = isDbOfflineMeta(attendanceRes.status, attendanceRes.code);
+                    setNotify({
+                        message: dbOffline ? getDbOfflineToastMessage() : (attendanceRes.message || 'Ошибка загрузки посещаемости'),
+                        type: dbOffline ? 'warning' : 'error',
+                    });
+                    return;
+                }
+
+                if (!attendanceRes.data) {
+                    setNotify({ message: 'Ошибка загрузки посещаемости', type: 'error' });
+                    return;
+                }
 
                 const reportStudents = attendanceRes.data.filter((item: AttendanceStudent) => selectedStudentNames.includes(item.fullName));
                 if (!reportStudents.length) {
@@ -90,7 +103,19 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
                 setNotify({ message: 'Отчёт по посещаемости сформирован', type: 'success' });
             } else {
                 const gradesRes = await GetGrades(groupId, reportPeriod);
-                if (!gradesRes.success || !gradesRes.data) throw new Error(gradesRes.message || 'Ошибка загрузки успеваемости');
+                if (!gradesRes.success) {
+                    const dbOffline = isDbOfflineMeta(gradesRes.status, gradesRes.code);
+                    setNotify({
+                        message: dbOffline ? getDbOfflineToastMessage() : (gradesRes.message || 'Ошибка загрузки успеваемости'),
+                        type: dbOffline ? 'warning' : 'error',
+                    });
+                    return;
+                }
+
+                if (!gradesRes.data) {
+                    setNotify({ message: 'Ошибка загрузки успеваемости', type: 'error' });
+                    return;
+                }
 
                 const reportStudents = gradesRes.data.filter((item: GradeStudent) => selectedStudentNames.includes(item.fullName));
                 if (!reportStudents.length) {
@@ -129,7 +154,11 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
             setStudents(prev => prev.map(s => s.id === editingStudent ? { ...s, full_name: editName } : s));
             setNotify({ message: "Студент переименован", type: 'success' });
         } else {
-            setNotify({ message: result.message || "Ошибка переименования", type: 'error' });
+            const dbOffline = isDbOfflineMeta(result.status, result.code);
+            setNotify({
+                message: dbOffline ? getDbOfflineToastMessage() : (result.message || "Ошибка переименования"),
+                type: dbOffline ? "warning" : "error",
+            });
         }
         setEditingStudent(null);
     };
@@ -145,7 +174,11 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
             setStudents(prev => prev.filter(s => s.id !== deleteStudentId));
             setNotify({ message: "Студент удален", type: 'success' });
         } else {
-            setNotify({ message: result.message || "Ошибка удаления", type: 'error' });
+            const dbOffline = isDbOfflineMeta(result.status, result.code);
+            setNotify({
+                message: dbOffline ? getDbOfflineToastMessage() : (result.message || "Ошибка удаления"),
+                type: dbOffline ? "warning" : "error",
+            });
         }
         setDeleteStudentId(null);
     };
@@ -155,12 +188,22 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
         const result = await GetStudents(groupId);
         if (!isMountedRef.current) return;
         setIsRefreshing(false);
-        if (result.success && result.data) {
-            setStudents(result.data);
-            setNotify({ message: "Список студентов обновлен", type: 'success' });
-        } else {
-            setNotify({ message: result.message || "Ошибка обновления списка", type: 'error' });
+        if (!result.success) {
+            const dbOffline = isDbOfflineMeta(result.status, result.code);
+            setNotify({
+                message: dbOffline ? getDbOfflineToastMessage() : (result.message || "Ошибка обновления списка"),
+                type: dbOffline ? "warning" : "error",
+            });
+            return;
         }
+
+        if (!result.data) {
+            setNotify({ message: result.message || "Ошибка обновления списка", type: "error" });
+            return;
+        }
+
+        setStudents(result.data);
+        setNotify({ message: "Список студентов обновлен", type: "success" });
     };
 
     return (

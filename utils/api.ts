@@ -51,7 +51,8 @@ export function serverError(
     message: string = "Внутренняя ошибка сервера",
     code: string = "SERVER_ERROR"
 ): NextResponse {
-    return jsonResponse(errorResponse(message, code), 500);
+    const status = code === "DB_OFFLINE" ? 503 : 500;
+    return jsonResponse(errorResponse(message, code), status);
 }
 
 // Безопасный парсинг JSON из запроса

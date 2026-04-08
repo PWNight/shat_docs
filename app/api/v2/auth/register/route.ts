@@ -15,7 +15,12 @@ import {
 import { ensureRootAccount } from "@/utils/admin";
 
 export async function POST(request: NextRequest) {
-    await ensureRootAccount();
+    try {
+        await ensureRootAccount();
+    } catch (error) {
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
+    }
     // Безопасно парсим JSON
     const parseResult = await safeParseJson(request);
     if (!parseResult.success) {
@@ -45,7 +50,7 @@ export async function POST(request: NextRequest) {
         );
         return jsonResponse(successResponse(null, "Заявка на регистрацию отправлена. Ожидайте подтверждения администратором."));
     } catch (error) {
-        const { message } = handleApiError(error);
-        return serverError(message);
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
     }
 }
