@@ -47,8 +47,11 @@ export function badRequest(message: string, fieldErrors?: Record<string, string[
     return jsonResponse(errorResponse(message, "BAD_REQUEST", fieldErrors), 400);
 }
 
-export function serverError(message: string = "Внутренняя ошибка сервера"): NextResponse {
-    return jsonResponse(errorResponse(message, "SERVER_ERROR"), 500);
+export function serverError(
+    message: string = "Внутренняя ошибка сервера",
+    code: string = "SERVER_ERROR"
+): NextResponse {
+    return jsonResponse(errorResponse(message, code), 500);
 }
 
 // Безопасный парсинг JSON из запроса
@@ -118,8 +121,24 @@ export async function extractSession(request: NextRequest): Promise<NonNullable<
 }
 
 // Обработка исключений в API
-export function handleApiError(error: unknown, defaultMessage: string = "Неизвестная ошибка сервера"): { message: string; code: string } {
+export function handleApiError(
+    error: unknown,
+    defaultMessage: string = "Неизвестная ошибка сервера"
+): { message: string; code: string } {
     console.error("API Error:", error); // Логируем детали для отладки
+
+    const err = error as { code?: unknown; message?: unknown };
+    const errorCode = typeof err?.code === "string" ? err.code : "";
+    const errorMessage = typeof err?.message === "string" ? err.message : "";
+
+    // Ошибки подключения к MySQL (mysql2)
+    if (
+        ["ETIMEDOUT", "ECONNREFUSED", "ENOTFOUND", "EHOSTUNREACH", "PROTOCOL_CONNECTION_LOST"].includes(errorCode) ||
+        /connect\s+etimedout/i.test(errorMessage) ||
+        /getaddrinfo\s+enotfound/i.test(errorMessage)
+    ) {
+        return { message: "Нет подключения к базе данных", code: "DB_OFFLINE" };
+    }
 
     if (error instanceof Error) {
         // Для известных ошибок возвращаем сообщение, но логируем стек
