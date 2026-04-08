@@ -156,7 +156,7 @@ export default function ProfileGroups() {
     }
 
     return (
-        <div className={'animate-in fade-in duration-500'}>
+        <div className={'w-[90%] mx-auto space-y-8 animate-in fade-in duration-500 bg-background min-h-screen'}>
             {notify.message && (
                 <ErrorMessage
                     message={notify.message}

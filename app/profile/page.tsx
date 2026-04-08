@@ -148,7 +148,7 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="w-full space-y-8 animate-in fade-in duration-500 bg-background min-h-screen">
+        <div className="w-[90%] mx-auto space-y-8 animate-in fade-in duration-500 bg-background min-h-screen">
             {notify.message && <ErrorMessage message={notify.message} type={notify.type} onClose={() => setNotify({message:'', type:''})} />}
 
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-6">
@@ -156,18 +156,18 @@ export default function ProfilePage() {
                     <h1 className="text-3xl font-bold tracking-tight text-foreground">Личный кабинет</h1>
                     <p className="text-sm text-muted-foreground font-medium mt-1">Управление профилем и обзор статистики групп</p>
                 </div>
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={handlePasswordResetRequest}
-                        className="rounded-xl bg-orange-600 px-4 py-2 text-white text-sm font-semibold hover:bg-orange-700 disabled:opacity-60"
-                        disabled={pending}
-                    >
-                        Запросить сброс пароля
-                    </button>
+                <div className="flex items-center justify-between sm:justify-start gap-2">
                     <div className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-2xl shadow-sm self-start md:self-center">
                         <Fingerprint className="w-4 h-4 text-muted-foreground" />
                         <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">ID: {user?.id}</span>
                     </div>
+                    <button
+                        onClick={handlePasswordResetRequest}
+                        className="rounded-xl bg-red-600 px-4 py-2 text-white text-sm font-semibold hover:bg-red-700 disabled:opacity-60"
+                        disabled={pending}
+                    >
+                        Запросить сброс пароля
+                    </button>
                 </div>
             </div>
 

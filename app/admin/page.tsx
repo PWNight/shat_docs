@@ -287,19 +287,13 @@ export default function AdminPage() {
     const resettingUser = userResetId ? data.users.find((u) => u.id === userResetId) : null;
 
     return (
-        <div className="relative w-full animate-in fade-in duration-500 bg-background min-h-screen p-4 sm:p-6">
+        <div className="w-[90%] mx-auto space-y-8 animate-in fade-in duration-500 bg-background min-h-screen pt-4">
             {notify.message ? <NotifyAlert message={notify.message} type={notify.type} onClose={() => setNotify({ message: "", type: "" })} /> : null}
-            <div className="mx-auto max-w-7xl grid gap-6">
-            <div className="grid md:grid-cols-[1fr_auto] items-start md:items-center gap-4 border-b border-border/70 pb-5">
+            <div className="grid gap-6">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-foreground">Админ панель</h1>
                     <p className="text-sm text-muted-foreground font-medium mt-1">Управление доступами, группами и операционными процессами</p>
                 </div>
-                <Link href="/profile" className="rounded-xl border border-border bg-card px-4 py-2 text-foreground text-sm font-semibold hover:bg-muted self-start inline-flex items-center gap-2">
-                    <ArrowUpRight className="w-4 h-4" />
-                    Личный кабинет
-                </Link>
-            </div>
 
             <section className="grid grid-cols-2 lg:grid-cols-6 gap-2">
                 <StatCard icon={<Users />} label="Пользователи" value={data.appStats.users_total} />
