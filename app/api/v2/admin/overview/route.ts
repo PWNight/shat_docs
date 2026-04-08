@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 
         return jsonResponse(successResponse({ users, pendingRegistrations, passwordResetRequests, groups, groupStats, logs, appStats }));
     } catch (error) {
-        const { message } = handleApiError(error);
-        return serverError(message);
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
     }
 }

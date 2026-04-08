@@ -26,7 +26,7 @@ export async function GET(_request: NextRequest, {params}: { params: Promise<{ i
         }
         return jsonResponse(successResponse(user));
     } catch (error) {
-        const { message } = handleApiError(error);
-        return serverError(message);
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
     }
 }

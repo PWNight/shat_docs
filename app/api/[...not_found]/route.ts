@@ -1,5 +1,4 @@
 import { notFound } from "@/utils/api";
-import { NextResponse } from "next/server";
 export async function GET() {
     return notFound()
 }
