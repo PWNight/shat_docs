@@ -34,8 +34,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         }
         return jsonResponse(successResponse(group));
     } catch (error) {
-        const { message } = handleApiError(error);
-        return serverError(message);
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
     }
 }
 
@@ -90,8 +90,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
         return jsonResponse(successResponse(null, "Группа успешно обновлена"));
     } catch (error) {
-        const { message } = handleApiError(error);
-        return serverError(message);
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
     }
 }
 
@@ -119,7 +119,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         await execute("DELETE FROM `groups` WHERE id = ?", [id]);
         return jsonResponse(successResponse(null, `Группа с айди ${id} успешно удалена`));
     } catch (error) {
-        const { message } = handleApiError(error);
-        return serverError(message);
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
     }
 }

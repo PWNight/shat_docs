@@ -48,8 +48,8 @@ export async function GET(request: NextRequest, {params}: { params: Promise<{ id
 
         return jsonResponse(successResponse(rows));
     } catch (error) {
-        const { message } = handleApiError(error);
-        return serverError(message);
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
     }
 }
 

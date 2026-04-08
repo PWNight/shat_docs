@@ -28,8 +28,8 @@ export async function GET() {
         );
         return jsonResponse(successResponse(groups));
     } catch (error) {
-        const { message } = handleApiError(error);
-        return serverError(message);
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
     }
 }
 
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
 
         return jsonResponse(successResponse(null, `Группа ${name} успешно создана`));
     } catch (error) {
-        const { message } = handleApiError(error);
-        return serverError(message);
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
     }
 }

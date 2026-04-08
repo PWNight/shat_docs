@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
         const token = await createSession({ uid: user.id, email: user.email, full_name: user.full_name });
         return jsonResponse(successResponse({ uid: user.id, email, full_name: user.full_name, token }));
     } catch (error) {
-        const { message } = handleApiError(error);
-        return serverError(message);
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
     }
 }

@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
             })
         );
     } catch (error) {
-        const { message } = handleApiError(error);
-        return serverError(message);
+        const { message, code } = handleApiError(error);
+        return serverError(message, code);
     }
 }
