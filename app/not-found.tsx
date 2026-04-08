@@ -1,7 +1,6 @@
-"use client"; // <--- КРИТИЧЕСКИ ВАЖНО
-
+"use client";
 import Link from "next/link";
-import { useRouter } from "next/navigation"; // Используем роутер Next.js
+import { useRouter } from "next/navigation";
 import { FileQuestion, Home, ArrowLeft } from "lucide-react";
 
 export default function NotFound() {
@@ -38,7 +37,7 @@ export default function NotFound() {
         </Link>
         
         <button
-          onClick={() => router.back()} // Используем router вместо window.history
+          onClick={() => router.back()}
           className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-medium transition-all hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:hover:bg-slate-900"
         >
           <ArrowLeft size={18} />
