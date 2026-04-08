@@ -1,20 +1,34 @@
 import mysql from 'mysql2/promise';
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
+// Переменные окружения для MySQL
 const { MYSQL_SERVER, MYSQL_PORT, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE } = process.env;
+// Создаем пулл соединений
 const pool = mysql.createPool({
+    // Хост
     host: MYSQL_SERVER,
+    // Порт
     port: Number(MYSQL_PORT ?? 3306),
+    // Пользователь
     user: MYSQL_USER,
+    // Пароль
     password: MYSQL_PASSWORD,
+    // База данных
     database: MYSQL_DATABASE,
 
+    // Ожидание соединений
     waitForConnections: true,
+    // Лимит соединений
     connectionLimit: 10,
+    // Максимальное количество соединений в пуле
     maxIdle: 10,
+    // Таймаут ожидания соединения
     idleTimeout: 60000,
+    // Очередь соединений
     queueLimit: 0,
+    // Включение keep alive
     enableKeepAlive: true,
+    // Задержка начала keep alive
     keepAliveInitialDelay: 0,
 });
 

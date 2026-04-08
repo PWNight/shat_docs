@@ -1,10 +1,14 @@
+// Тип для контекста лога
 type LogContext = Record<string, unknown>;
 
+// Функция для форматирования контекста лога
 function formatContext(context?: LogContext) {
+    // Проверяем, есть ли контекст
     if (!context) return undefined;
     return { ...context, timestamp: new Date().toISOString() };
 }
 
+// Логирование
 export const logger = {
     info(message: string, context?: LogContext) {
         console.info(message, formatContext(context));
