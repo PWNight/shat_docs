@@ -3,7 +3,9 @@ import TocObserver from "./toc-observer";
 import { ScrollArea } from "@/components/ui/ScrollArea";
 
 export default async function Toc({ path }: { path: string }) {
+  // Получаем точек доступа для конкретного slug
   const tocs = await getWikiTocs(path);
+  // Проверяем, что точек доступа не пустые
   if (!tocs.length) return null;
 
   return (

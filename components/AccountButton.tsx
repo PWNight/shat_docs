@@ -13,30 +13,38 @@ import { queryOne } from "@/utils/mysql";
 import { DatabaseZap } from "lucide-react";
 
 export async function AuthButton() {
-    const session = await getSession();
-    const isLoggedIn = !!session;
     let dbOffline = false;
+    // Получаем сессию
+    const session = await getSession();
+    // Проверяем, что сессия существует
+    const isLoggedIn = !!session;
+    // Проверяем, что пользователь имеет доступ к админ панели
     const adminAccess = isLoggedIn
         ? await (async () => {
             try {
+                // Получаем пользователя по его uid
                 return await queryOne<{ canAccessAdmin: number; isRoot: number }>(
                     "SELECT canAccessAdmin, isRoot FROM users WHERE id = ? LIMIT 1",
                     [session.uid]
                 );
             } catch {
+                // Если произошла ошибка, устанавливаем флаг offline
                 dbOffline = true;
                 return null;
             }
         })()
         : null;
+    // Проверяем, что пользователь имеет доступ к админ панели
     const canOpenAdmin = !!adminAccess && (Number(adminAccess.canAccessAdmin) === 1 || Number(adminAccess.isRoot) === 1);
-
+    // Функция для выхода из аккаунта
     async function handleLogout() {
         "use server";
+        // Удаляем сессию
         await deleteSession();
+        // Перенаправляем на главную страницу
         redirect("/");
     }
-
+    // Если пользователь не авторизован, возвращаем кнопку для входа
     if (!isLoggedIn) {
         return (
             <Anchor

@@ -12,6 +12,7 @@ import { exportToWord } from "@/utils/functions";
 import { AttendanceStudent, AttendanceTotal, Group, Notify, MONTH_NAMES } from "@/utils/interfaces";
 import { getDbOfflineToastMessage, isDbOfflineMeta } from "@/utils/ui-errors";
 
+// Интерфейс для компонента GroupAttendance
 interface GroupAttendanceProps {
     groupId: string;
     group: Group;
@@ -20,27 +21,45 @@ interface GroupAttendanceProps {
 }
 
 export default function GroupAttendance({ groupId, group, isOwner, setNotify }: GroupAttendanceProps) {
+    // Флаг для отслеживания монтирования компонента
     const isMountedRef = useRef(true);
+    // Список студентов посещаемости
     const [attendanceStudents, setAttendanceStudents] = useState<AttendanceStudent[]>([]);
+    // Общее количество дней посещаемости
     const [attendanceTotal, setAttendanceTotal] = useState<AttendanceTotal>({ fullDaysTotal: 0, fullDaysSick: 0, lessonsTotal: 0, lessonsSick: 0, late: 0 });
+    // Режим диалога посещаемости
     const [attendanceDialogMode, setAttendanceDialogMode] = useState<'load' | 'import'>('load');
+    // Флаг для отслеживания открытия диалога посещаемости
     const [showAttendancePeriodDialog, setShowAttendancePeriodDialog] = useState(false);
+    // Данные посещаемости для импорта
     const [pendingAttendanceData, setPendingAttendanceData] = useState<AttendanceStudent[] | null>(null);
+    // Выбранный период посещаемости
     const [selectedAttendancePeriod, setSelectedAttendancePeriod] = useState<number | null>(null);
+    // Флаг для отслеживания изменений посещаемости
     const [isAttendanceModified, setIsAttendanceModified] = useState(false);
+    // Флаг для отслеживания сохранения посещаемости
     const [isAttendanceSaving, setIsAttendanceSaving] = useState(false);
+    // Флаг для отслеживания загрузки посещаемости
     const [isAttendanceLoading, setIsAttendanceLoading] = useState(false);
+    // Флаг для отслеживания открытия диалога удаления посещаемости
     const [showDeleteAttendanceDialog, setShowDeleteAttendanceDialog] = useState(false);
+    // Флаг для отслеживания перетаскивания файла
     const [isDragging, setIsDragging] = useState(false);
 
+    // Эффект для отслеживания монтирования компонента
     useEffect(() => {
+        // Устанавливаем флаг монтирования компонента
         isMountedRef.current = true;
+        // Возвращаем функцию для отслеживания размонтирования компонента
         return () => {
+            // Устанавливаем флаг размонтирования компонента
             isMountedRef.current = false;
         };
     }, []);
 
+    // Эффект для расчета общего количества дней посещаемости
     useEffect(() => {
+        // Рассчитываем общее количество дней посещаемости
         const total = attendanceStudents.reduce((acc, curr) => ({
             fullDaysTotal: acc.fullDaysTotal + curr.fullDaysTotal,
             fullDaysSick: acc.fullDaysSick + curr.fullDaysSick,
@@ -51,26 +70,41 @@ export default function GroupAttendance({ groupId, group, isOwner, setNotify }: 
         setAttendanceTotal(total);
     }, [attendanceStudents]);
 
+    // Функция для обработки загрузки файла посещаемости
     const handleAttendanceFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        // Проверяем, что пользователь имеет доступ к группе
         if (!isOwner) return;
+        // Получаем файл
         const file = e.target.files?.[0];
+        // Проверяем, что файл существует
         if (!file) return;
 
+        // Создаем новый FileReader
         const reader = new FileReader();
         reader.onload = (event) => {
+            // Создаем новый DOMParser
             const parser = new DOMParser();
+            // Парсим HTML-код
             const doc = parser.parseFromString(event.target?.result as string, 'text/html');
+            // Получаем таблицу посещаемости
             const table = doc.querySelector('table.marks');
 
+            // Проверяем, что таблица существует
             if (!table) {
+                // Устанавливаем уведомление об ошибке
                 setNotify({ message: "Таблица не найдена", type: 'error' });
+                // Возвращаем
                 return;
             }
 
+            // Получаем данные посещаемости
             const data: AttendanceStudent[] = Array.from(table.querySelectorAll('tr')).map(row => {
+                // Получаем ячейки строки
                 const cells = Array.from(row.cells);
+                // Проверяем, что строка содержит достаточно ячеек и что первая ячейка содержит число
                 if (cells.length < 7 || !/^[0-9]+$/.test(cells[0].textContent?.trim() || '')) return null;
 
+                // Возвращаем данные посещаемости
                 return {
                     number: cells[0].textContent?.trim() || '',
                     fullName: cells[1].textContent?.trim() || '',
@@ -82,94 +116,143 @@ export default function GroupAttendance({ groupId, group, isOwner, setNotify }: 
                 };
             }).filter(Boolean) as AttendanceStudent[];
 
+            // Проверяем, что данные посещаемости не пусты
             if (!data.length) {
                 setNotify({ message: "Файл не содержит корректных строк посещаемости", type: 'warning' });
                 return;
             }
 
+            // Устанавливаем данные посещаемости для импорта
             setPendingAttendanceData(data);
+            // Устанавливаем режим диалога посещаемости
             setAttendanceDialogMode('import');
+            // Устанавливаем флаг открытия диалога посещаемости
             setShowAttendancePeriodDialog(true);
         };
         reader.readAsText(file);
     };
 
+    // Функция для обработки подтверждения периода посещаемости
     const handleAttendancePeriodConfirm = async (period: number) => {
+        // Закрываем диалог посещаемости
         setShowAttendancePeriodDialog(false);
+        // Устанавливаем выбранный период посещаемости
         setSelectedAttendancePeriod(period);
 
+        // Проверяем, что режим диалога посещаемости импорт и что данные посещаемости для импорта существуют
         if (attendanceDialogMode === 'import' && pendingAttendanceData) {
+            // Создаем новый список студентов посещаемости
             const imported = pendingAttendanceData.map(student => ({ ...student, periodMonth: period }));
+            // Устанавливаем список студентов посещаемости
             setAttendanceStudents(imported);
+            // Устанавливаем данные посещаемости для импорта
             setPendingAttendanceData(null);
+            // Устанавливаем флаг изменений посещаемости
             setIsAttendanceModified(true);
+            // Устанавливаем уведомление о успешном импорте
             setNotify({ message: `Файл готов к сохранению за ${MONTH_NAMES[period as keyof typeof MONTH_NAMES]}`, type: 'success' });
             return;
         }
 
+        // Устанавливаем флаг загрузки посещаемости
         setIsAttendanceLoading(true);
         try {
+            // Получаем данные посещаемости из БД
             const result = await GetAttendance(groupId, period);
+            // Проверяем, что компонент монтирован
             if (!isMountedRef.current) return;
 
+            // Проверяем, что данные посещаемости успешно загружены
             if (result.success && result.data && result.data.length > 0) {
+                // Устанавливаем список студентов посещаемости
                 setAttendanceStudents(result.data);
+                // Устанавливаем флаг изменений посещаемости
                 setIsAttendanceModified(false);
+                // Устанавливаем уведомление о успешной загрузке
                 setNotify({ message: `Загружены данные за ${MONTH_NAMES[period as keyof typeof MONTH_NAMES]}`, type: "success" });
             } else if (!result.success) {
+                // Проверяем, что ошибка вызвана отсутствием интернета
                 const dbOffline = isDbOfflineMeta(result.status, result.code);
+                // Устанавливаем список студентов посещаемости
                 setAttendanceStudents([]);
+                // Устанавливаем флаг изменений посещаемости
                 setIsAttendanceModified(false);
+                // Устанавливаем уведомление о ошибке загрузки
                 setNotify({
                     message: dbOffline ? getDbOfflineToastMessage() : (result.message || "Ошибка загрузки посещаемости"),
                     type: dbOffline ? "warning" : "error",
                 });
             } else {
+                // Устанавливаем список студентов посещаемости
                 setAttendanceStudents([]);
+                // Устанавливаем флаг изменений посещаемости
                 setIsAttendanceModified(false);
+                // Устанавливаем уведомление о отсутствии данных
                 setNotify({ message: `Нет данных за ${MONTH_NAMES[period as keyof typeof MONTH_NAMES]}`, type: "warning" });
             }
         } catch (error) {
+            // Проверяем, что компонент монтирован
             if (!isMountedRef.current) return;
+            // Устанавливаем уведомление о ошибке загрузки
             setNotify({ message: error instanceof Error ? error.message : "Ошибка загрузки посещаемости", type: "error" });
         } finally {
+            // Проверяем, что компонент монтирован
             if (isMountedRef.current) {
+                // Устанавливаем флаг загрузки посещаемости
                 setIsAttendanceLoading(false);
             }
         }
     };
 
+    // Функция для обработки загрузки данных посещаемости из БД
     const handleLoadFromDB = () => {
+        // Устанавливаем режим диалога посещаемости
         setAttendanceDialogMode('load');
+        // Устанавливаем флаг открытия диалога посещаемости
         setShowAttendancePeriodDialog(true);
     };
 
+    // Функция для обработки открытия диалога удаления посещаемости
     const openAttendanceDeleteDialog = () => {
+        // Проверяем, что пользователь имеет доступ к группе и что выбран период посещаемости
         if (!isOwner || selectedAttendancePeriod === null) return;
+        // Устанавливаем флаг открытия диалога удаления посещаемости
         setShowDeleteAttendanceDialog(true);
     };
 
+    // Функция для обработки сохранения посещаемости
     const handleSaveAttendance = async () => {
+        // Проверяем, что пользователь имеет доступ к группе и что выбран период посещаемости и что список студентов посещаемости не пуст
         if (!isOwner || selectedAttendancePeriod === null || !attendanceStudents.length) return;
 
+        // Устанавливаем флаг сохранения посещаемости
         setIsAttendanceSaving(true);
+        // Создаем новый список студентов посещаемости
         const studentsToSave = attendanceStudents.map(student => ({
             ...student,
             periodMonth: selectedAttendancePeriod,
         })) as AttendanceStudent[];
 
+        // Сохраняем данные посещаемости в БД
         const result = await SaveAttendance(groupId, studentsToSave);
+        // Проверяем, что компонент монтирован
         if (!isMountedRef.current) return;
+        // Устанавливаем флаг сохранения посещаемости
         setIsAttendanceSaving(false);
 
         if (result.success) {
+            // Устанавливаем флаг изменений посещаемости
             setIsAttendanceModified(false);
             // Создаем студентов в базе, если их там нет
             const studentNames = attendanceStudents.map(s => ({ fullName: s.fullName }));
+            // Создаем студентов в базе
             await CreateStudents(groupId, studentNames);
+            // Устанавливаем уведомление о успешном сохранении
             setNotify({ message: "Посещаемость сохранена в БД", type: 'success' });
         } else {
+            // Проверяем, что ошибка вызвана отсутствием интернета
             const dbOffline = isDbOfflineMeta(result.status, result.code);
+            // Устанавливаем уведомление о ошибке сохранения
             setNotify({
                 message: dbOffline ? getDbOfflineToastMessage() : (result.message || "Ошибка записи в БД"),
                 type: dbOffline ? "warning" : "error",
@@ -177,22 +260,37 @@ export default function GroupAttendance({ groupId, group, isOwner, setNotify }: 
         }
     };
 
+    // Функция для обработки удаления периода посещаемости
     const handleDeleteAttendancePeriod = async () => {
+        // Проверяем, что пользователь имеет доступ к группе и что выбран период посещаемости
         if (!isOwner || selectedAttendancePeriod === null) return;
 
+        // Закрываем диалог удаления посещаемости
         setShowDeleteAttendanceDialog(false);
+        // Устанавливаем флаг загрузки посещаемости
         setIsAttendanceLoading(true);
+
+        // Удаляем данные посещаемости из БД
         const result = await DeleteAttendancePeriod(groupId, selectedAttendancePeriod);
+        // Проверяем, что компонент монтирован
         if (!isMountedRef.current) return;
+        // Устанавливаем флаг загрузки посещаемости
         setIsAttendanceLoading(false);
 
+        // Проверяем, что данные посещаемости успешно удалены
         if (result.success) {
+            // Устанавливаем список студентов посещаемости
             setAttendanceStudents([]);
+            // Устанавливаем выбранный период посещаемости
             setSelectedAttendancePeriod(null);
+            // Устанавливаем флаг изменений посещаемости
             setIsAttendanceModified(false);
+            // Устанавливаем уведомление о успешном удалении
             setNotify({ message: "Записи за период удалены из БД", type: 'success' });
         } else {
+            // Проверяем, что ошибка вызвана отсутствием интернета
             const dbOffline = isDbOfflineMeta(result.status, result.code);
+            // Устанавливаем уведомление о ошибке удаления
             setNotify({
                 message: dbOffline ? getDbOfflineToastMessage() : (result.message || "Не удалось удалить период"),
                 type: dbOffline ? "warning" : "error",
@@ -200,44 +298,71 @@ export default function GroupAttendance({ groupId, group, isOwner, setNotify }: 
         }
     };
 
+    // Функция для обработки очистки посещаемости
     const handleClearAttendance = () => {
+        // Устанавливаем список студентов посещаемости
         setAttendanceStudents([]);
+        // Устанавливаем выбранный период посещаемости
         setSelectedAttendancePeriod(null);
+        // Устанавливаем данные посещаемости для импорта
         setPendingAttendanceData(null);
+        // Устанавливаем флаг изменений посещаемости
         setIsAttendanceModified(false);
     };
 
+    // Функция для обработки обновления поля посещаемости
     const updateAttendanceField = (index: number, field: keyof AttendanceStudent, value: string) => {
+        // Проверяем, что пользователь имеет доступ к группе
         if (!isOwner) return;
+        // Создаем новый список студентов посещаемости
         const updated = [...attendanceStudents];
+        // Обновляем поле посещаемости
         updated[index] = { ...updated[index], [field]: (field === 'fullName' || field === 'number') ? value : (parseInt(value) || 0) };
+        // Устанавливаем список студентов посещаемости
         setAttendanceStudents(updated);
+        // Устанавливаем флаг изменений посещаемости
         setIsAttendanceModified(true);
     };
 
+    // Функция для обработки перетаскивания файла
     const handleDragOver = (e: React.DragEvent) => {
+        // Предотвращаем стандартное поведение перетаскивания
         e.preventDefault();
+        // Предотвращаем распространение перетаскивания
         e.stopPropagation();
+        // Проверяем, что пользователь имеет доступ к группе
         if (!isOwner) return;
+        // Устанавливаем флаг перетаскивания
         setIsDragging(true);
     };
 
+    // Функция для обработки выхода из зоны перетаскивания
     const handleDragLeave = (e: React.DragEvent) => {
+        // Предотвращаем стандартное поведение выхода из зоны перетаскивания
         e.preventDefault();
+        // Предотвращаем распространение выхода из зоны перетаскивания
         e.stopPropagation();
+        // Устанавливаем флаг перетаскивания
         setIsDragging(false);
     };
 
+    // Функция для обработки перетаскивания файла
     const handleDrop = (e: React.DragEvent) => {
+        // Предотвращаем стандартное поведение перетаскивания
         e.preventDefault();
+        // Предотвращаем распространение перетаскивания
         e.stopPropagation();
+        // Устанавливаем флаг перетаскивания
         setIsDragging(false);
-
+        // Проверяем, что пользователь имеет доступ к группе
         if (!isOwner) return;
-
+        // Получаем файлы из перетаскивания
         const files = e.dataTransfer.files;
+        // Проверяем, что файлы существуют и что их количество больше 0
         if (files && files.length > 0) {
+            // Создаем mock-событие для обработки файла
             const mockEvent = { target: { files } } as unknown as React.ChangeEvent<HTMLInputElement>;
+            // Обрабатываем файл посещаемости
             handleAttendanceFileUpload(mockEvent);
         }
     };

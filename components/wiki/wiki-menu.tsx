@@ -6,7 +6,9 @@ import {ROUTES} from "@/contents/routes";
 import {Book} from "lucide-react";
 
 export default function WikiMenu({ isSheet = false }) {
+  // Получаем путь
   const pathname = usePathname();
+  // Проверяем, что путь начинается с /wiki
   if (!pathname.startsWith("/wiki")) return null;
 
   return (

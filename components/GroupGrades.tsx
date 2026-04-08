@@ -12,6 +12,7 @@ import { exportGradesToWord } from "@/utils/functions";
 import { Group, GradeStudent, Notify, SEMESTER_NAMES } from "@/utils/interfaces";
 import { getDbOfflineToastMessage, isDbOfflineMeta } from "@/utils/ui-errors";
 
+// Интерфейс для компонента GroupGrades
 interface GroupGradesProps {
     groupId: string;
     group: Group;
@@ -20,192 +21,300 @@ interface GroupGradesProps {
 }
 
 export default function GroupGrades({ groupId, group, isOwner, setNotify }: GroupGradesProps) {
+    // Используем useRef для отслеживания монтирования компонента
     const isMountedRef = useRef(true);
+    // Используем useState для отслеживания списка студентов успеваемости
     const [gradesStudents, setGradesStudents] = useState<GradeStudent[]>([]);
+    // Используем useState для отслеживания режима диалога успеваемости
     const [gradesDialogMode, setGradesDialogMode] = useState<'load' | 'import'>('load');
+    // Используем useState для отслеживания открытия диалога успеваемости
     const [showGradesPeriodDialog, setShowGradesPeriodDialog] = useState(false);
+    // Используем useState для отслеживания данных успеваемости для импорта
     const [pendingGradesData, setPendingGradesData] = useState<GradeStudent[] | null>(null);
+    // Используем useState для отслеживания выбранного периода успеваемости
     const [selectedGradesPeriod, setSelectedGradesPeriod] = useState<number | null>(null);
+    // Используем useState для отслеживания изменений успеваемости
     const [isGradesModified, setIsGradesModified] = useState(false);
+    // Используем useState для отслеживания сохранения успеваемости
     const [isGradesSaving, setIsGradesSaving] = useState(false);
+    // Используем useState для отслеживания загрузки успеваемости
     const [isGradesLoading, setIsGradesLoading] = useState(false);
+    // Используем useState для отслеживания открытия диалога удаления успеваемости
     const [showDeleteGradesDialog, setShowDeleteGradesDialog] = useState(false);
+    // Используем useState для отслеживания перетаскивания успеваемости
     const [isDraggingGrades, setIsDraggingGrades] = useState(false);
 
     useEffect(() => {
+        // Устанавливаем флаг монтирования компонента
         isMountedRef.current = true;
+        // Возвращаем функцию для отслеживания размонтирования компонента
         return () => {
+            // Устанавливаем флаг размонтирования компонента
             isMountedRef.current = false;
         };
     }, []);
 
+    // Функция для обработки загрузки файла успеваемости
     const handleGradesFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        // Проверяем, что пользователь имеет доступ к группе
         if (!isOwner) return;
+        // Получаем файл
         const file = e.target.files?.[0];
+        // Проверяем, что файл существует
         if (!file) return;
 
+        // Создаем новый FileReader
         const reader = new FileReader();
         reader.onload = (event) => {
+            // Создаем новый DOMParser
             const parser = new DOMParser();
+            // Парсим HTML-код
             const doc = parser.parseFromString(event.target?.result as string, 'text/html');
+            // Получаем таблицу успеваемости
 
+            // Проверяем, что таблица существует
             const table = doc.querySelector('table.grid.gridLines.vam.marks.print_A4') || doc.querySelector('table');
             if (!table) {
+                // Устанавливаем уведомление об ошибке
                 setNotify({ message: "Таблица успеваемости не найдена", type: 'error' });
+                // Возвращаем
                 return;
             }
 
+            // Получаем строки таблицы
             const rows = Array.from(table.querySelectorAll('tr'));
+            // Получаем индекс строки заголовка
             const headerRowIndex = rows.findIndex(r => r.textContent?.includes('Фамилия') && r.textContent?.includes('Имя'));
 
+            // Проверяем, что строка заголовка существует
             if (headerRowIndex === -1) {
+                // Устанавливаем уведомление об ошибке
                 setNotify({ message: "Неверный формат файла (не найдена шапка)", type: 'error' });
+                // Возвращаем
                 return;
             }
 
+            // Получаем ячейки строки заголовка
             const headerCells = Array.from(rows[headerRowIndex].cells);
+            // Получаем список предметов
             const subjectsList = headerCells.slice(2, -2).map(cell => (cell.textContent || '').replace(/\s+/g, ' ').trim());
-
+            
+            // Получаем данные успеваемости
             const data: GradeStudent[] = rows
                 .slice(headerRowIndex + 1)
                 .map(row => {
+                    // Получаем ячейки строки
                     const cells = Array.from(row.cells);
+                    // Получаем текст ячейки
                     const numText = cells[0]?.textContent?.trim() || '';
-
+                    
+                    // Проверяем, что текст ячейки является числом и что количество ячеек достаточно
                     if (!/^[0-9]+$/.test(numText) || cells.length < 2 + subjectsList.length) {
+                        // Возвращаем null
                         return null;
                     }
 
+                    // Получаем полное имя студента
                     const fullName = (cells[1]?.textContent || '').replace(/\s+/g, ' ').trim();
+                    // Получаем список предметов
                     const subjects = subjectsList.map((name, idx) => ({
                         name,
                         grade: (cells[idx + 2]?.textContent || '').trim().replace(/\u00A0/g, ''),
                     }));
 
+                    // Получаем список оценок
                     const validGrades = subjects
                         .map(s => parseFloat(s.grade.replace(',', '.')))
                         .filter(g => !isNaN(g) && g >= 2 && g <= 5);
 
+                    // Получаем средний балл
                     const averageScore = validGrades.length > 0
                         ? parseFloat((validGrades.reduce((a, b) => a + b, 0) / validGrades.length).toFixed(2))
                         : 0;
 
+                    // Возвращаем данные успеваемости
                     return { fullName, subjects, averageScore };
                 })
                 .filter(Boolean) as GradeStudent[];
 
+            // Проверяем, что данные успеваемости не пусты
             if (!data.length) {
+                // Устанавливаем уведомление об ошибке
                 setNotify({ message: "Не удалось извлечь учеников из файла", type: 'warning' });
                 return;
             }
 
+            // Устанавливаем данные успеваемости для импорта
             setPendingGradesData(data);
+            // Устанавливаем режим диалога успеваемости
             setGradesDialogMode('import');
+            // Устанавливаем флаг открытия диалога успеваемости
             setShowGradesPeriodDialog(true);
         };
 
+        // Читаем файл
         reader.readAsText(file);
     };
 
+    // Функция для обработки подтверждения периода успеваемости
     const handleGradesPeriodConfirm = async (period: number) => {
+        // Закрываем диалог успеваемости
         setShowGradesPeriodDialog(false);
+        // Устанавливаем выбранный период успеваемости
         setSelectedGradesPeriod(period);
 
+        // Проверяем, что режим диалога успеваемости импорт и что данные успеваемости для импорта существуют
         if (gradesDialogMode === 'import' && pendingGradesData) {
+            // Создаем новый список студентов успеваемости
             const imported = pendingGradesData.map(student => ({ ...student, periodSemester: period }));
+            // Устанавливаем список студентов успеваемости
             setGradesStudents(imported);
+            // Устанавливаем данные успеваемости для импорта
             setPendingGradesData(null);
+            // Устанавливаем флаг изменений успеваемости
             setIsGradesModified(true);
+            // Устанавливаем уведомление о успешном импорте
             setNotify({ message: `Файл готов к сохранению за ${SEMESTER_NAMES[period as keyof typeof SEMESTER_NAMES]}`, type: 'success' });
+            // Возвращаем
             return;
         }
 
+        // Устанавливаем флаг загрузки успеваемости
         setIsGradesLoading(true);
-        try {
-            const result = await GetGrades(groupId, period);
-            if (!isMountedRef.current) return;
 
+        try {
+            // Получаем данные успеваемости из БД
+            const result = await GetGrades(groupId, period);
+            // Проверяем, что компонент монтирован
+            if (!isMountedRef.current) return;
+            
+            // Проверяем, что данные успеваемости успешно загружены
             if (result.success && result.data && result.data.length > 0) {
+                // Устанавливаем список студентов успеваемости
                 setGradesStudents(result.data);
+                // Устанавливаем флаг изменений успеваемости
                 setIsGradesModified(false);
+                // Устанавливаем уведомление о успешной загрузке
                 setNotify({ message: `Загружены данные за ${SEMESTER_NAMES[period as keyof typeof SEMESTER_NAMES]}`, type: "success" });
+                // Возвращаем
             } else if (!result.success) {
+                // Проверяем, что ошибка вызвана отсутствием интернета
                 const dbOffline = isDbOfflineMeta(result.status, result.code);
+                // Устанавливаем список студентов успеваемости
                 setGradesStudents([]);
+                // Устанавливаем флаг изменений успеваемости
                 setIsGradesModified(false);
+                // Устанавливаем уведомление о ошибке загрузки
                 setNotify({
                     message: dbOffline ? getDbOfflineToastMessage() : (result.message || "Ошибка загрузки успеваемости"),
                     type: dbOffline ? "warning" : "error",
                 });
             } else {
+                // Устанавливаем список студентов успеваемости
                 setGradesStudents([]);
+                // Устанавливаем флаг изменений успеваемости
                 setIsGradesModified(false);
+                // Устанавливаем уведомление о отсутствии данных
                 setNotify({ message: `Нет данных за ${SEMESTER_NAMES[period as keyof typeof SEMESTER_NAMES]}`, type: "warning" });
             }
         } catch (error) {
+            // Проверяем, что компонент монтирован
             if (!isMountedRef.current) return;
+            // Устанавливаем уведомление о ошибке загрузки
             setNotify({ message: error instanceof Error ? error.message : "Ошибка загрузки успеваемости", type: "error" });
         } finally {
+            // Проверяем, что компонент монтирован
             if (isMountedRef.current) {
+                // Устанавливаем флаг загрузки успеваемости
                 setIsGradesLoading(false);
             }
         }
     };
 
+    // Функция для обработки загрузки данных успеваемости из БД
     const handleLoadGradesFromDB = () => {
+        // Устанавливаем режим диалога успеваемости
         setGradesDialogMode('load');
+        // Устанавливаем флаг открытия диалога успеваемости
         setShowGradesPeriodDialog(true);
     };
 
+    // Функция для обработки открытия диалога удаления успеваемости
     const openGradesDeleteDialog = () => {
+        // Проверяем, что пользователь имеет доступ к группе и что выбран период успеваемости
         if (!isOwner || selectedGradesPeriod === null) return;
+        // Устанавливаем флаг открытия диалога удаления успеваемости
         setShowDeleteGradesDialog(true);
     };
 
+    // Функция для обработки сохранения успеваемости
     const handleSaveGrades = async () => {
+        // Проверяем, что пользователь имеет доступ к группе и что выбран период успеваемости и что список студентов успеваемости не пуст
         if (!isOwner || selectedGradesPeriod === null || !gradesStudents.length) return;
 
+        // Устанавливаем флаг сохранения успеваемости
         setIsGradesSaving(true);
+        // Создаем новый список студентов успеваемости
         const studentsToSave = gradesStudents.map(student => ({
             ...student,
             periodSemester: selectedGradesPeriod,
         })) as GradeStudent[];
 
+        // Сохраняем данные успеваемости в БД
         const result = await SaveGrades(groupId, studentsToSave);
+        // Проверяем, что компонент монтирован
         if (!isMountedRef.current) return;
+        // Устанавливаем флаг сохранения успеваемости
         setIsGradesSaving(false);
 
         if (result.success) {
+            // Устанавливаем флаг изменений успеваемости
             setIsGradesModified(false);
             // Создаем студентов в базе, если их там нет
             const studentNames = gradesStudents.map(s => ({ fullName: s.fullName }));
+            // Создаем студентов в базе
             await CreateStudents(groupId, studentNames);
+            // Устанавливаем уведомление о успешном сохранении
             setNotify({ message: "Успеваемость сохранена в БД", type: 'success' });
         } else {
+            // Проверяем, что ошибка вызвана отсутствием интернета
             const dbOffline = isDbOfflineMeta(result.status, result.code);
+            // Устанавливаем уведомление о ошибке сохранения
             setNotify({
                 message: dbOffline ? getDbOfflineToastMessage() : (result.message || "Ошибка записи в БД"),
-                type: dbOffline ? "warning" : "error",
+                type: dbOffline ? "warning" : "error"
             });
         }
     };
-
+    // Функция для обработки удаления периода успеваемости
     const handleDeleteGradesPeriod = async () => {
+        // Проверяем, что пользователь имеет доступ к группе и что выбран период успеваемости
         if (!isOwner || selectedGradesPeriod === null) return;
-
+        // Закрываем диалог удаления успеваемости
         setShowDeleteGradesDialog(false);
+        // Устанавливаем флаг загрузки успеваемости
         setIsGradesLoading(true);
+        // Удаляем данные успеваемости из БД
         const result = await DeleteGradesPeriod(groupId, selectedGradesPeriod);
+        // Проверяем, что компонент монтирован
         if (!isMountedRef.current) return;
+        // Устанавливаем флаг загрузки успеваемости
         setIsGradesLoading(false);
 
+        // Проверяем, что данные успеваемости успешно удалены
         if (result.success) {
+            // Устанавливаем список студентов успеваемости
             setGradesStudents([]);
+            // Устанавливаем выбранный период успеваемости
             setSelectedGradesPeriod(null);
+            // Устанавливаем флаг изменений успеваемости
             setIsGradesModified(false);
+            // Устанавливаем уведомление о успешном удалении
             setNotify({ message: "Записи за период удалены из БД", type: 'success' });
         } else {
+            // Проверяем, что ошибка вызвана отсутствием интернета
             const dbOffline = isDbOfflineMeta(result.status, result.code);
+            // Устанавливаем уведомление о ошибке удаления
             setNotify({
                 message: dbOffline ? getDbOfflineToastMessage() : (result.message || "Не удалось удалить период"),
                 type: dbOffline ? "warning" : "error",
@@ -213,22 +322,30 @@ export default function GroupGrades({ groupId, group, isOwner, setNotify }: Grou
         }
     };
 
+    // Функция для обработки очистки успеваемости   
     const handleClearGrades = () => {
+        // Устанавливаем список студентов успеваемости
         setGradesStudents([]);
+        // Устанавливаем выбранный период успеваемости
         setSelectedGradesPeriod(null);
+        // Устанавливаем данные успеваемости для импорта
         setPendingGradesData(null);
+        // Устанавливаем флаг изменений успеваемости
         setIsGradesModified(false);
     };
 
+    // Функция для обработки обновления поля успеваемости
     const updateGradeField = (studentIndex: number, subjectIndex: number, value: string) => {
         if (!isOwner) return;
         if (value !== "" && !/^[1-5]$/.test(value)) {
             return;
         }
 
+        // Создаем новый список студентов успеваемости
         const updated = [...gradesStudents];
         updated[studentIndex].subjects[subjectIndex].grade = value;
 
+        // Получаем список оценок
         const validGrades = updated[studentIndex].subjects
             .map(s => {
                 const val = s.grade.trim();
@@ -237,67 +354,104 @@ export default function GroupGrades({ groupId, group, isOwner, setNotify }: Grou
             })
             .filter(g => g > 0);
 
+        // Получаем средний балл
         updated[studentIndex].averageScore = validGrades.length > 0
             ? parseFloat((validGrades.reduce((a, b) => a + b, 0) / validGrades.length).toFixed(2))
             : 0;
 
+        // Устанавливаем список студентов успеваемости
         setGradesStudents(updated);
+        // Устанавливаем флаг изменений успеваемости
         setIsGradesModified(true);
     };
 
+    // Функция для обработки перетаскивания файла
     const handleDragOver = (e: React.DragEvent) => {
+        // Предотвращаем стандартное поведение перетаскивания
         e.preventDefault();
+        // Предотвращаем распространение перетаскивания
         e.stopPropagation();
+        // Проверяем, что пользователь имеет доступ к группе
         if (!isOwner) return;
+        // Устанавливаем флаг перетаскивания
         setIsDraggingGrades(true);
     };
 
+    // Функция для обработки выхода из зоны перетаскивания
     const handleDragLeave = (e: React.DragEvent) => {
+        // Предотвращаем стандартное поведение выхода из зоны перетаскивания
         e.preventDefault();
+        // Предотвращаем распространение выхода из зоны перетаскивания
         e.stopPropagation();
+        // Устанавливаем флаг перетаскивания
         setIsDraggingGrades(false);
     };
 
+    // Функция для обработки перетаскивания файла
     const handleDrop = (e: React.DragEvent) => {
+        // Предотвращаем стандартное поведение перетаскивания
         e.preventDefault();
+        // Предотвращаем распространение перетаскивания
         e.stopPropagation();
+        // Устанавливаем флаг перетаскивания
         setIsDraggingGrades(false);
-
+        // Проверяем, что пользователь имеет доступ к группе
         if (!isOwner) return;
 
+        // Получаем файлы из перетаскивания
         const files = e.dataTransfer.files;
+        // Проверяем, что файлы существуют и что их количество больше 0
         if (files && files.length > 0) {
+            // Создаем mock-событие для обработки файла
             const mockEvent = { target: { files } } as unknown as React.ChangeEvent<HTMLInputElement>;
+            // Обрабатываем файл успеваемости
             handleGradesFileUpload(mockEvent);
         }
     };
 
+    // Функция для получения информации о стипендии 
     const getScholarshipInfo = (subjects: { grade: string }[]) => {
+        // Получаем список оценок
         const grades = subjects.map(s => {
             const val = s.grade.trim();
             return val === '' ? 2 : parseInt(val);
         }).filter(g => !isNaN(g));
 
+        // Проверяем, что есть оценки ниже 3
         if (grades.some(g => g <= 3)) return { label: "Нет", color: "bg-transparent", multiplier: 0 };
 
+        // Получаем количество оценок 5
         const count5 = grades.filter(g => g === 5).length;
+        // Получаем количество оценок 4
         const count4 = grades.filter(g => g === 4).length;
 
+        // Проверяем, что количество оценок 5 больше 0 и что количество оценок 4 равно 0    
         if (count4 === 0 && count5 > 0) return { label: "200%", color: "bg-blue-100 dark:bg-blue-900/30", multiplier: 2 };
+        // Проверяем, что количество оценок 5 больше количества оценок 4
         if (count5 > count4) return { label: "150%", color: "bg-green-100 dark:bg-green-900/30", multiplier: 1.5 };
+        // Проверяем, что количество оценок 4 больше 0
         if (count4 > 0) return { label: "100%", color: "bg-yellow-100 dark:bg-yellow-900/30", multiplier: 1 };
 
+        // Возвращаем информацию о стипендии
         return { label: "—", color: "bg-transparent", multiplier: 0 };
     };
 
+    // Функция для получения цвета оценки   
     const getGradeColor = (grade: string) => {
+        // Получаем значение оценки
         const val = grade.trim();
+        // Проверяем, что значение оценки не пустое
         if (val === '') return "bg-red-500/20 dark:bg-red-900/40";
 
+        // Получаем значение оценки
         const g = parseInt(val);
+        // Проверяем, что значение оценки равно 5
         if (g === 5) return "bg-green-600/30 text-green-700 dark:text-green-300";
+        // Проверяем, что значение оценки равно 4
         if (g === 4) return "bg-emerald-400/20 dark:bg-emerald-500/30 text-emerald-700 dark:text-emerald-300";
+        // Проверяем, что значение оценки равно 3
         if (g === 3) return "bg-amber-400/20 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400";
+        // Проверяем, что значение оценки меньше или равно 2 и больше 0
         if (g <= 2 && g > 0) return "bg-red-500/20 dark:bg-red-600/30 text-red-700 dark:text-red-400";
         return "";
     };

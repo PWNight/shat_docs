@@ -7,6 +7,7 @@ import { exportGradesToWord, exportToWord } from "@/utils/functions";
 import { Group, Notify, Student, MONTH_NAMES, SEMESTER_NAMES, AttendanceStudent, AttendanceTotal, GradeStudent } from "@/utils/interfaces";
 import { getDbOfflineToastMessage, isDbOfflineMeta } from "@/utils/ui-errors";
 
+// Интерфейс для компонента GroupStudents
 interface GroupStudentsProps {
     groupId: string;
     groupName: string;
@@ -17,50 +18,77 @@ interface GroupStudentsProps {
 }
 
 export default function GroupStudents({ groupId, groupName, students, setStudents, isOwner, setNotify }: GroupStudentsProps) {
+    // Используем useRef для отслеживания монтирования компонента       
     const isMountedRef = useRef(true);
+    // Используем useState для отслеживания студента, которого редактируем
     const [editingStudent, setEditingStudent] = useState<number | null>(null);
     const [editName, setEditName] = useState("");
     const [deleteStudentId, setDeleteStudentId] = useState<number | null>(null);
+    // Используем useState для отслеживания удаления студента
     const [isDeleting, setIsDeleting] = useState(false);
+    // Используем useState для отслеживания обновления списка студентов
     const [isRefreshing, setIsRefreshing] = useState(false);
+    // Используем useState для отслеживания выбранных студентов
     const [selectedStudentIds, setSelectedStudentIds] = useState<number[]>([]);
+    // Используем useState для отслеживания типа отчёта
     const [reportType, setReportType] = useState<'attendance' | 'grades'>('attendance');
+    // Используем useState для отслеживания периода отчёта
     const [reportPeriod, setReportPeriod] = useState<number | null>(null);
+    // Используем useState для отслеживания генерации отчёта
     const [isGenerating, setIsGenerating] = useState(false);
 
+    // Используем useEffect для отслеживания монтирования компонента
     useEffect(() => {
+        // Устанавливаем флаг монтирования компонента
         isMountedRef.current = true;
+        // Возвращаем функцию для отслеживания размонтирования компонента
         return () => {
+            // Устанавливаем флаг размонтирования компонента
             isMountedRef.current = false;
         };
     }, []);
 
+    // Получаем список выбранных студентов  
     const selectedStudents = students.filter(student => selectedStudentIds.includes(student.id));
+    // Получаем список имён выбранных студентов
     const selectedStudentNames = selectedStudents.map(student => student.full_name);
+    // Получаем список периодов отчёта
     const reportPeriods = reportType === 'attendance'
         ? Object.entries(MONTH_NAMES).map(([key, label]) => ({ value: Number(key), label }))
         : Object.entries(SEMESTER_NAMES).map(([key, label]) => ({ value: Number(key), label }));
 
+    // Функция для переключения выбора студента
     const toggleStudentSelection = (id: number) => {
         setSelectedStudentIds(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
     };
 
+    // Функция для переключения выбора всех студентов
     const toggleSelectAll = () => {
         setSelectedStudentIds(prev => prev.length === students.length ? [] : students.map(student => student.id));
     };
 
+    // Функция для генерации отчёта
     const generateReport = async () => {
+        // Проверяем, что выбран период и что выбраны студенты
         if (!reportPeriod || selectedStudentIds.length === 0) {
+            // Устанавливаем уведомление о ошибке выбора студентов и периода
             setNotify({ message: 'Выберите студентов и период для отчёта', type: 'warning' });
             return;
         }
 
+        // Устанавливаем флаг генерации отчёта
         setIsGenerating(true);
+
         try {
+            // Проверяем, что тип отчёта посещаемость
             if (reportType === 'attendance') {
+                // Получаем данные посещаемости
                 const attendanceRes = await GetAttendance(groupId, reportPeriod);
+                // Проверяем, что данные посещаемости успешно загружены
                 if (!attendanceRes.success) {
+                    // Проверяем, что ошибка вызвана отсутствием интернета
                     const dbOffline = isDbOfflineMeta(attendanceRes.status, attendanceRes.code);
+                    // Устанавливаем уведомление о ошибке загрузки посещаемости
                     setNotify({
                         message: dbOffline ? getDbOfflineToastMessage() : (attendanceRes.message || 'Ошибка загрузки посещаемости'),
                         type: dbOffline ? 'warning' : 'error',
@@ -68,17 +96,23 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
                     return;
                 }
 
+                // Проверяем, что данные посещаемости не пустые
                 if (!attendanceRes.data) {
+                    // Устанавливаем уведомление о ошибке загрузки посещаемости
                     setNotify({ message: 'Ошибка загрузки посещаемости', type: 'error' });
                     return;
                 }
 
+                // Получаем список студентов для отчёта
                 const reportStudents = attendanceRes.data.filter((item: AttendanceStudent) => selectedStudentNames.includes(item.fullName));
+                // Проверяем, что данные посещаемости для выбранных студентов не пустые
                 if (!reportStudents.length) {
+                    // Устанавливаем уведомление о ошибке загрузки посещаемости для выбранных студентов
                     setNotify({ message: 'Нет данных посещаемости для выбранных студентов', type: 'warning' });
                     return;
                 }
 
+                // Получаем общую информацию о посещаемости
                 const total = reportStudents.reduce((acc: AttendanceTotal, student: AttendanceStudent) => ({
                     fullDaysTotal: acc.fullDaysTotal + Number(student.fullDaysTotal || 0),
                     fullDaysSick: acc.fullDaysSick + Number(student.fullDaysSick || 0),
@@ -93,6 +127,7 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
                     late: 0,
                 });
 
+                // Экспортируем данные посещаемости в Word
                 await exportToWord(reportStudents, total, {
                     id: 0,
                     name: groupName,
@@ -100,11 +135,17 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
                     leader: '',
                     created_by: '',
                 } as Group);
+
+                // Устанавливаем уведомление о успешном формировании отчёта по посещаемости
                 setNotify({ message: 'Отчёт по посещаемости сформирован', type: 'success' });
             } else {
+                // Получаем данные успеваемости
                 const gradesRes = await GetGrades(groupId, reportPeriod);
+                // Проверяем, что данные успеваемости успешно загружены
                 if (!gradesRes.success) {
+                    // Проверяем, что ошибка вызвана отсутствием интернета
                     const dbOffline = isDbOfflineMeta(gradesRes.status, gradesRes.code);
+                    // Устанавливаем уведомление о ошибке загрузки успеваемости
                     setNotify({
                         message: dbOffline ? getDbOfflineToastMessage() : (gradesRes.message || 'Ошибка загрузки успеваемости'),
                         type: dbOffline ? 'warning' : 'error',
@@ -112,17 +153,23 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
                     return;
                 }
 
+                // Проверяем, что данные успеваемости не пустые
                 if (!gradesRes.data) {
+                    // Устанавливаем уведомление о ошибке загрузки успеваемости
                     setNotify({ message: 'Ошибка загрузки успеваемости', type: 'error' });
                     return;
                 }
 
+                // Получаем список студентов для отчёта
                 const reportStudents = gradesRes.data.filter((item: GradeStudent) => selectedStudentNames.includes(item.fullName));
+                // Проверяем, что данные успеваемости для выбранных студентов не пустые
                 if (!reportStudents.length) {
+                    // Устанавливаем уведомление о ошибке загрузки успеваемости для выбранных студентов
                     setNotify({ message: 'Нет данных успеваемости для выбранных студентов', type: 'warning' });
                     return;
                 }
 
+                // Экспортируем данные успеваемости в Word
                 await exportGradesToWord(reportStudents, {
                     id: 0,
                     name: groupName,
@@ -130,6 +177,8 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
                     leader: '',
                     created_by: '',
                 } as Group);
+
+                // Устанавливаем уведомление о успешном формировании отчёта по успеваемости
                 setNotify({ message: 'Отчёт по успеваемости сформирован', type: 'success' });
             }
         } catch (error) {
@@ -141,55 +190,88 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
         }
     };
 
+    // Функция для редактирования студента
     const handleEdit = (student: Student) => {
+        // Устанавливаем флаг редактирования студента
         setEditingStudent(student.id);
+        // Устанавливаем имя студента
         setEditName(student.full_name);
     };
 
+    // Функция для сохранения изменений в студенте
     const handleSave = async () => {
+        // Проверяем, что студент редактируется
         if (!editingStudent) return;
 
+        // Обновляем студента
         const result = await UpdateStudent(groupId, editingStudent, editName);
+        // Проверяем, что студент успешно обновлен
         if (result.success) {
+            // Обновляем список студентов   
             setStudents(prev => prev.map(s => s.id === editingStudent ? { ...s, full_name: editName } : s));
+            // Устанавливаем уведомление о успешном переименовании студента
             setNotify({ message: "Студент переименован", type: 'success' });
         } else {
+            // Проверяем, что ошибка вызвана отсутствием интернета
             const dbOffline = isDbOfflineMeta(result.status, result.code);
+            // Устанавливаем уведомление о ошибке переименования студента
             setNotify({
                 message: dbOffline ? getDbOfflineToastMessage() : (result.message || "Ошибка переименования"),
                 type: dbOffline ? "warning" : "error",
             });
         }
+
+        // Устанавливаем флаг редактирования студента
         setEditingStudent(null);
     };
 
+    // Функция для удаления студента
     const handleDelete = async () => {
+        // Проверяем, что студент удаляется и что флаг удаления не установлен
         if (!deleteStudentId || isDeleting) return;
+        // Устанавливаем флаг удаления студента
 
         setIsDeleting(true);
+        // Удаляем студента
         const result = await DeleteStudent(groupId, deleteStudentId);
+        // Проверяем, что компонент монтирован
         if (!isMountedRef.current) return;
+        // Устанавливаем флаг удаления студента
         setIsDeleting(false);
+        // Проверяем, что студент успешно удален
         if (result.success) {
+            // Обновляем список студентов
             setStudents(prev => prev.filter(s => s.id !== deleteStudentId));
+            // Устанавливаем уведомление о успешном удалении студента
             setNotify({ message: "Студент удален", type: 'success' });
         } else {
+            // Проверяем, что ошибка вызвана отсутствием интернета
             const dbOffline = isDbOfflineMeta(result.status, result.code);
+            // Устанавливаем уведомление о ошибке удаления студента
             setNotify({
                 message: dbOffline ? getDbOfflineToastMessage() : (result.message || "Ошибка удаления"),
                 type: dbOffline ? "warning" : "error",
             });
         }
+
+        // Устанавливаем id студента для удаления
         setDeleteStudentId(null);
     };
 
+    // Функция для обновления списка студентов
     const refreshStudents = async () => {
+        // Устанавливаем флаг обновления списка студентов
         setIsRefreshing(true);
+        // Получаем список студентов
         const result = await GetStudents(groupId);
+        // Проверяем, что компонент монтирован
         if (!isMountedRef.current) return;
+        // Устанавливаем флаг обновления списка студентов
         setIsRefreshing(false);
         if (!result.success) {
+            // Проверяем, что ошибка вызвана отсутствием интернета
             const dbOffline = isDbOfflineMeta(result.status, result.code);
+            // Устанавливаем уведомление о ошибке обновления списка студентов
             setNotify({
                 message: dbOffline ? getDbOfflineToastMessage() : (result.message || "Ошибка обновления списка"),
                 type: dbOffline ? "warning" : "error",
@@ -197,12 +279,16 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
             return;
         }
 
+        // Проверяем, что данные студентов не пустые
         if (!result.data) {
+            // Устанавливаем уведомление о ошибке обновления списка студентов
             setNotify({ message: result.message || "Ошибка обновления списка", type: "error" });
             return;
         }
 
+        // Обновляем список студентов
         setStudents(result.data);
+        // Устанавливаем уведомление о успешном обновлении списка студентов
         setNotify({ message: "Список студентов обновлен", type: "success" });
     };
 

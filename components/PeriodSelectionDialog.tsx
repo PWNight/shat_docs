@@ -7,6 +7,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { MONTH_NAMES, SEMESTER_NAMES } from "@/utils/interfaces";
 
+// Интерфейс для компонента PeriodSelectionDialog
 interface PeriodSelectionDialogProps {
     open: boolean;
     onClose: () => void;
@@ -22,19 +23,27 @@ export default function PeriodSelectionDialog({
     type,
     defaultValue
 }: PeriodSelectionDialogProps) {
+    // Используем useState для выбора периода
     const [selectedPeriod, setSelectedPeriod] = useState<number | null>(defaultValue || null);
 
+    // Функция для подтверждения выбора периода
     const handleConfirm = () => {
+        // Проверяем, что период не пустой
         if (selectedPeriod === null) return;
+        // Вызываем функцию для подтверждения выбора периода
         onConfirm(selectedPeriod);
+        // Закрываем диалог
         onClose();
     };
 
+    // Проверяем, что тип отчёта посещаемости
     const isAttendance = type === 'attendance';
+    // Получаем список периодов
     const periodOptions = isAttendance
-        ? Object.entries(MONTH_NAMES).map(([key, name]) => ({ value: parseInt(key), label: name }))
-        : Object.entries(SEMESTER_NAMES).map(([key, name]) => ({ value: parseInt(key), label: name }));
+        ? Object.entries(MONTH_NAMES).map(([key, name]) => ({ value: parseInt(key), label: name })) // Если тип отчёта посещаемости, то получаем список месяцев
+        : Object.entries(SEMESTER_NAMES).map(([key, name]) => ({ value: parseInt(key), label: name })); // Если тип отчёта успеваемости, то получаем список полугодий
 
+    // Возвращаем компонент PeriodSelectionDialog
     return (
         <Dialog open={open} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[425px]">
@@ -52,10 +61,11 @@ export default function PeriodSelectionDialog({
 
                 <div className="grid gap-4 py-4">
                     {isAttendance ? (
-                        // Month picker grid (3 columns)
+                        // Выбираем месяц (3 столбца)
                         <div className="grid grid-cols-3 gap-2">
                             {periodOptions.map(option => (
                                 <button
+                                    // Устанавливаем ключ для каждого периода
                                     key={option.value}
                                     onClick={() => setSelectedPeriod(option.value)}
                                     className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${
@@ -69,10 +79,11 @@ export default function PeriodSelectionDialog({
                             ))}
                         </div>
                     ) : (
-                        // Semester picker (radio buttons)
+                        // Выбираем полугодие (радио кнопки)
                         <div className="space-y-3">
                             {periodOptions.map(option => (
                                 <label
+                                    // Устанавливаем ключ для каждого периода
                                     key={option.value}
                                     className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors"
                                 >

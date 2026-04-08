@@ -1,23 +1,31 @@
 "use client";
 import { useEffect } from 'react';
 import { AlertCircle, CheckCircle2, AlertTriangle, X } from "lucide-react"; // Используем lucide для единообразия с вашим кодом
+
+// Интерфейс для компонента NotifyAlert
 interface ErrorMessageProps {
   message: string;
   type: string;
   onClose: () => void;
 }
 
+// Функция для компонента NotifyAlert
 function ErrorMessage({ message, type, onClose }: ErrorMessageProps) {
+  // Используем useEffect для закрытия уведомления через 3 секунды
   useEffect(() => {
+    // Создаем таймер для закрытия уведомления
     const timer = setTimeout(() => {
       onClose();
     }, 3000);
 
+    // Очищаем таймер при размонтировании компонента
     return () => clearTimeout(timer);
   }, [onClose, message]);
 
+  // Проверяем, что сообщение не пустое
   if (!message) return null;
 
+  // Получаем стили уведомления
   const alertStyles = {
     error: {
       bg: 'bg-red-50 dark:bg-red-900/80',
@@ -48,6 +56,7 @@ function ErrorMessage({ message, type, onClose }: ErrorMessageProps) {
     },
   };
 
+  // Получаем тип уведомления
   const currentType = (type && alertStyles[type as keyof typeof alertStyles])
       ? (type as keyof typeof alertStyles)
       : 'error';

@@ -4,6 +4,7 @@ import clsx from "clsx";
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 
+// Интерфейс для компонента TocObserver
 interface TocItem {
     level: number;
     text: string;
@@ -11,25 +12,36 @@ interface TocItem {
 }
 
 export default function TocObserver({ data }: { data: TocItem[] }) {
+    // Используем useState для установки активного id
     const [activeId, setActiveId] = useState<string | null>(null);
+    // Используем useRef для установки observer
     const observer = useRef<IntersectionObserver | null>(null);
 
+    // Используем useEffect для установки observer
     useEffect(() => {
+        // Функция для установки активного id
         const handleIntersect = (entries: IntersectionObserverEntry[]) => {
+            // Получаем видимый элемент
             const visibleEntry = entries.find((entry) => entry.isIntersecting);
+            // Проверяем, что видимый элемент не пустой
             if (visibleEntry) setActiveId(visibleEntry.target.id);
         };
 
+        // Создаем observer
         observer.current = new IntersectionObserver(handleIntersect, {
             rootMargin: "-10% 0px -80% 0px", // Активация в верхней части экрана
             threshold: 0.2,
         });
 
+        // Проходим по всем элементам
         data.forEach((item) => {
+            // Получаем элемент
             const el = document.getElementById(item.href.slice(1));
+            // Проверяем, что элемент не пустой
             if (el) observer.current?.observe(el);
         });
 
+        // Возвращаем функцию для отключения observer
         return () => observer.current?.disconnect();
     }, [data]);
 

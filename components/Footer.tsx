@@ -12,6 +12,7 @@ import {
     DialogTrigger,
 } from "./ui/Dialog";
 
+// Интерфейс для данных о релизе
 interface GitHubRelease {
     id: number;
     tag_name: string;
@@ -20,9 +21,11 @@ interface GitHubRelease {
     formattedBody?: string;
 }
 
+// Количество элементов на странице
 const ITEMS_PER_PAGE = 10;
 
 export function FooterButtons() {
+    // Возвращаем кнопки для поддержки и GitHub
     return (
         <div className="flex items-center gap-2">
             <Link
@@ -52,28 +55,36 @@ export function FooterButtons() {
 }
 
 export function Footer() {
+    // Получаем версию приложения
     const appVersion = process.env.APP_VERSION || "1.0.0";
 
     const [releases, setReleases] = useState<GitHubRelease[]>([]);
+    // Флаг загрузки
     const [isLoading, setIsLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
 
+    // Функция для проверки, является ли версия мажорной
     const isMajorRelease = (tagName: string) => {
         const version = tagName.replace(/[^0-9.]/g, '');
         return version.endsWith('.0');
     };
 
+    // Функция для проверки, является ли версия бета
     const isBetaRelease = (tagName: string) => {
         return tagName.toLowerCase().includes('-beta');
     };
 
+    // Функция для получения списка изменений
     const fetchChangelog = async () => {
+        // Если список изменений уже загружен, не загружаем его снова
         if (releases.length > 0) return;
+        // Устанавливаем флаг загрузки
         setIsLoading(true);
         try {
+            // Получаем список изменений с GitHub
             const res = await fetch(`https://api.github.com/repos/PWNight/shat_docs/releases`);
             const data: GitHubRelease[] = await res.json();
-
+            // Форматируем список изменений
             const formattedReleases = data.map((rel) => ({
                 ...rel,
                 formattedBody: rel.body
@@ -86,7 +97,7 @@ export function Footer() {
                         .replace(/\*\*(.*)\*\*/gim, '<strong class="text-blue-600 dark:text-blue-400">$1</strong>')
                     : "Описание изменений отсутствует.",
             }));
-
+            // Устанавливаем список изменений
             setReleases(formattedReleases);
         } catch {
             // При отсутствии интернета просто не показываем список изменений
@@ -95,9 +106,13 @@ export function Footer() {
         }
     };
 
+    // Получаем общее количество страниц
     const totalPages = Math.ceil(releases.length / ITEMS_PER_PAGE);
+    // Получаем список изменений для текущей страницы
     const paginatedReleases = useMemo(() => {
+        // Получаем начальный индекс для текущей страницы
         const start = (currentPage - 1) * ITEMS_PER_PAGE;
+        // Возвращаем список изменений для текущей страницы
         return releases.slice(start, start + ITEMS_PER_PAGE);
     }, [releases, currentPage]);
 

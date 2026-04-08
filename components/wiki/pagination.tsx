@@ -4,9 +4,11 @@ import Link from "next/link";
 import { buttonVariants } from "../ui/Button";
 
 export default function Pagination({ pathname }: { pathname: string }) {
+  // Получаем предыдущий и следующий slug
   const res = getPreviousNext(pathname);
 
   return (
+    // Возвращаем компонент Pagination
     <div className="grid sm:grid-cols-2 grow sm:py-10 py-7 gap-3">
       <div>
         {res.prev && (
