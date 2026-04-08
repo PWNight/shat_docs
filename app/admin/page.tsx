@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/utils/http-client";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, Clock3, Shield, Users, UserCog, Layers, KeyRound, Trash2, Save, PlusCircle, Loader2 } from "lucide-react";
+import { CheckCircle2, Clock3, Shield, Users, UserCog, Layers, KeyRound, Trash2, Save, PlusCircle, Loader2, ShieldOff, ShieldCheck, SquarePen } from "lucide-react";
 import { getSession } from "@/utils/session";
 import { useRouter } from "next/navigation";
 import NotifyAlert from "@/components/NotifyAlert";
@@ -297,7 +297,7 @@ export default function AdminPage() {
     const resettingUser = userResetId ? data.users.find((u) => u.id === userResetId) : null;
 
     return (
-        <div className="w-[90%] mx-auto space-y-8 animate-in fade-in duration-500 bg-background min-h-screen pt-4">
+        <div className="w-[90%] mx-auto space-y-8 animate-in fade-in duration-500 bg-background min-h-screen py-4">
             {notify.message ? <NotifyAlert message={notify.message} type={notify.type} onClose={() => setNotify({ message: "", type: "" })} /> : null}
             <div className="grid gap-6">
                 <div>
@@ -382,15 +382,15 @@ export default function AdminPage() {
                                     <p>Студентов: {stat?.students_count ?? 0} | Ср. балл: {stat?.avg_grade ?? "—"}</p>
                                     <p>Посещаемость: {attendancePercent}% | Опоздания: {stat?.late_total ?? 0}</p>
                                 </div>
-                                <div className="flex sm:flex-row flex-col gap-2 w-full items-center mt-auto">
+                                <div className="flex sm:flex-row flex-col gap-2 w-full items-center">
                                     <Button
-                                        className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-3 py-2 text-sm font-medium transition-all"
+                                        className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white font-medium rounded-lg text-sm transition-all w-full"
                                         onClick={() => {
                                             setGroupDrafts((prev) => ({ ...prev, [group.id]: { name: group.name, fk_user: String(group.fk_user) } }));
                                             setGroupEditId(group.id);
                                         }}
                                     >
-                                        Редактировать
+                                        <SquarePen className="w-4 h-4" /> Редактировать
                                     </Button>
                                     <ActionButton loading={actionKey === `delete-group-${group.id}`} disabled={busy} onClick={() => setGroupDeleteId(group.id)} className="w-full rounded-lg bg-red-50 dark:bg-zinc-700/50 text-red-600 dark:text-red-500 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 dark:hover:text-white px-3 py-2 text-sm font-medium transition-colors disabled:opacity-60 flex items-center justify-center gap-2"><Trash2 className="w-4 h-4" /> Удалить</ActionButton>
                                     </div>
@@ -414,33 +414,71 @@ export default function AdminPage() {
                                                 <Users className="w-6 h-6" />
                                             </div>
                                             <div className="flex sm:flex-row flex-col items-end gap-2">
-                                                {item.isRoot ? <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 bg-muted text-foreground rounded-full border border-border">Root</span> : null}
-                                                {item.canAccessAdmin ? <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 bg-muted text-foreground rounded-full border border-border">Админ доступ</span> : null}
-                                                <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 bg-muted text-muted-foreground rounded-full border border-border">ID: {item.id}</span>
+                                                {item.isRoot ? (
+                                                    <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-500 rounded-full border border-amber-200 dark:border-amber-800">
+                                                        Root
+                                                    </span>
+                                                ) : null}
+                                                
+                                                {item.canAccessAdmin ? (
+                                                    <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full border border-blue-200 dark:border-blue-800">
+                                                        Админ доступ
+                                                    </span>
+                                                ) : null}
+                                                
+                                                <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 bg-muted text-muted-foreground rounded-full border border-border">
+                                                    ID: {item.id}
+                                                </span>
                                             </div>
                                         </div>
+
                                         <h3 className="text-lg font-bold tracking-tight">{item.full_name}</h3>
                                         <p className="text-sm text-muted-foreground mb-4">{item.email}</p>
+
                                         <div className="grid grid-cols-2 gap-2 mt-auto">
                                             <Button
-                                                className="flex items-center justify-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-medium rounded-lg text-sm transition-all"
+                                                className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white font-medium rounded-lg text-sm transition-all"
                                                 onClick={() => {
                                                     setUserDrafts((prev) => ({ ...prev, [item.id]: { full_name: item.full_name, email: item.email } }));
                                                     setUserEditId(item.id);
                                                 }}
                                             >
-                                                <Save className="w-4 h-4" /> Редактировать
+                                                <SquarePen className="w-4 h-4" /> Редактировать
                                             </Button>
-                                            <ActionButton loading={actionKey === `delete-user-${item.id}`} disabled={busy || item.isRoot === 1} className="px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 dark:hover:text-white text-sm font-medium transition-colors disabled:opacity-60" onClick={() => setUserDeleteId(item.id)}>
-                                                Удалить
+                                            
+                                            <ActionButton 
+                                                loading={actionKey === `delete-user-${item.id}`} 
+                                                disabled={busy || item.isRoot === 1} 
+                                                className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 dark:hover:text-white text-sm font-medium transition-colors disabled:opacity-60" 
+                                                onClick={() => setUserDeleteId(item.id)}
+                                            >
+                                                <Trash2 className="w-4 h-4" /> Удалить
                                             </ActionButton>
                                         </div>
+
                                         <div className="grid grid-cols-2 gap-2 mt-2">
-                                            <Button className="px-3 py-2 rounded-lg border border-border bg-muted/80 dark:bg-zinc-800/80 hover:bg-muted dark:hover:bg-zinc-700 text-foreground text-sm font-medium transition-all" onClick={() => { setResetPasswordDraft(""); setUserResetId(item.id); }}>
-                                                Сброс пароля
+                                            <Button 
+                                                className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-border bg-muted/80 dark:bg-zinc-800/80 hover:bg-muted dark:hover:bg-zinc-700 text-foreground text-sm font-medium transition-all" 
+                                                onClick={() => { setResetPasswordDraft(""); setUserResetId(item.id); }}
+                                            >
+                                                <KeyRound className="w-4 h-4" /> Сменить пароль
                                             </Button>
-                                            <ActionButton loading={actionKey === `toggle-${item.id}`} disabled={busy || item.isRoot === 1} className="px-3 py-2 rounded-lg border border-border bg-muted/80 dark:bg-zinc-800/80 hover:bg-muted dark:hover:bg-zinc-700 text-foreground text-sm font-medium transition-all disabled:opacity-60" onClick={() => toggleAccess(item.id)}>
-                                                {item.canAccessAdmin ? "Забрать доступ" : "Выдать доступ"}
+                                            
+                                            <ActionButton 
+                                                loading={actionKey === `toggle-${item.id}`} 
+                                                disabled={busy || item.isRoot === 1} 
+                                                className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-border bg-muted/80 dark:bg-zinc-800/80 hover:bg-muted dark:hover:bg-zinc-700 text-foreground text-sm font-medium transition-all disabled:opacity-60" 
+                                                onClick={() => toggleAccess(item.id)}
+                                            >
+                                                {item.canAccessAdmin ? (
+                                                    <>
+                                                        <ShieldOff className="w-4 h-4 text-orange-500" /> Забрать доступ
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <ShieldCheck className="w-4 h-4 text-blue-500" /> Выдать доступ
+                                                    </>
+                                                )}
                                             </ActionButton>
                                         </div>
                                     </div>
