@@ -127,11 +127,33 @@ export default function ProfilePage() {
         }
     };
 
-    if (loading) return (
-        <div className="flex h-[80vh] items-center justify-center">
-            <Loader2 className="animate-spin text-primary w-10 h-10" />
-        </div>
-    );
+    if (loading) {
+        return (
+            <div className="min-h-[70vh] flex items-center justify-center p-6">
+                <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-sm">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="h-10 w-10 rounded-xl bg-blue-600 text-white flex items-center justify-center">
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                        </div>
+                        <div>
+                            <p className="font-semibold">Загружаю личный кабинет</p>
+                            <p className="text-sm text-muted-foreground">Подготавливаю статистику и данные о пользователе</p>
+                        </div>
+                    </div>
+                    <div className="grid gap-2">
+                        <div className="h-2 rounded-full bg-muted overflow-hidden">
+                            <motion.div
+                                className="h-full w-1/3 bg-blue-600 rounded-full"
+                                animate={{ x: ["-20%", "220%"] }}
+                                transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                            />
+                        </div>
+                        <div className="text-xs text-muted-foreground">Это займет несколько секунд</div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     if (pageError) {
         return (
@@ -148,7 +170,7 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="w-[90%] mx-auto space-y-8 animate-in fade-in duration-500 bg-background min-h-screen">
+        <div className="space-y-8 animate-in fade-in duration-500 bg-background min-h-screen">
             {notify.message && <ErrorMessage message={notify.message} type={notify.type} onClose={() => setNotify({message:'', type:''})} />}
 
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-6">
