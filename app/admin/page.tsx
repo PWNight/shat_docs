@@ -79,7 +79,7 @@ export default function AdminPage() {
         try {
             const session = await getSession();
             if (!session) {
-                router.push("/login?to=profile/groups");
+                router.push("/login?to=admin");
                 return;
             }
             
