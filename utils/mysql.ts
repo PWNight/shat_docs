@@ -19,21 +19,21 @@ const pool = mysql.createPool({
 });
 
 // Универсальный запрос к БД с типизацией, который возвращает массив записей
-export async function query<T extends RowDataPacket[]>(
+export async function query<T = RowDataPacket>(
     sql: string,
     params?: unknown[] | object
-): Promise<T> {
-    const [rows] = await pool.execute<T & RowDataPacket[]>(sql, params as never);
-    return rows;
+): Promise<T[]> {
+    const [rows] = await pool.execute<RowDataPacket[]>(sql, params as never);
+    return rows as unknown as T[];
 }
 
 // Запрос к БД, который возвращает одну запись или null
-export async function queryOne<T extends RowDataPacket>(
+export async function queryOne<T = RowDataPacket>(
     sql: string,
     params?: unknown[] | object
 ): Promise<T | null> {
-    const rows = await query<T[]>(sql, params);
-    return (rows[0] as T) || null;
+    const rows = await query<T>(sql, params);
+    return rows[0] ?? null;
 }
 
 // Запрос к БД для операций INSERT/UPDATE/DELETE, возвращает результат выполнения
