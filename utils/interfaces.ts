@@ -142,3 +142,16 @@ export interface SubmitButtonProps {
     pending: boolean;
     color?: string;
 }
+
+export interface ApiSuccessResponse<T = unknown> {
+    success: true;
+    data?: T;
+    message?: string;
+}
+
+export interface ApiErrorResponse {
+    success: false;
+    message: string;
+    code?: string;
+    fieldErrors?: Record<string, string[]>;
+}
