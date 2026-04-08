@@ -3,7 +3,7 @@ import Link from "next/link";
 import { buttonVariants } from "./ui/Button";
 import { useState, useMemo } from "react";
 import Image from "next/image";
-import {LifeBuoy, Info, Loader2, Calendar, ChevronRight, Sparkles, ChevronLeft, Bug} from "lucide-react";
+import {LifeBuoy, Info, Loader2, Calendar, ChevronRight, Sparkles, ChevronLeft, Bug, Boxes} from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -61,6 +61,10 @@ export function Footer() {
     const isMajorRelease = (tagName: string) => {
         const version = tagName.replace(/[^0-9.]/g, '');
         return version.endsWith('.0');
+    };
+
+    const isBetaRelease = (tagName: string) => {
+        return tagName.toLowerCase().includes('-beta');
     };
 
     const fetchChangelog = async () => {
@@ -143,6 +147,7 @@ export function Footer() {
                                             <div className="relative ml-2 space-y-10 border-l-2 border-muted pb-2">
                                                 {paginatedReleases.map((rel) => {
                                                     const isMajor = isMajorRelease(rel.tag_name);
+                                                    const isBeta = isBetaRelease(rel.tag_name);
                                                     return (
                                                         <div key={rel.id} className="relative pl-8 group">
                                                             <div className={`absolute -left-[9.5px] top-1 w-4 h-4 rounded-full bg-card border-2 transition-colors z-10 ${isMajor ? 'border-blue-500 scale-125 shadow-[0_0_10px_rgba(59,130,246,0.5)]' : 'border-muted group-hover:border-blue-500'}`} />
@@ -150,7 +155,7 @@ export function Footer() {
                                                                 <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${
                                                                     isMajor ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20 scale-105" : "bg-blue-500/10 text-blue-600 dark:text-blue-400"
                                                                 }`}>
-                                                                    {isMajor ? <Sparkles size={15} className="animate-pulse" /> : <Bug size={15} />}
+                                                                    {isMajor ? <Sparkles size={15} className="animate-pulse" /> : isBeta ? <Boxes size={15} /> : <Bug size={15} />}
                                                                     {rel.tag_name}
                                                                 </div>
                                                                 <div className="flex items-center gap-1.5 text-muted-foreground text-xs font-medium">
