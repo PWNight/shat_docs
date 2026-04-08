@@ -19,6 +19,14 @@ export const ROUTES : EachRoute[] = [
     href: "/app-guide",
   },
   {
+    title: "Регистрация и статусы аккаунта",
+    href: "/registration",
+  },
+  {
+    title: "Руководство для админов",
+    href: "/admin-guide",
+  },
+  {
     title: "API Reference",
     href: "/api-reference",
   },
