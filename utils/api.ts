@@ -1,52 +1,44 @@
-// Общие утилиты для API v2
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession, decryptSession } from "@/utils/session";
+import { ApiErrorResponse, ApiSuccessResponse } from "./interfaces";
 
-// Унифицированные типы ответов API
-export interface ApiSuccessResponse<T = unknown> {
-    success: true;
-    data?: T;
-    message?: string;
-}
-
-export interface ApiErrorResponse {
-    success: false;
-    message: string;
-    code?: string;
-    fieldErrors?: Record<string, string[]>;
-}
-
-// Конструкторы ответов
+// Функция для создания успешного ответа
 export function successResponse<T = unknown>(data?: T, message?: string): ApiSuccessResponse<T> {
     return { success: true, data, message };
 }
 
+// Функция для создания ошибочного ответа
 export function errorResponse(message: string, code?: string, fieldErrors?: Record<string, string[]>): ApiErrorResponse {
     return { success: false, message, code, fieldErrors };
 }
 
-// Вспомогательные конструкторы NextResponse
+// Функция для создания JSON-ответа
 export function jsonResponse(data: ApiSuccessResponse | ApiErrorResponse, status: number = 200): NextResponse {
     return NextResponse.json(data, { status });
 }
 
+// Функция для создания ответа о неавторизованном запросе
 export function unauthorized(message: string = "Необходима авторизация"): NextResponse {
     return jsonResponse(errorResponse(message, "UNAUTHORIZED"), 401);
 }
 
+// Функция для создания ответа о недостаточном доступе
 export function forbidden(message: string = "Нет доступа"): NextResponse {
     return jsonResponse(errorResponse(message, "FORBIDDEN"), 403);
 }
 
+// Функция для создания ответа о ненайденном ресурсе
 export function notFound(message: string = "Ресурс не найден"): NextResponse {
     return jsonResponse(errorResponse(message, "NOT_FOUND"), 404);
 }
 
+// Функция для создания ответа о некорректном запросе
 export function badRequest(message: string, fieldErrors?: Record<string, string[]>): NextResponse {
     return jsonResponse(errorResponse(message, "BAD_REQUEST", fieldErrors), 400);
 }
 
+// Функция для создания ответа о внутренней ошибке сервера
 export function serverError(
     message: string = "Внутренняя ошибка сервера",
     code: string = "SERVER_ERROR"
@@ -55,7 +47,7 @@ export function serverError(
     return jsonResponse(errorResponse(message, code), status);
 }
 
-// Безопасный парсинг JSON из запроса
+// Функция для безопасного парсинга JSON из запроса
 export async function safeParseJson<T>(request: NextRequest): Promise<{ success: true; data: T } | { success: false; error: string }> {
     try {
         const data = await request.json();
@@ -65,12 +57,14 @@ export async function safeParseJson<T>(request: NextRequest): Promise<{ success:
     }
 }
 
-// Валидация с Zod
+// Функция для валидации данных с использованием Zod
 export function validateData<T>(schema: z.ZodSchema<T>, data: unknown): { success: true; data: T } | { success: false; errors: Record<string, string[]> } {
+    // Валидируем данные с использованием Zod
     const result = schema.safeParse(data);
     if (result.success) {
         return { success: true, data: result.data };
     } else {
+        // Если данные невалидны, возвращаем ошибки валидации
         const fieldErrors: Record<string, string[]> = {};
         const flattened = result.error.flatten().fieldErrors;
         for (const [key, value] of Object.entries(flattened)) {
@@ -82,7 +76,7 @@ export function validateData<T>(schema: z.ZodSchema<T>, data: unknown): { succes
     }
 }
 
-// Проверка авторизации (для маршрутов с request)
+// Функция для проверки авторизации
 export async function requireAuth(request: NextRequest): Promise<{ success: true; user: NonNullable<Awaited<ReturnType<typeof getSession>>> } | { success: false; response: NextResponse }> {
     const session = await extractSession(request);
     if (!session) {
@@ -91,7 +85,7 @@ export async function requireAuth(request: NextRequest): Promise<{ success: true
     return { success: true, user: session };
 }
 
-// Проверка авторизации (для маршрутов без request, например GET без параметров)
+// Функция для проверки авторизации без request
 export async function requireAuthSimple(): Promise<{ success: true; user: NonNullable<Awaited<ReturnType<typeof getSession>>> } | { success: false; response: NextResponse }> {
     const session = await getSession();
     if (!session) {
@@ -100,7 +94,7 @@ export async function requireAuthSimple(): Promise<{ success: true; user: NonNul
     return { success: true, user: session };
 }
 
-// Вспомогательная функция для извлечения сессии из request (куки или Bearer)
+// Функция для извлечения сессии из request
 export async function extractSession(request: NextRequest): Promise<NonNullable<Awaited<ReturnType<typeof getSession>>> | null> {
     // Сначала проверяем куки
     const session = await getSession();
@@ -111,8 +105,11 @@ export async function extractSession(request: NextRequest): Promise<NonNullable<
     // Если куки нет, проверяем заголовок Authorization
     const authHeader = request.headers.get('authorization');
     if (authHeader && authHeader.startsWith('Bearer ')) {
-        const token = authHeader.slice(7); // Убираем 'Bearer '
+        // Убираем 'Bearer ' из заголовка
+        const token = authHeader.slice(7);
+        // Расшифровываем токен
         const bearerSession = await decryptSession(token);
+        // Если токен расшифрован успешно, возвращаем сессию
         if (bearerSession) {
             return bearerSession;
         }
@@ -121,28 +118,33 @@ export async function extractSession(request: NextRequest): Promise<NonNullable<
     return null;
 }
 
-// Обработка исключений в API
+// Функция для обработки ошибок API
 export function handleApiError(
     error: unknown,
     defaultMessage: string = "Неизвестная ошибка сервера"
 ): { message: string; code: string } {
-    console.error("API Error:", error); // Логируем детали для отладки
+    // Логируем ошибку
+    console.error("API Error:", error);
 
+    // Преобразуем ошибку в объект
     const err = error as { code?: unknown; message?: unknown };
+    // Получаем код ошибки и сообщение
     const errorCode = typeof err?.code === "string" ? err.code : "";
     const errorMessage = typeof err?.message === "string" ? err.message : "";
 
-    // Ошибки подключения к MySQL (mysql2)
+    // Проверяем, является ли ошибка ошибкой подключения к MySQL
     if (
         ["ETIMEDOUT", "ECONNREFUSED", "ENOTFOUND", "EHOSTUNREACH", "PROTOCOL_CONNECTION_LOST"].includes(errorCode) ||
+        // Проверяем, содержит ли сообщение ошибку подключения к MySQL
         /connect\s+etimedout/i.test(errorMessage) ||
+        // Проверяем, содержит ли сообщение ошибку поиска адреса
         /getaddrinfo\s+enotfound/i.test(errorMessage)
     ) {
         return { message: "Нет подключения к базе данных", code: "DB_OFFLINE" };
     }
 
+    // Для известных ошибок возвращаем сообщение, но логируем стек
     if (error instanceof Error) {
-        // Для известных ошибок возвращаем сообщение, но логируем стек
         return { message: error.message, code: "SERVER_ERROR" };
     }
 
@@ -150,14 +152,20 @@ export function handleApiError(
     return { message: defaultMessage, code: "SERVER_ERROR" };
 }
 
-// Улучшенная обработка fetch-ответов (для клиентской стороны)
+// Функция для обработки fetch-ответов
 export async function handleApiResponse(response: Response): Promise<unknown> {
+    // Проверяем, является ли ответ успешным
     if (!response.ok) {
+        // Создаем сообщение об ошибке
         let errorMessage = `Ошибка ${response.status}`;
         try {
+            // Получаем тип контента
             const contentType = response.headers.get("content-type");
+            // Проверяем, является ли контент JSON
             if (contentType && contentType.includes("application/json")) {
+                // Получаем данные из ответа
                 const errorData = await response.json();
+                // Получаем сообщение из данных
                 errorMessage = (errorData as { message?: string }).message || errorMessage;
             } else {
                 // Если не JSON, используем текст
@@ -166,13 +174,14 @@ export async function handleApiResponse(response: Response): Promise<unknown> {
             }
         } catch {
             // Если не удается прочитать тело, используем статус
+            throw new Error(errorMessage);
         }
-        throw new Error(errorMessage);
     }
     try {
+        // Получаем данные из ответа
         return await response.json();
     } catch {
-        // Если тело не JSON, возвращаем текст или пустой объект
+        // Если не JSON, возвращаем пустой объект
         return {};
     }
 }
