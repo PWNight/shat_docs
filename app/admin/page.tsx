@@ -49,110 +49,178 @@ type AdminOverview = {
 type TabType = "groups" | "users" | "logs";
 
 export default function AdminPage() {
+    // Используем useState для данных админ панели
     const [data, setData] = useState<AdminOverview | null>(null);
+    // Используем useState для данных пользователя
     const [userData, setUserData] = useState<{ email: string; uid: number }>({ email: "", uid: 0 });
+    // Используем useState для загрузки
     const [loading, setLoading] = useState(true);
+    // Используем useState для ошибки
     const [error, setError] = useState<{ message: string; status?: number; code?: string } | null>(null);
+    // Используем useState для уведомлений
     const [notify, setNotify] = useState<{ message: string; type: string }>({ message: "", type: "" });
+    // Используем useState для выбора таба
     const [tab, setTab] = useState<TabType>("groups");
+    // Используем useState для новых паролей
     const [newPasswords, setNewPasswords] = useState<Record<number, string>>({});
+    // Используем useState для названия группы
     const [newGroupName, setNewGroupName] = useState("");
+    // Используем useState для id преподавателя
     const [newGroupTeacherId, setNewGroupTeacherId] = useState("");
+    // Используем useState для черновиков групп
     const [groupDrafts, setGroupDrafts] = useState<Record<number, { name: string; fk_user: string }>>({});
+    // Используем useState для черновиков пользователей
     const [userDrafts, setUserDrafts] = useState<Record<number, { full_name: string; email: string }>>({});
+    // Используем useState для занятости
     const [busy, setBusy] = useState(false);
+    // Используем useState для ключа действия
     const [actionKey, setActionKey] = useState<string | null>(null);
+    // Используем useState для id группы
     const [groupEditId, setGroupEditId] = useState<number | null>(null);
+    // Используем useState для id группы
     const [groupDeleteId, setGroupDeleteId] = useState<number | null>(null);
+    // Используем useState для id пользователя
     const [userEditId, setUserEditId] = useState<number | null>(null);
+    // Используем useState для id пользователя
     const [userDeleteId, setUserDeleteId] = useState<number | null>(null);
+    // Используем useState для id пользователя
     const [userResetId, setUserResetId] = useState<number | null>(null);
+    // Используем useState для id запроса сброса пароля
     const [resetRequestDialogId, setResetRequestDialogId] = useState<number | null>(null);
+    // Используем useState для черновика сброса пароля
     const [resetPasswordDraft, setResetPasswordDraft] = useState("");
+    // Используем useRouter для перенаправления
     const router = useRouter();
 
+    // Функция для загрузки данных админ панели
     const load = useCallback(async (silent: boolean = false) => {
+        // Проверяем, что нет silent
         if (!silent) {
+            // Устанавливаем загрузку
             setLoading(true);
         }
+        // Устанавливаем ошибку
         setError(null);
+        // Пытаемся получить сессию
         try {
             const session = await getSession();
+            // Проверяем, что сессия не пустая
             if (!session) {
+                // Перенаправляем на страницу авторизации
                 router.push("/login?to=admin");
                 return;
             }
             
+            // Устанавливаем данные пользователя
             setUserData({ email: session.email, uid: session.uid });
 
+            // Пытаемся получить данные админ панели
             const response = await apiGet<{ data: AdminOverview }>("/api/admin/overview");
+            // Устанавливаем данные админ панели
             setData(response.data);
             
         } catch (e) {
+            // Проверяем, что ошибка вызвана отсутствием интернета
             const fallbackMessage = e instanceof Error ? e.message : "Ошибка загрузки админ панели";
             if (e instanceof ApiResponseError) {
+                // Устанавливаем ошибку
                 setError({ message: fallbackMessage, status: e.status, code: e.code });
             } else {
+                // Устанавливаем ошибку
                 setError({ message: fallbackMessage });
             }
+            // Устанавливаем уведомление
             setNotify({ message: fallbackMessage, type: "error" });
         } finally {
+            // Проверяем, что нет silent
             if (!silent) {
+                // Устанавливаем загрузку
                 setLoading(false);
             }
         }
     }, [router]);
 
+    // Используем useEffect для загрузки данных админ панели
     useEffect(() => {
         void load();
     }, [load]);
 
+    // Функция для выполнения действия
     const runAction = async (action: () => Promise<void>, key: string, successMessage?: string, reloadAfter: boolean = true) => {
+        // Устанавливаем занятость
         setBusy(true);
+        // Устанавливаем ключ действия
         setActionKey(key);
         try {
+            // Выполняем действие
             await action();
+            // Проверяем, что есть сообщение об успехе
             if (successMessage) {
+                // Устанавливаем уведомление
                 setNotify({ message: successMessage, type: "success" });
             }
+            // Проверяем, что нужно перезагрузить данные
             if (reloadAfter) {
+                // Перезагружаем данные
                 await load(true);
             }
         } catch (e) {
+            // Проверяем, что ошибка вызвана отсутствием интернета
             if (e instanceof ApiResponseError) {
+                // Проверяем, что ошибка вызвана отсутствием интернета
                 const dbOffline = isDbOfflineMeta(e.status, e.code);
+                // Устанавливаем уведомление
                 setNotify({
                     message: dbOffline ? getDbOfflineToastMessage() : e.message,
                     type: dbOffline ? "warning" : "error",
                 });
                 return;
             }
+
+            // Проверяем, что ошибка вызвана отсутствием интернета
             const message = e instanceof Error ? e.message : "Ошибка выполнения операции";
+            // Устанавливаем уведомление
             setNotify({ message, type: "error" });
         } finally {
+            // Устанавливаем занятость
             setBusy(false);
+            // Устанавливаем ключ действия
             setActionKey(null);
         }
     };
 
+    // Функция для подтверждения заявки
     const approve = async (userId: number) => {
+        // Выполняем действие
         await runAction(async () => {
+            // Выполняем POST запрос
             await apiPost(`/api/admin/registrations/${userId}/approve`);
         }, `approve-${userId}`, "Заявка подтверждена");
     };
 
+    // Функция для отклонения заявки
     const reject = async (userId: number) => {
+        // Выполняем действие
         await runAction(async () => {
+            // Выполняем POST запрос
             await apiPost(`/api/admin/registrations/${userId}/reject`);
         }, `reject-${userId}`, "Заявка отклонена");
     };
 
+    // Функция для переключения доступа
     const toggleAccess = async (userId: number) => {
+        // Выполняем действие
         await runAction(async () => {
+            // Выполняем POST запрос
             const response = await apiPost<{ data?: { userId: number; canAccessAdmin: number } }>(`/api/admin/users/${userId}/access`);
+            // Получаем данные
             const next = response.data;
+            // Проверяем, что данные не пустые
             if (!next) return;
+            
+            // Устанавливаем данные
             setData((prev) => {
+                // Проверяем, что данные не пустые
                 if (!prev) return prev;
                 return {
                     ...prev,
@@ -171,84 +239,140 @@ export default function AdminPage() {
         }, `toggle-${userId}`, "Права доступа обновлены", false);
     };
 
+    // Функция для разрешения сброса пароля
     const resolveReset = async (requestId: number) => {
+        // Получаем новый пароль
         const nextPassword = (newPasswords[requestId] || "").trim();
+        // Проверяем, что новый пароль не пустой и длиной минимум 8 символов
         if (!nextPassword || nextPassword.length < 8) {
+            // Устанавливаем уведомление
             setNotify({ message: "Введите новый пароль длиной минимум 8 символов", type: "warning" });
+            // Возвращаем
             return;
         }
+
+        // Выполняем действие
         await runAction(async () => {
+            // Выполняем POST запрос
             await apiPost(`/api/admin/password-resets/${requestId}/resolve`, { newPassword: nextPassword });
+            // Устанавливаем новые пароли
             setNewPasswords((prev) => ({ ...prev, [requestId]: "" }));
+            // Устанавливаем id запроса сброса пароля
             setResetRequestDialogId(null);
         }, `reset-${requestId}`, "Пароль по заявке обновлен");
     };
 
+    // Функция для создания группы
     const createGroup = async () => {
+        // Получаем id преподавателя
         const fkUser = Number(newGroupTeacherId);
+        // Проверяем, что название группы не пустое и преподаватель не пустой
         if (!newGroupName.trim() || !Number.isFinite(fkUser) || fkUser <= 0) {
+            // Устанавливаем уведомление
             setNotify({ message: "Укажите название группы и корректного преподавателя", type: "warning" });
+            // Возвращаем
             return;
         }
+
+        // Выполняем действие
         await runAction(async () => {
+            // Выполняем POST запрос
             await apiPost("/api/admin/groups", { name: newGroupName.trim(), fk_user: fkUser });
+            // Устанавливаем название группы
             setNewGroupName("");
+            // Устанавливаем id преподавателя
             setNewGroupTeacherId("");
         }, "create-group", "Группа создана");
     };
 
+    // Функция для сохранения группы
     const saveGroup = async (groupId: number) => {
+        // Получаем черновик группы
         const draft = groupDrafts[groupId];
+        // Проверяем, что черновик не пустой
         if (!draft) return;
+        // Создаем payload
         const payload: { name?: string; fk_user?: number } = {};
+        // Проверяем, что название группы не пустое
         if (draft.name.trim()) payload.name = draft.name.trim();
+        // Проверяем, что id преподавателя не пустой
         if (draft.fk_user.trim()) payload.fk_user = Number(draft.fk_user.trim());
+        
+        // Выполняем действие
         await runAction(async () => {
+            // Выполняем PATCH запрос
             await apiPatch(`/api/admin/groups/${groupId}`, payload);
+            // Устанавливаем id группы
             setGroupEditId(null);
         }, `save-group-${groupId}`, "Группа обновлена");
     };
 
+    // Функция для удаления группы  
     const deleteGroup = async (groupId: number) => {
+        // Выполняем действие
         await runAction(async () => {
+            // Выполняем DELETE запрос
             await apiDelete(`/api/admin/groups/${groupId}`);
+            // Устанавливаем id группы
             setGroupDeleteId(null);
         }, `delete-group-${groupId}`, "Группа удалена");
     };
 
+    // Функция для сохранения пользователя
     const saveUser = async (userId: number) => {
+        // Получаем черновик пользователя
         const draft = userDrafts[userId];
+        // Проверяем, что черновик не пустой
         if (!draft) return;
+        // Выполняем действие
         await runAction(async () => {
+            // Выполняем PATCH запрос
             await apiPatch(`/api/admin/users/${userId}`, {
                 full_name: draft.full_name.trim(),
                 email: draft.email.trim(),
             });
+            // Устанавливаем id пользователя
             setUserEditId(null);
         }, `save-user-${userId}`, "Пользователь обновлен");
     };
 
+    // Функция для удаления пользователя
     const deleteUser = async (userId: number) => {
+        // Выполняем действие
         await runAction(async () => {
+            // Выполняем DELETE запрос
             await apiDelete(`/api/admin/users/${userId}`);
+            // Устанавливаем id пользователя
             setUserDeleteId(null);
         }, `delete-user-${userId}`, "Пользователь удален");
     };
 
+    // Функция для сброса пароля пользователя
     const resetUserPasswordDirect = async (userId: number) => {
+        // Получаем новый пароль
         const newPassword = resetPasswordDraft.trim();
+        // Проверяем, что новый пароль не пустой и длиной минимум 8 символов
         if (newPassword.length < 8) {
+            // Устанавливаем уведомление
             setNotify({ message: "Пароль должен быть длиной минимум 8 символов", type: "warning" });
+            // Возвращаем
             return;
         }
+
+        // Выполняем действие
         await runAction(async () => {
+            // Выполняем POST запрос
             await apiPost(`/api/admin/users/${userId}/reset-password`, { newPassword });
+            // Устанавливаем id пользователя
             setUserResetId(null);
+            // Устанавливаем черновик сброса пароля
             setResetPasswordDraft("");
         }, `direct-reset-${userId}`, "Пароль пользователя обновлен");
     };
 
+    // Проверяем, что загрузка не пустая
     if (loading) {
+        // Возвращаем компонент загрузки
         return (
             <div className="min-h-[70vh] flex items-center justify-center p-6">
                 <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-sm">
@@ -275,7 +399,10 @@ export default function AdminPage() {
             </div>
         );
     }
+
+    // Проверяем, что ошибка не пустая
     if (error) {
+        // Получаем тип ошибки
         const kind = getErrorKindByMeta(error.status, error.code);
         return (
             <PageErrorState
@@ -288,14 +415,22 @@ export default function AdminPage() {
         );
     }
 
+    // Проверяем, что данные не пустые
     if (!data) return null;
+    // Получаем опции преподавателей
     const teacherOptions = data.users.filter((u) => u.registration_status === "approved");
+    // Получаем данные группы
     const editingGroup = groupEditId ? data.groups.find((g) => g.id === groupEditId) : null;
+    // Получаем данные пользователя
     const editingUser = userEditId ? data.users.find((u) => u.id === userEditId) : null;
+    // Получаем данные группы для удаления
     const deletingGroup = groupDeleteId ? data.groups.find((g) => g.id === groupDeleteId) : null;
+    // Получаем данные пользователя для удаления
     const deletingUser = userDeleteId ? data.users.find((u) => u.id === userDeleteId) : null;
+    // Получаем данные пользователя для сброса пароля
     const resettingUser = userResetId ? data.users.find((u) => u.id === userResetId) : null;
 
+    // Возвращаем компонент AdminPage
     return (
         <div className="w-[90%] mx-auto space-y-8 animate-in fade-in duration-500 bg-background min-h-screen py-4">
             {notify.message ? <NotifyAlert message={notify.message} type={notify.type} onClose={() => setNotify({ message: "", type: "" })} /> : null}

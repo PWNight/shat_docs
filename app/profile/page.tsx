@@ -26,32 +26,45 @@ import {
 } from "@/utils/interfaces";
 import { apiPost } from "@/utils/http-client";
 
+// Типы вкладок
 type TabType = 'name' | 'email' | 'password';
 
 export default function ProfilePage() {
+    // Получаем router
     const router = useRouter();
 
-    const [user, setUser] = useState<UserProfile | null>(null);
-    const [stats, setStats] = useState<TeacherStats | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<TabType>("name");
-    const [notify, setNotify] = useState<Notify>({ message: "", type: "" });
-    const [pending, setPending] = useState(false);
-    const [pageError, setPageError] = useState<{ message: string; status?: number; code?: string } | null>(null);
+    // Состояния
+    const [user, setUser] = useState<UserProfile | null>(null); // Данные пользователя
+    const [stats, setStats] = useState<TeacherStats | null>(null); // Данные статистики
+    const [loading, setLoading] = useState(true); // Загрузка
+    const [activeTab, setActiveTab] = useState<TabType>("name"); // Выбранная вкладка
+    const [notify, setNotify] = useState<Notify>({ message: "", type: "" }); // Уведомления
+    const [pending, setPending] = useState(false); // Загрузка
+    const [pageError, setPageError] = useState<{ message: string; status?: number; code?: string } | null>(null); // Ошибка
 
+    // Функция для загрузки данных
     const loadData = useCallback(async (userId: number) => {
+        // Получаем данные пользователя и статистики
         const [userResponse, statsResponse] = await Promise.allSettled([
+            // Получаем данные пользователя
             GetUser(userId),
+            // Получаем данные статистики
             GetTeacherStats(),
         ]);
 
+        // Ошибка
         let fatalError: { message: string; status?: number; code?: string } | null = null;
+        // Проверяем, что данные пользователя не пустые
         if (userResponse.status === "fulfilled" && userResponse.value.success && "data" in userResponse.value && userResponse.value.data) {
+            // Устанавливаем данные пользователя
             setUser((userResponse.value.data ?? null) as UserProfile | null);
         } else {
             if (userResponse.status === "fulfilled") {
+                // Получаем значение
                 const value = userResponse.value;
+                // Устанавливаем ошибку
                 fatalError = {
+                    // Устанавливаем сообщение
                     message: value.message || "Ошибка загрузки данных",
                     status: value.success === false ? value.status : undefined,
                     code: value.success === false ? value.code : undefined,
@@ -59,54 +72,77 @@ export default function ProfilePage() {
             }
         }
 
+        // Проверяем, что данные статистики не пустые
         if (statsResponse.status === "fulfilled" && statsResponse.value.success && "data" in statsResponse.value) {
+            // Устанавливаем данные статистики
             setStats((statsResponse.value.data ?? null) as TeacherStats | null);
         } else {
+            // Устанавливаем уведомление
             setNotify({ message: "Не удалось загрузить статистику, показываем профиль без нее", type: "warning" });
         }
 
+        // Проверяем, что ошибка не пустая
         if (fatalError) {
+            // Устанавливаем ошибку
             setPageError(fatalError);
         }
     }, []);
 
+    // Используем useEffect для загрузки данных
     useEffect(() => {
+        // Создаем флаг для отслеживания монтирования
         let isMounted = true;
 
+        // Пытаемся получить сессию
         getSession().then(async (session) => {
+            // Проверяем, что компонент не размонтирован
             if (!isMounted) return;
 
+            // Проверяем, что сессия не пустая
             if (!session) {
                 router.push("/login?to=profile");
                 return;
             }
 
+            // Загружаем данные
             await loadData(session.uid);
+            // Устанавливаем загрузку
             setLoading(false);
         });
 
+        // Возвращаем функцию для отслеживания размонтирования
         return () => {
             isMounted = false;
         };
     }, [router, loadData]);
 
+    // Функция для обработки действия
     const handleAction = async (e: React.ChangeEvent<HTMLFormElement>) => {
+        // Предотвращаем стандартное поведение формы
         e.preventDefault();
+        // Устанавливаем загрузку
         setPending(true);
 
+        // Получаем данные формы
         const formData = new FormData(e.currentTarget);
+        // Преобразуем данные формы в объект
         const data = Object.fromEntries(formData) as UpdateProfileFormData;
 
+        // Выполняем запрос на обновление профиля
         const res = await UpdateProfile(data) as { success: boolean; message?: string };
 
+        // Устанавливаем уведомление
         setNotify({
             message: res.message || (res.success ? "Сохранено" : "Ошибка сохранения"),
             type: res.success ? 'success' : 'error'
         });
 
+        // Проверяем, что запрос успешен
         if (res.success) {
             if (data.full_name || data.email) {
+                // Устанавливаем данные пользователя
                 setUser((prev) => {
+                    // Проверяем, что данные не пустые
                     if (!prev) return null;
 
                     return {
@@ -117,35 +153,50 @@ export default function ProfilePage() {
                 });
             }
 
+            // Проверяем, что выбрана вкладка пароля
             if (activeTab === "password") {
+                // Сбрасываем форму
                 (e.target as HTMLFormElement).reset();
             }
         }
 
+        // Устанавливаем загрузку
         setPending(false);
     };
 
+    // Функция для обработки запроса сброса пароля
     const handlePasswordResetRequest = async () => {
+        // Устанавливаем загрузку
         setPending(true);
+        // Пытаемся получить ответ от сервера
         try {
+            // Выполняем POST запрос на запрос сброса пароля
             const response = await apiPost<{ message?: string }>("/api/password-resets/request");
+            // Устанавливаем уведомление
             setNotify({ message: response.message || "Заявка отправлена", type: "success" });
         } catch (error) {
+            // Проверяем, что ошибка является ApiResponseError
             if (error instanceof ApiResponseError) {
+                // Проверяем, что ошибка является ошибкой базы данных
                 const dbOffline = isDbOfflineMeta(error.status, error.code);
+                // Устанавливаем уведомление
                 setNotify({
                     message: dbOffline ? getDbOfflineToastMessage() : error.message,
                     type: dbOffline ? "warning" : "error",
                 });
                 return;
             }
+            // Устанавливаем уведомление
             setNotify({ message: error instanceof Error ? error.message : "Ошибка отправки заявки", type: "error" });
         } finally {
+            // Устанавливаем загрузку
             setPending(false);
         }
     };
 
+    // Проверяем, что загрузка не пустая    
     if (loading) {
+        // Возвращаем компонент загрузки
         return (
             <div className="min-h-[70vh] flex items-center justify-center p-6">
                 <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-sm">
@@ -173,7 +224,9 @@ export default function ProfilePage() {
         );
     }
 
+    // Проверяем, что ошибка не пустая
     if (pageError) {
+        // Получаем тип ошибки
         const kind = getErrorKindByMeta(pageError.status, pageError.code);
         return (
             <PageErrorState

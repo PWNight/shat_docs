@@ -7,32 +7,43 @@ import {Register} from "@/utils/handlers";
 import { getSession } from "@/utils/session";
 
 function RegisterForm() {
+    // Используем useActionState для регистрации
     const [state, action, pending] = useActionState(Register, {
         success: false,
         message: "",
-        fieldErrors: {},
+        fieldErrors: {},  
         values: { email: "" }
     });
+
+    // Используем useState для показа пароля
     const [showPassword, setShowPassword] = useState(false);
+    // Используем useSearchParams для получения параметров
     const searchParams = useSearchParams();
-
+    // Получаем параметр redirectTo
     const redirectTo = searchParams.get("to") || "/profile";
-
+    // Используем useEffect для перенаправления после регистрации
     useEffect(() => {
+        // Проверяем, что пользователь успешно зарегистрирован
         if (state?.success) {
+            // Проверяем, что пользователь требует подтверждения
             if (state.requiresApproval) {
                 return;
             }
+            // Перенаправляем пользователя на страницу профиля
             window.location.assign(redirectTo);
             return;
         }
+        // Получаем сессию
         getSession().then(data => {
+            // Проверяем, что сессия не пустая
             if ( data ) {
+                // Перенаправляем пользователя на страницу профиля
                 window.location.assign(redirectTo);
             }
         })
     }, [state, redirectTo]);
 
+    // Функция для показа/скрытия пароля
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
     };

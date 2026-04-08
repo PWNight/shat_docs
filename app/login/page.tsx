@@ -7,29 +7,40 @@ import { Login } from "@/utils/handlers";
 import { getSession } from "@/utils/session";
 
 function LoginForm() {
+    // Используем useActionState для авторизации
     const [state, action, pending] = useActionState(Login, {
         success: false,
         message: "",
         fieldErrors: {},
         values: { email: "" }
     });
+    // Используем useState для показа пароля
     const [showPassword, setShowPassword] = useState(false);
+    // Используем useSearchParams для получения параметров
     const searchParams = useSearchParams();
 
+    // Получаем параметр redirectTo
     const redirectTo = searchParams.get("to") || "/profile";
 
+    // Используем useEffect для перенаправления после авторизации
     useEffect(() => {
+        // Проверяем, что пользователь успешно авторизован
         if (state?.success) {
+            // Перенаправляем пользователя на страницу профиля
             window.location.assign(redirectTo);
             return;
         }
+        // Получаем сессию
         getSession().then(data => {
+            // Проверяем, что сессия не пустая
             if ( data ) {
+                // Перенаправляем пользователя на страницу профиля
                 window.location.assign(redirectTo);
             }
         })
     }, [state, redirectTo]);
 
+    // Функция для показа/скрытия пароля
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
     };

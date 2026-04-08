@@ -25,23 +25,31 @@ import { Group, Notify, Student } from "@/utils/interfaces";
 interface UserListItem { id: number; full_name: string; }
 
 export default function MyGroup({ params }: { params: Promise<{ id: string }> }) {
+    // Получаем параметры
     const resolvedParams = use(params);
+    // Получаем id группы
     const groupId = resolvedParams.id;
+    // Получаем router
     const router = useRouter();
 
-    const [userData, setUserData] = useState<SessionPayload | null>(null);
-    const [group, setGroup] = useState<Group | null>(null);
-    const [users, setUsers] = useState<UserListItem[]>([]);
-    const [activeTab, setActiveTab] = useState<'attendance' | 'grades' | 'students'>('attendance');
-    const [notify, setNotify] = useState<Notify>({ message: '', type: '' });
-    const [updateFormData, setUpdateFormData] = useState({ name: '', fk_user: '' });
-    const [students, setStudents] = useState<Student[]>([]);
-    const [isPending, startTransition] = useTransition();
-    const [pageError, setPageError] = useState<{ message: string; status?: number; code?: string } | null>(null);
+    // Состояния
+    const [userData, setUserData] = useState<SessionPayload | null>(null); // Данные пользователя
+    const [group, setGroup] = useState<Group | null>(null); // Данные группы
+    const [users, setUsers] = useState<UserListItem[]>([]); // Список преподавателей
+    const [activeTab, setActiveTab] = useState<'attendance' | 'grades' | 'students'>('attendance'); // Выбранная вкладка
+    const [notify, setNotify] = useState<Notify>({ message: '', type: '' }); // Уведомления
+    const [updateFormData, setUpdateFormData] = useState({ name: '', fk_user: '' }); // Данные формы
+    const [students, setStudents] = useState<Student[]>([]); // Список студентов
+    const [isPending, startTransition] = useTransition(); // Загрузка
+    const [pageError, setPageError] = useState<{ message: string; status?: number; code?: string } | null>(null); // Ошибка
 
+    // Функция для загрузки данных
     const loadData = useCallback(async (id: string) => {
+        // Получаем данные группы
         const groupRes = await GetGroup(id);
+        // Проверяем, что запрос успешен
         if (!groupRes.success) {
+            // Устанавливаем ошибку
             setPageError({
                 message: groupRes.message || "Группа не найдена или недоступна",
                 status: groupRes.status,
@@ -50,42 +58,64 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
             return;
         }
 
+        // Проверяем, что данные не пустые
         if (!("data" in groupRes) || !groupRes.data) {
+            // Устанавливаем ошибку
             setPageError({
                 message: groupRes.message || "Группа не найдена или недоступна",
             });
             return;
         }
 
+        // Устанавливаем данные группы
         const groupData = groupRes.data as Group;
+        // Устанавливаем данные формы
         setGroup(groupData);
+        // Устанавливаем данные формы
         setUpdateFormData({ name: groupData.name, fk_user: String(groupData.fk_user) });
 
+        // Получаем данные преподавателей и студентов
         const [usersRes, studentsRes] = await Promise.allSettled([GetUsersList(), GetStudents(id)]);
+        // Проверяем, что запрос успешен
         if (usersRes.status === "fulfilled" && usersRes.value.success && "data" in usersRes.value) {
+            // Устанавливаем данные преподавателей
             setUsers((usersRes.value.data as UserListItem[]) ?? []);
         } else {
+            // Устанавливаем уведомление
             setNotify({ message: "Не удалось загрузить список преподавателей", type: "warning" });
         }
+
+        // Проверяем, что запрос успешен
         if (studentsRes.status === "fulfilled" && studentsRes.value.success && "data" in studentsRes.value) {
+            // Устанавливаем данные студентов
             setStudents((studentsRes.value.data as Student[]) ?? []);
         } else {
+            // Устанавливаем уведомление
             setNotify({ message: "Не удалось загрузить список студентов", type: "warning" });
         }
     }, [router]);
 
+    // Инициализация при монтировании
     useEffect(() => {
+        // Создаем флаг для отслеживания монтирования
         getSession().then(session => {
+            // Проверяем, что сессия не пустая
             if (!session) return router.replace(`/login?to=profile/groups/${groupId}`);
+            // Устанавливаем данные пользователя
             setUserData(session);
+            // Загружаем данные
             loadData(groupId);
         });
     }, [groupId, loadData, router]);
 
+    // Проверяем, что пользователь является владельцем группы
     const isOwner = userData?.uid === group?.fk_user;
 
+    // Проверяем, что ошибка не пустая
     if (pageError) {
+        // Получаем тип ошибки
         const kind = getErrorKindByMeta(pageError.status, pageError.code);
+        // Возвращаем компонент ошибки
         return (
             <PageErrorState
                 kind={kind}

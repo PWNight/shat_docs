@@ -8,20 +8,27 @@ import {Info} from "lucide-react";
 import WikiBreadcrumb from "@/components/wiki/wiki-breadcrumb";
 import { Metadata } from "next";
 
+// Интерфейс для PageProps
 type PageProps = {
     params: Promise<{ slug: string[] }>;
 };
 
 export default async function WikiPage({ params }: PageProps) {
+    // Получаем параметры
     const { slug } = await params;
 
+    // Получаем путь
     const pathName = slug ? slug.join("/") : "";
-    const breadcrumbPaths = slug || []; // Гарантируем массив
+    // Получаем пути для хлебных крошек
+    const breadcrumbPaths = slug || []; 
 
+    // Получаем данные для конкретного slug
     const res = await getWikiForSlug(pathName);
 
+    // Проверяем, что данные не пустые
     if (!res) notFound();
 
+    // Возвращаем компонент WikiPage
     return (
         <div className="flex flex-col lg:flex-row items-start gap-6 lg:gap-12 px-4 sm:px-6 lg:px-8">
             <div className="w-full lg:flex-12 py-6">

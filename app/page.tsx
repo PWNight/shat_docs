@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/Dialog";
 import LineWaves from '@/components/ui/LineWaves';
 
+// Интерфейс для GitHubRelease
 interface GitHubRelease {
     id: number;
     name: string;
@@ -32,6 +33,7 @@ interface GitHubRelease {
     formattedBody?: string;
 }
 
+// Интерфейс для FeatureCardProps
 export interface FeatureCardProps {
     title: string;
     desc: string;
@@ -42,7 +44,9 @@ export interface FeatureCardProps {
     href: string;
 }
 
+// Функция для компонента FeatureCard
 const FeatureCard = ({ title, desc, icon, href }: FeatureCardProps) => (
+    // Возвращаем компонент FeatureCard
     <Link href={href} className="group relative p-6 bg-card/40 hover:bg-card/60 backdrop-blur-md border border-border/50 hover:border-blue-500/50 rounded-2xl transition-all duration-300 shadow-sm overflow-hidden flex flex-col h-full">
         <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
         <div className="relative z-10 flex flex-col h-full">
@@ -59,29 +63,43 @@ const FeatureCard = ({ title, desc, icon, href }: FeatureCardProps) => (
 );
 
 export default function MainPage() {
+    // Получаем тему
     const { resolvedTheme } = useTheme();
+    // Флаг монтирования
     const [mounted, setMounted] = useState(false);
+    // Последний мажорный релиз
     const [latestMajor, setLatestMajor] = useState<GitHubRelease | null>(null);
+    // Последний патч релиз
     const [latestPatch, setLatestPatch] = useState<GitHubRelease | null>(null);
+    // Последняя бета релиз
     const [latestBeta, setLatestBeta] = useState<GitHubRelease | null>(null);
+    // Флаг загрузки
     const [loading, setLoading] = useState(true);
+    // Ошибка загрузки релизов
     const [releasesError, setReleasesError] = useState<string | null>(null);
 
+    // Используем useEffect для установки флага монтирования
     useEffect(() => {
+        // Устанавливаем флаг монтирования
         setMounted(true);
     }, []);
 
+    // Функция для проверки, является ли версия мажорной
     const isMajorRelease = (tagName: string) => {
         const version = tagName.replace(/[^0-9.]/g, '');
         return version.endsWith('.0');
     };
 
+    // Функция для проверки, является ли версия бета
     const isBetaRelease = (tagName: string) => {
         return tagName.toLowerCase().includes('-beta');
     };
 
+    // Функция для форматирования тела релиза
     const formatReleaseBody = (body: string) => {
+        // Проверяем, что тело релиза не пустое
         if (!body) return "Описание изменений отсутствует.";
+        // Форматируем тело релиза
         return body
             .replace(/^### (.*$)/gim, '<h3 class="font-bold text-lg mt-4 mb-2 flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>$1</h3>')
             .replace(/^## (.*$)/gim, '<h2 class="font-bold text-xl mt-4 mb-2 border-l-4 border-blue-500 pl-3">$1</h2>')
@@ -91,21 +109,33 @@ export default function MainPage() {
             .replace(/\*\*(.*)\*\*/gim, '<strong class="text-blue-600 dark:text-blue-400">$1</strong>');
     };
 
+    // Используем useEffect для загрузки релизов
     useEffect(() => {
+        // Функция для загрузки релизов
         const fetchReleases = async () => {
             try {
+                // Устанавливаем ошибку загрузки релизов
                 setReleasesError(null);
+                // Получаем список релизов с GitHub
                 const res = await fetch(`https://api.github.com/repos/PWNight/shat_docs/releases`);
+                // Получаем данные релизов  
                 const data: GitHubRelease[] = await res.json();
 
+                // Получаем последний мажорный релиз
                 const major = data.find(rel => isMajorRelease(rel.name) && !isBetaRelease(rel.name));
+                // Получаем последний патч релиз
                 const patch = data.find(rel => !isMajorRelease(rel.name) && !isBetaRelease(rel.name));
+                // Получаем последнюю бета релиз
                 const beta = data.find(rel => isBetaRelease(rel.name));
 
+                // Устанавливаем последний мажорный релиз
                 if (major) setLatestMajor({ ...major, formattedBody: formatReleaseBody(major.body) });
+                // Устанавливаем последний патч релиз
                 if (patch) setLatestPatch({ ...patch, formattedBody: formatReleaseBody(patch.body) });
+                // Устанавливаем последнюю бета релиз
                 if (beta) setLatestBeta({ ...beta, formattedBody: formatReleaseBody(beta.body) });
             } catch (e) {
+                // Проверяем, что ошибка вызвана отсутствием интернета
                 console.error("Failed to fetch releases:", e);
                 setReleasesError(e instanceof Error ? e.message : "Нет подключения к интернету");
             } finally {

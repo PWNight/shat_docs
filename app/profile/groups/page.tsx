@@ -78,46 +78,65 @@ const GroupCreateForm = ({ open, setOpen, dispatch, pending, state, userData }: 
 };
 
 export default function ProfileGroups() {
+    // Получаем router
     const router = useRouter();
 
-    const [userData, setUserData] = useState<{ email: string; uid: number }>(Object);
-    const [groups, setGroups] = useState<Group[]>([]);
-    const [pageLoaded, setPageLoaded] = useState(false);
-    const [notify, setNotify] = useState<Notify>({ message: '', type: '' });
-    const [open, setOpen] = useState(false);
-    const [pageError, setPageError] = useState<{ message: string; status?: number; code?: string } | null>(null);
+    // Состояния
+    const [userData, setUserData] = useState<{ email: string; uid: number }>(Object); // Данные пользователя
+    const [groups, setGroups] = useState<Group[]>([]); // Список групп
+    const [pageLoaded, setPageLoaded] = useState(false); // Загрузка страницы
+    const [notify, setNotify] = useState<Notify>({ message: '', type: '' }); // Уведомления
+    const [open, setOpen] = useState(false); // Открытие диалога
+    const [pageError, setPageError] = useState<{ message: string; status?: number; code?: string } | null>(null); // Ошибка
 
     // Функция загрузки списка групп
     const loadData = useCallback(async () => {
+        // Получаем список групп
         const response = await GetAllGroups();
+        // Проверяем, что запрос успешен
         if (!response.success) {
+            // Устанавливаем ошибку
             setPageError({
+                // Устанавливаем сообщение
                 message: response.message || "Ошибка загрузки групп",
+                // Устанавливаем статус
                 status: response.status,
+                // Устанавливаем код
                 code: response.code,
             });
             return;
         }
 
+        // Проверяем, что данные не пустые
         if (!("data" in response) || !response.data) {
+            // Устанавливаем ошибку
             setPageError({
+                // Устанавливаем сообщение
                 message: response.message || "Ошибка загрузки групп",
             });
             return;
         }
 
+        // Устанавливаем ошибку
         setPageError(null);
+        // Устанавливаем группы
         setGroups((response.data as Group[]) || []);
     }, []);
 
     // useActionState для создания группы
     const [state, dispatch, pending] = useActionState<GroupFormState, FormData>(
+        // Функция для создания группы
         async (prevState: GroupFormState, formData: FormData) => {
+            // Выполняем запрос на создание группы
             const result = await CreateGroup(prevState, formData);
 
+            // Проверяем, что запрос успешен
             if (result.success) {
+                // Закрываем диалог
                 setOpen(false);
+                // Устанавливаем уведомление
                 setNotify({ message: "Группа успешно создана", type: "success" });
+                // Загружаем данные
                 await loadData();
             }
 
@@ -128,18 +147,26 @@ export default function ProfileGroups() {
 
     // Инициализация при монтировании
     useEffect(() => {
+        // Создаем флаг для отслеживания монтирования
         let isMounted = true;
 
+        // Пытаемся получить сессию
         getSession().then(async (session) => {
+            // Проверяем, что компонент не размонтирован
             if (!isMounted) return;
 
+            // Проверяем, что сессия не пустая
             if (!session) {
+                // Перенаправляем пользователя на страницу авторизации
                 router.push("/login?to=profile/groups");
                 return;
             }
 
+            // Устанавливаем данные пользователя
             setUserData({ email: session.email, uid: session.uid });
+            // Загружаем данные
             await loadData();
+            // Устанавливаем загрузку
             setPageLoaded(true);
         });
 
@@ -148,9 +175,9 @@ export default function ProfileGroups() {
         };
     }, [router, loadData]);
 
-
-    
+    // Проверяем, что страница не загружена
     if (!pageLoaded) {
+        // Возвращаем компонент загрузки
         return (
             <div className="min-h-[70vh] flex items-center justify-center p-6">
                 <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-sm">
@@ -178,7 +205,9 @@ export default function ProfileGroups() {
         );
     }
 
+    // Проверяем, что ошибка не пустая
     if (pageError) {
+        // Получаем тип ошибки
         const kind = getErrorKindByMeta(pageError.status, pageError.code);
         return (
             <PageErrorState
