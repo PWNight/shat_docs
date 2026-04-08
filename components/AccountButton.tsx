@@ -49,6 +49,7 @@ export async function AuthButton() {
         return (
             <Anchor
                 href="/login"
+                prefetch={false}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl transition-all duration-200 font-semibold hover:bg-blue-600 text-white bg-blue-500"
             >
                 <LogIn className="w-4 h-4" />
@@ -83,6 +84,7 @@ export async function AuthButton() {
                 <DropdownMenuItem asChild>
                     <Anchor
                         href="/profile"
+                        prefetch={false}
                         className="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors hover:bg-muted"
                     >
                         <UserCircle className="w-4 h-4 text-blue-500" />
@@ -92,6 +94,7 @@ export async function AuthButton() {
                 <DropdownMenuItem asChild>
                     <Anchor
                         href="/profile/groups"
+                        prefetch={false}
                         className="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors hover:bg-muted"
                     >
                         <GraduationCap className="w-4 h-4 text-blue-500" />
@@ -102,6 +105,7 @@ export async function AuthButton() {
                     <DropdownMenuItem asChild>
                         <Anchor
                             href="/admin"
+                            prefetch={false}
                             className="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors hover:bg-muted"
                         >
                             <ShieldCheck className="w-4 h-4 text-blue-500" />
