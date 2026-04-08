@@ -50,7 +50,7 @@ type TabType = "groups" | "users" | "logs";
 
 export default function AdminPage() {
     const [data, setData] = useState<AdminOverview | null>(null);
-    const [userData, setUserData] = useState<{ email: string; uid: number }>(Object);
+    const [userData, setUserData] = useState<{ email: string; uid: number }>({ email: "", uid: 0 });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<{ message: string; status?: number; code?: string } | null>(null);
     const [notify, setNotify] = useState<{ message: string; type: string }>({ message: "", type: "" });
