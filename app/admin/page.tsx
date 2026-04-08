@@ -306,12 +306,12 @@ export default function AdminPage() {
                 </div>
 
             <section className="grid grid-cols-2 lg:grid-cols-6 gap-2">
-                <StatCard icon={<Users />} label="Пользователи" value={data.appStats.users_total} />
-                <StatCard icon={<Clock3 />} label="Ожидают регистрацию" value={data.appStats.registrations_pending} />
+                <StatCard icon={<Users />} label="Пользователей" value={data.appStats.users_total} />
                 <StatCard icon={<Shield />} label="Админов" value={data.appStats.admins_total} />
                 <StatCard icon={<Layers />} label="Групп" value={data.appStats.groups_total} />
                 <StatCard icon={<UserCog />} label="Студентов" value={data.appStats.students_total} />
-                <StatCard icon={<KeyRound />} label="Сбросов пароля" value={data.appStats.password_resets_pending} />
+                <StatCard icon={<Clock3 />} label="Регистраций в очереди" value={data.appStats.registrations_pending} />
+                <StatCard icon={<KeyRound />} label="Сбросов паролей в очереди" value={data.appStats.password_resets_pending} />
             </section>
 
             <div className="w-full overflow-x-auto">
@@ -606,12 +606,12 @@ function StatCard({
     value: number;
 }) {
     const colorMap: Record<string, { border: string; icon: string; iconBg: string }> = {
-        "Пользователи": { border: "border-gray-100 dark:border-zinc-700", icon: "text-blue-600 dark:text-blue-400", iconBg: "bg-gray-100 dark:bg-zinc-700/50" },
-        "Ожидают регистрацию": { border: "border-gray-100 dark:border-zinc-700", icon: "text-amber-600 dark:text-amber-400", iconBg: "bg-gray-100 dark:bg-zinc-700/50" },
+        "Пользователей": { border: "border-gray-100 dark:border-zinc-700", icon: "text-blue-600 dark:text-blue-400", iconBg: "bg-gray-100 dark:bg-zinc-700/50" },
+        "Регистраций в очереди": { border: "border-gray-100 dark:border-zinc-700", icon: "text-amber-600 dark:text-amber-400", iconBg: "bg-gray-100 dark:bg-zinc-700/50" },
         "Админов": { border: "border-gray-100 dark:border-zinc-700", icon: "text-violet-600 dark:text-violet-400", iconBg: "bg-gray-100 dark:bg-zinc-700/50" },
         "Групп": { border: "border-gray-100 dark:border-zinc-700", icon: "text-emerald-600 dark:text-emerald-400", iconBg: "bg-gray-100 dark:bg-zinc-700/50" },
         "Студентов": { border: "border-gray-100 dark:border-zinc-700", icon: "text-cyan-600 dark:text-cyan-400", iconBg: "bg-gray-100 dark:bg-zinc-700/50" },
-        "Сбросов пароля": { border: "border-gray-100 dark:border-zinc-700", icon: "text-rose-600 dark:text-rose-400", iconBg: "bg-gray-100 dark:bg-zinc-700/50" },
+        "Сбросов паролей в очереди": { border: "border-gray-100 dark:border-zinc-700", icon: "text-rose-600 dark:text-rose-400", iconBg: "bg-gray-100 dark:bg-zinc-700/50" },
     };
     const tone = colorMap[label] || { border: "border-border", icon: "text-muted-foreground", iconBg: "bg-muted" };
     return (
