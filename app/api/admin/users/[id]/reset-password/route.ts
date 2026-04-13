@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import { execute, queryOne } from "@/utils/mysql";
 import { badRequest, handleApiError, jsonResponse, notFound, safeParseJson, serverError, successResponse } from "@/utils/api";
 import { requireAdmin, writeAdminLog } from "@/utils/admin";
+import { revokeAllUserSessions } from "@/utils/session";
 
 type ResetPayload = {
     newPassword: string;
@@ -30,6 +31,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
         const hash = await bcrypt.hash(newPassword, 10);
         await execute("UPDATE users SET password_hash = ? WHERE id = ?", [hash, userId]);
+        await revokeAllUserSessions(userId, adminCheck.actor.id, { reason: "admin_reset_password" });
         await writeAdminLog(adminCheck.actor.id, "ADMIN_RESET_USER_PASSWORD", `targetUserId=${userId}`);
 
         return jsonResponse(successResponse(null, "Пароль пользователя обновлен"));
