@@ -1,4 +1,4 @@
-import { deleteSession } from "@/utils/session";
+import { deleteSession, revokeSessionById } from "@/utils/session";
 import { NextRequest } from "next/server";
 import {
     unauthorized,
@@ -24,6 +24,9 @@ export async function GET(request: NextRequest) {
             return badRequest("Токен некорректен");
         }
 
+        if (userData.sid) {
+            await revokeSessionById(userData.sid, userData.uid, { ownerUserId: userData.uid, reason: "logout" });
+        }
         await deleteSession();
         return jsonResponse(successResponse(null, "Успешно"));
     } catch (error) {

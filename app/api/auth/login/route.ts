@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
             return unauthorized("Неправильный пароль");
         }
 
-        const token = await createSession({ uid: user.id, email: user.email, full_name: user.full_name });
+        const { token } = await createSession({ uid: user.id, email: user.email, full_name: user.full_name }, request);
         return jsonResponse(successResponse({ uid: user.id, email, full_name: user.full_name, token }));
     } catch (error) {
         const { message, code } = handleApiError(error);
