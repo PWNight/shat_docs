@@ -105,6 +105,20 @@ export interface UpdateProfileFormData {
     [key: string]: string | undefined;
 }
 
+export interface ActiveSession {
+    sessionId: string;
+    userId: number;
+    email: string;
+    fullName: string;
+    deviceLabel: string;
+    userAgent: string | null;
+    ipAddress: string | null;
+    createdAt: string;
+    lastSeenAt: string;
+    expiresAt: string;
+    isCurrent: boolean;
+}
+
 export interface StatCardProps {
     icon: React.ReactElement<{
         size?: number | string;
