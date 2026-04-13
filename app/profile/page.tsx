@@ -260,28 +260,34 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500 bg-background min-h-screen">
-            {notify.message && <ErrorMessage message={notify.message} type={notify.type} onClose={() => setNotify({message:'', type:''})} />}
+        <div className="mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500 p-4 md:p-8">
+            {notify.message && (
+                <ErrorMessage 
+                    message={notify.message} 
+                    type={notify.type} 
+                    onClose={() => setNotify({message:'', type:''})} 
+                />
+            )}
 
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-6">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-foreground">Личный кабинет</h1>
-                    <p className="text-sm text-muted-foreground font-medium mt-1">Управление профилем и обзор статистики групп</p>
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-border pb-8">
+                <div className="space-y-1">
+                    <h1 className="text-4xl font-black tracking-tight text-foreground">Профиль</h1>
+                    <p className="text-muted-foreground font-medium">Управление учетной записью и академическая сводка</p>
                 </div>
-                <div className="flex items-center justify-between sm:justify-start gap-2">
-                    <div className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-2xl shadow-sm self-start md:self-center">
+                <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2 px-4 py-2.5 bg-muted/50 border border-border rounded-xl shadow-sm">
                         <Fingerprint className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">ID: {user?.id}</span>
+                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-tighter">ID: {user?.id}</span>
                     </div>
                     <button
                         onClick={handlePasswordResetRequest}
-                        className="rounded-xl bg-red-600 px-4 py-2 text-white text-sm font-semibold hover:bg-red-700 disabled:opacity-60"
                         disabled={pending}
+                        className="rounded-xl bg-destructive/10 text-destructive border border-destructive/20 px-5 py-2.5 text-sm font-bold hover:bg-destructive hover:text-white transition-colors disabled:opacity-50"
                     >
-                        Запросить сброс пароля
+                        Сбросить пароль
                     </button>
                 </div>
-            </div>
+            </header>
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatCard
@@ -318,95 +324,124 @@ export default function ProfilePage() {
                 />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                {/* Left Sidebar: Info */}
                 <aside className="lg:col-span-4 space-y-6">
-                    <section className="bg-card border border-border p-6 rounded-2xl shadow-sm">
-                        <h3 className="text-sm font-bold text-foreground uppercase mb-8 flex items-center gap-2">
-                            <Info className="w-4 h-4 text-primary" /> Информация
+                    <div className="bg-card border border-border p-6 rounded-3xl shadow-sm">
+                        <h3 className="text-xs font-black text-muted-foreground uppercase mb-8 flex items-center gap-2 tracking-widest">
+                            <Info className="w-4 h-4 text-primary" /> Основные данные
                         </h3>
                         <div className="space-y-8">
                             <InfoItem label="Полное имя" value={user?.full_name} icon={<UserCheck />} iconColor="text-blue-500" bgColor="bg-blue-50/80 dark:bg-blue-500/10" />
                             <InfoItem label="Email адрес" value={user?.email} icon={<AtSign />} iconColor="text-emerald-500" bgColor="bg-emerald-50/80 dark:bg-emerald-500/10" />
                             <InfoItem label="Регистрация" value={user?.created_by ? new Date(user.created_by).toLocaleDateString() : '—'} icon={<CalendarDays />} iconColor="text-orange-500" bgColor="bg-orange-50/80 dark:bg-orange-500/10" />
                         </div>
-                    </section>
+                    </div>
                 </aside>
 
-                <main className="lg:col-span-8 space-y-6 lg:max-w-2xl">
-                    <div className="flex p-1.5 bg-card rounded-2xl border border-border w-full sm:w-fit shadow-inner relative overflow-hidden">
-                        <TabButton active={activeTab === 'name'} onClick={() => setActiveTab('name')} label="Имя" />
-                        <TabButton active={activeTab === 'email'} onClick={() => setActiveTab('email')} label="Почта" />
-                        <TabButton active={activeTab === 'password'} onClick={() => setActiveTab('password')} label="Пароль" />
-                    </div>
-
-                    <div className="bg-card border border-border p-6 rounded-2xl shadow-sm overflow-hidden min-h-75">
-                        <AnimatePresence mode="wait">
-                            <motion.div
-                                key={activeTab}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                transition={{ duration: 0.2, ease: "easeInOut" }}
-                            >
-                                {activeTab === 'name' && (
-                                    <form onSubmit={handleAction} className="space-y-8">
-                                        <div className="space-y-1">
-                                            <h3 className="text-xl font-bold text-foreground">Личные данные</h3>
-                                            <p className="text-sm text-muted-foreground">Обновите ваше ФИО для корректного отображения в документах</p>
-                                        </div>
-                                        <ProfileInput name="full_name" label="Новое ФИО" defaultValue={user?.full_name} placeholder="Введите ваше имя" />
-                                        <SubmitButton pending={pending} />
-                                    </form>
-                                )}
-
-                                {activeTab === 'email' && (
-                                    <form onSubmit={handleAction} className="space-y-8">
-                                        <div className="space-y-1">
-                                            <h3 className="text-xl font-bold text-foreground">Контактная почта</h3>
-                                            <p className="text-sm text-muted-foreground">Адрес электронной почты для входа и уведомлений</p>
-                                        </div>
-                                        <ProfileInput name="email" label="Новый Email" type="email" defaultValue={user?.email} placeholder="example@domain.com" />
-                                        <SubmitButton pending={pending} />
-                                    </form>
-                                )}
-
-                                {activeTab === 'password' && (
-                                    <form onSubmit={handleAction} className="space-y-8">
-                                        <div className="space-y-1">
-                                            <h3 className="text-xl font-bold text-foreground">Смена пароля</h3>
-                                            <p className="text-sm text-muted-foreground">Секретная фраза, благодаря которой вы входите в аккаунт</p>
-                                        </div>
-                                        <ProfileInput name="currentPassword" label="Текущий пароль" type="password" required />
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                            <ProfileInput name="newPassword" label="Новый пароль" type="password" required />
-                                            <ProfileInput name="confirmPassword" label="Подтверждение" type="password" required />
-                                        </div>
-                                        <SubmitButton pending={pending} />
-                                    </form>
-                                )}
-                            </motion.div>
-                        </AnimatePresence>
-                    </div>
-
-                    <section className="bg-card border border-border p-6 rounded-2xl shadow-sm space-y-3">
-                        <h3 className="text-lg font-bold text-foreground">Устройства и активные сессии</h3>
-                        {sessions.length === 0 ? <p className="text-sm text-muted-foreground">Активных сессий нет</p> : null}
-                        <div className="space-y-2">
-                            {sessions.map((session) => (
-                                <div key={session.sessionId} className="border border-border rounded-xl p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                                    <div className="text-sm">
-                                        <p className="font-semibold">{session.deviceLabel} {session.isCurrent ? "• текущее устройство" : ""}</p>
-                                        <p className="text-muted-foreground text-xs">{session.ipAddress || "IP неизвестен"} • Последняя активность: {new Date(session.lastSeenAt).toLocaleString()}</p>
-                                    </div>
-                                    <button
-                                        disabled={pending}
-                                        onClick={() => void revokeSession(session.sessionId)}
-                                        className="rounded-xl bg-red-50 text-red-600 border border-red-200 hover:bg-red-600 hover:text-white px-3 py-2 text-xs font-semibold disabled:opacity-60"
-                                    >
-                                        Отозвать
-                                    </button>
-                                </div>
+                {/* Right Content: Forms & Sessions */}
+                <main className="lg:col-span-8 space-y-8 max-w-[800px]">
+                    {/* Tabs Form Section */}
+                    <div className="space-y-6">
+                        <div className="flex p-1.5 bg-muted/30 rounded-2xl border border-border w-full sm:w-fit">
+                            {(['name', 'email', 'password'] as TabType[]).map((tab) => (
+                                <TabButton 
+                                    key={tab} 
+                                    active={activeTab === tab} 
+                                    onClick={() => setActiveTab(tab)} 
+                                    label={tab === 'name' ? 'Имя' : tab === 'email' ? 'Почта' : 'Пароль'} 
+                                />
                             ))}
+                        </div>
+
+                        <div className="bg-card border border-border p-8 rounded-3xl shadow-sm">
+                            <AnimatePresence mode="wait">
+                                <motion.div
+                                    key={activeTab}
+                                    initial={{ opacity: 0, x: 10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -10 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    <form onSubmit={handleAction} className="space-y-8">
+                                        <header>
+                                            <h3 className="text-2xl font-bold">
+                                                {activeTab === 'name' && "Личные данные"}
+                                                {activeTab === 'email' && "Контактная почта"}
+                                                {activeTab === 'password' && "Безопасность"}
+                                            </h3>
+                                            <p className="text-sm text-muted-foreground mt-1">
+                                                {activeTab === 'name' && "Эти данные используются в официальных отчетах и ведомостях."}
+                                                {activeTab === 'email' && "Используется для входа в систему и восстановления пароля."}
+                                                {activeTab === 'password' && "Рекомендуем менять пароль раз в несколько месяцев."}
+                                            </p>
+                                        </header>
+
+                                        <div className="space-y-6">
+                                            {activeTab === 'name' && (
+                                                <ProfileInput name="full_name" label="Новое ФИО" defaultValue={user?.full_name} placeholder="Иванов Иван Иванович" />
+                                            )}
+                                            {activeTab === 'email' && (
+                                                <ProfileInput name="email" label="Новый Email" type="email" defaultValue={user?.email} />
+                                            )}
+                                            {activeTab === 'password' && (
+                                                <>
+                                                    <ProfileInput name="currentPassword" label="Текущий пароль" type="password" required />
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                                        <ProfileInput name="newPassword" label="Новый пароль" type="password" required />
+                                                        <ProfileInput name="confirmPassword" label="Подтверждение" type="password" required />
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                        <SubmitButton pending={pending} />
+                                    </form>
+                                </motion.div>
+                            </AnimatePresence>
+                        </div>
+                    </div>
+
+                    {/* Sessions Section */}
+                    <section className="h-fit bg-card border border-border p-8 rounded-3xl shadow-sm space-y-6">
+                        <header>
+                            <h3 className="text-xl font-bold">Активные сессии</h3>
+                            <p className="text-sm text-muted-foreground mt-1">Список устройств, имеющих доступ к вашему аккаунту.</p>
+                        </header>
+                        
+                        <div className="grid gap-3">
+                            {sessions.length === 0 ? (
+                                <div className="text-center py-12 border-2 border-dashed border-border rounded-2xl text-muted-foreground text-sm">
+                                    Активные сессии не найдены
+                                </div>
+                            ) : (
+                                sessions.map((session) => (
+                                    <div key={session.sessionId} className="group border border-border hover:border-primary/20 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors">
+                                        <div className="flex items-center gap-4">
+                                            <div className={`p-2.5 rounded-xl ${session.isCurrent ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                                                <ShieldCheck size={20} />
+                                            </div>
+                                            <div className="text-sm">
+                                                <p className="font-bold flex items-center gap-2">
+                                                    {session.deviceLabel}
+                                                    {session.isCurrent && <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full uppercase tracking-widest">Текущая</span>}
+                                                </p>
+                                                <p className="text-muted-foreground text-xs font-medium">
+                                                    {session.ipAddress} • {new Date(session.lastSeenAt).toLocaleString()}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        {!session.isCurrent && (
+                                            <button
+                                                disabled={pending}
+                                                onClick={() => revokeSession(session.sessionId)}
+                                                className="rounded-xl bg-destructive/5 text-destructive border border-destructive/10 hover:bg-destructive hover:text-white px-4 py-2 text-xs font-bold transition-all disabled:opacity-50"
+                                            >
+                                                Завершить
+                                            </button>
+                                        )}
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </section>
                 </main>
