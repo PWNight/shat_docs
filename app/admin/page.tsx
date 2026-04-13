@@ -28,6 +28,19 @@ type ResetItem = { id: number; full_name: string; email: string; status: string 
 type GroupItem = { id: number; name: string; fk_user: number; owner_name: string | null };
 type GroupStatItem = { id: number; name: string; students_count: number; avg_grade: number | null; lessons_total: number; lessons_sick: number; late_total: number };
 type LogItem = { id: number; action: string; details: string | null; created_at: string; actor_name: string | null };
+type SessionItem = {
+    sessionId: string;
+    userId: number;
+    email: string;
+    fullName: string;
+    deviceLabel: string;
+    userAgent: string | null;
+    ipAddress: string | null;
+    createdAt: string;
+    lastSeenAt: string;
+    expiresAt: string;
+    isCurrent: boolean;
+};
 type AppStats = {
     users_total: number;
     registrations_pending: number;
@@ -43,6 +56,7 @@ type AdminOverview = {
     groups: GroupItem[];
     groupStats: GroupStatItem[];
     logs: LogItem[];
+    sessions: SessionItem[];
     appStats: AppStats;
 };
 
@@ -370,6 +384,12 @@ export default function AdminPage() {
         }, `direct-reset-${userId}`, "Пароль пользователя обновлен");
     };
 
+    const revokeAdminSession = async (sessionId: string) => {
+        await runAction(async () => {
+            await apiDelete(`/api/admin/sessions/${sessionId}`);
+        }, `revoke-session-${sessionId}`, "Сессия отозвана");
+    };
+
     // Проверяем, что загрузка не пустая
     if (loading) {
         // Возвращаем компонент загрузки
@@ -654,6 +674,27 @@ export default function AdminPage() {
                         </div>
                     ))}
                     </div>
+                    </div>
+                    <div className="grid gap-2">
+                        <h3 className="font-semibold">Текущие сессии приложения</h3>
+                        {data.sessions.length === 0 ? <p className="text-sm text-muted-foreground">Нет активных сессий</p> : null}
+                        <div className="grid md:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4 gap-2">
+                            {data.sessions.map((item) => (
+                                <div key={item.sessionId} className="border border-border rounded-xl p-3 grid gap-2">
+                                    <p className="font-medium">{item.fullName} ({item.email})</p>
+                                    <p className="text-sm text-muted-foreground">{item.deviceLabel} • {item.ipAddress || "IP неизвестен"}</p>
+                                    <p className="text-xs text-muted-foreground">Последняя активность: {new Date(item.lastSeenAt).toLocaleString()}</p>
+                                    <ActionButton
+                                        loading={actionKey === `revoke-session-${item.sessionId}`}
+                                        disabled={busy}
+                                        className="rounded-lg bg-red-50 dark:bg-zinc-700/50 text-red-600 dark:text-red-500 hover:bg-red-500 hover:text-white px-3 py-2 text-sm font-medium transition-colors disabled:opacity-60"
+                                        onClick={() => revokeAdminSession(item.sessionId)}
+                                    >
+                                        Отозвать сессию
+                                    </ActionButton>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </section>
             ) : null}
