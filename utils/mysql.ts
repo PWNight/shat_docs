@@ -23,13 +23,14 @@ const pool = mysql.createPool({
     // Максимальное количество соединений в пуле
     maxIdle: 10,
     // Таймаут ожидания соединения
-    idleTimeout: 60000,
+    idleTimeout: 30000,
     // Очередь соединений
     queueLimit: 0,
     // Включение keep alive
     enableKeepAlive: true,
     // Задержка начала keep alive
     keepAliveInitialDelay: 0,
+    debug: process.env.NODE_ENV === 'development',
 });
 
 // Универсальный запрос к БД с типизацией, который возвращает массив записей
@@ -38,6 +39,7 @@ export async function query<T = RowDataPacket>(
     params?: unknown[] | object
 ): Promise<T[]> {
     const [rows] = await pool.execute<RowDataPacket[]>(sql, params as never);
+    
     return rows as unknown as T[];
 }
 
