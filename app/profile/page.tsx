@@ -336,6 +336,48 @@ export default function ProfilePage() {
                             <InfoItem label="Регистрация" value={user?.created_by ? new Date(user.created_by).toLocaleDateString() : '—'} icon={<CalendarDays />} iconColor="text-orange-500" bgColor="bg-orange-50/80 dark:bg-orange-500/10" />
                         </div>
                     </div>
+                    <section className="h-fit bg-card border border-border p-8 rounded-3xl shadow-sm space-y-6">
+                        <header>
+                            <h3 className="text-xl font-bold">Активные сессии</h3>
+                            <p className="text-sm text-muted-foreground mt-1">Список устройств, имеющих доступ к вашему аккаунту.</p>
+                        </header>
+                        
+                        <div className="grid gap-3">
+                            {sessions.length === 0 ? (
+                                <div className="text-center py-12 border-2 border-dashed border-border rounded-2xl text-muted-foreground text-sm">
+                                    Активные сессии не найдены
+                                </div>
+                            ) : (
+                                sessions.map((session) => (
+                                    <div key={session.sessionId} className="group border border-border hover:border-primary/20 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors">
+                                        <div className="flex items-center gap-4">
+                                            <div className={`p-2.5 rounded-xl ${session.isCurrent ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                                                <ShieldCheck size={20} />
+                                            </div>
+                                            <div className="text-sm">
+                                                <p className="font-bold flex items-center gap-2">
+                                                    {session.deviceLabel}
+                                                    {session.isCurrent && <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full uppercase tracking-widest">Текущая</span>}
+                                                </p>
+                                                <p className="text-muted-foreground text-xs font-medium">
+                                                    {session.ipAddress} • {new Date(session.lastSeenAt).toLocaleString()}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        {!session.isCurrent && (
+                                            <button
+                                                disabled={pending}
+                                                onClick={() => revokeSession(session.sessionId)}
+                                                className="rounded-xl bg-destructive/5 text-destructive border border-destructive/10 hover:bg-destructive hover:text-white px-4 py-2 text-xs font-bold transition-all disabled:opacity-50"
+                                            >
+                                                Завершить
+                                            </button>
+                                        )}
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </section>
                 </aside>
 
                 <main className="lg:col-span-8 space-y-8 max-w-[800px]">
@@ -397,49 +439,6 @@ export default function ProfilePage() {
                             </AnimatePresence>
                         </div>
                     </div>
-
-                    <section className="h-fit bg-card border border-border p-8 rounded-3xl shadow-sm space-y-6">
-                        <header>
-                            <h3 className="text-xl font-bold">Активные сессии</h3>
-                            <p className="text-sm text-muted-foreground mt-1">Список устройств, имеющих доступ к вашему аккаунту.</p>
-                        </header>
-                        
-                        <div className="grid gap-3">
-                            {sessions.length === 0 ? (
-                                <div className="text-center py-12 border-2 border-dashed border-border rounded-2xl text-muted-foreground text-sm">
-                                    Активные сессии не найдены
-                                </div>
-                            ) : (
-                                sessions.map((session) => (
-                                    <div key={session.sessionId} className="group border border-border hover:border-primary/20 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors">
-                                        <div className="flex items-center gap-4">
-                                            <div className={`p-2.5 rounded-xl ${session.isCurrent ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
-                                                <ShieldCheck size={20} />
-                                            </div>
-                                            <div className="text-sm">
-                                                <p className="font-bold flex items-center gap-2">
-                                                    {session.deviceLabel}
-                                                    {session.isCurrent && <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full uppercase tracking-widest">Текущая</span>}
-                                                </p>
-                                                <p className="text-muted-foreground text-xs font-medium">
-                                                    {session.ipAddress} • {new Date(session.lastSeenAt).toLocaleString()}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        {!session.isCurrent && (
-                                            <button
-                                                disabled={pending}
-                                                onClick={() => revokeSession(session.sessionId)}
-                                                className="rounded-xl bg-destructive/5 text-destructive border border-destructive/10 hover:bg-destructive hover:text-white px-4 py-2 text-xs font-bold transition-all disabled:opacity-50"
-                                            >
-                                                Завершить
-                                            </button>
-                                        )}
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </section>
                 </main>
             </div>
         </div>
