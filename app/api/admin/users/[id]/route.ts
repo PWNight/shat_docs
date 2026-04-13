@@ -1,11 +1,15 @@
 import { NextRequest } from "next/server";
+import bcrypt from "bcrypt";
 import { execute, queryOne } from "@/utils/mysql";
 import { badRequest, handleApiError, jsonResponse, notFound, safeParseJson, serverError, successResponse } from "@/utils/api";
 import { requireAdmin, writeAdminLog } from "@/utils/admin";
+import { revokeAllUserSessions } from "@/utils/session";
 
 type UserPatchPayload = {
     full_name?: string;
     email?: string;
+    action?: "toggle_access" | "reset_password";
+    newPassword?: string;
 };
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -20,11 +24,42 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         const userId = Number(id);
         if (!Number.isFinite(userId) || userId <= 0) return badRequest("Некорректный id пользователя");
 
-        const target = await queryOne<{ id: number; isRoot: number }>(
-            "SELECT id, isRoot FROM users WHERE id = ? LIMIT 1",
+        const target = await queryOne<{ id: number; isRoot: number; canAccessAdmin: number }>(
+            "SELECT id, isRoot, canAccessAdmin FROM users WHERE id = ? LIMIT 1",
             [userId]
         );
         if (!target) return notFound("Пользователь не найден");
+
+        if (parseResult.data.action === "toggle_access") {
+            if (userId === adminCheck.actor.id) return badRequest("Нельзя менять доступ самому себе");
+            if (target.isRoot) return badRequest("Нельзя менять права root пользователя");
+
+            const nextAccess = target.canAccessAdmin ? 0 : 1;
+            await execute(
+                "UPDATE users SET canAccessAdmin = ?, isAdmin = ? WHERE id = ?",
+                [nextAccess, nextAccess, userId]
+            );
+            await writeAdminLog(
+                adminCheck.actor.id,
+                nextAccess ? "GRANT_ADMIN_ACCESS" : "REVOKE_ADMIN_ACCESS",
+                `targetUserId=${userId}`
+            );
+            return jsonResponse(successResponse({ userId, canAccessAdmin: nextAccess }, "Права обновлены"));
+        }
+
+        if (parseResult.data.action === "reset_password") {
+            const newPassword = parseResult.data.newPassword?.trim();
+            if (!newPassword || newPassword.length < 8) {
+                return badRequest("Новый пароль должен быть длиной не менее 8 символов");
+            }
+
+            const hash = await bcrypt.hash(newPassword, 10);
+            await execute("UPDATE users SET password_hash = ? WHERE id = ?", [hash, userId]);
+            await revokeAllUserSessions(userId, adminCheck.actor.id, { reason: "admin_reset_password" });
+            await writeAdminLog(adminCheck.actor.id, "ADMIN_RESET_USER_PASSWORD", `targetUserId=${userId}`);
+
+            return jsonResponse(successResponse(null, "Пароль пользователя обновлен"));
+        }
 
         const updates: string[] = [];
         const values: Array<string | number> = [];

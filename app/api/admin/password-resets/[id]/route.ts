@@ -5,12 +5,16 @@ import { badRequest, handleApiError, jsonResponse, notFound, safeParseJson, serv
 import { requireAdmin, writeAdminLog } from "@/utils/admin";
 import { revokeAllUserSessions } from "@/utils/session";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const adminCheck = await requireAdmin(request);
     if (!adminCheck.success) return adminCheck.response;
 
-    const parseResult = await safeParseJson<{ newPassword: string }>(request);
+    const parseResult = await safeParseJson<{ status?: "resolved"; newPassword?: string }>(request);
     if (!parseResult.success) return badRequest(parseResult.error);
+
+    if (parseResult.data.status !== "resolved") {
+        return badRequest("Некорректный статус заявки. Допустимо: resolved");
+    }
 
     const newPassword = parseResult.data.newPassword?.trim();
     if (!newPassword || newPassword.length < 8) {
@@ -38,7 +42,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         );
         await writeAdminLog(adminCheck.actor.id, "RESET_USER_PASSWORD", `requestId=${resetId}, targetUserId=${resetRequest.user_id}`);
 
-        return jsonResponse(successResponse(null, "Пароль пользователя обновлен"));
+        return jsonResponse(successResponse({ requestId: resetId, status: "resolved" }, "Пароль пользователя обновлен"));
     } catch (error) {
         const { message, code } = handleApiError(error);
         return serverError(message, code);

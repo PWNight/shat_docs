@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
 }
 
 // Обновление информации о пользователе
-export async function POST(req: NextRequest) {
+export async function PATCH(req: NextRequest) {
     const authResult = await requireAuth(req);
     if (!authResult.success) {
         return authResult.response;
