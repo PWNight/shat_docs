@@ -135,8 +135,8 @@ export async function UpdateGroup(id: string, data: object): Promise<HandlerResu
     // Проверяем, является ли id группы корректным
     if (!isValidEntityId(id)) return { success: false, message: "Некорректный id группы" };
     try {
-        // Отправляем POST запрос в обновление группы
-        return await apiPost(`/api/groups/${id}`, data);
+        // Отправляем PATCH запрос в обновление группы
+        return await apiPatch(`/api/groups/${id}`, data);
     } catch (error) {
         // Возвращаем ошибку
         return toErrorResult(error, "Ошибка обновления");
@@ -350,8 +350,8 @@ export async function GetGrades(groupId: string, periodSemester?: number): Promi
 // Код обновления профиля
 export async function UpdateProfile(data: object): Promise<HandlerResult> {
     try {
-        // Отправляем POST запрос в обновление профиля
-        return await apiPost('/api/users', data);
+        // Отправляем PATCH запрос в обновление профиля
+        return await apiPatch('/api/users', data);
         // Возвращаем ошибку
     } catch (error) {
         // Возвращаем ошибку

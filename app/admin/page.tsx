@@ -207,8 +207,8 @@ export default function AdminPage() {
     const approve = async (userId: number) => {
         // Выполняем действие
         await runAction(async () => {
-            // Выполняем POST запрос
-            await apiPost(`/api/admin/registrations/${userId}/approve`);
+            // Выполняем PATCH запрос
+            await apiPatch(`/api/admin/registrations/${userId}`, { status: "approved" });
         }, `approve-${userId}`, "Заявка подтверждена");
     };
 
@@ -216,8 +216,8 @@ export default function AdminPage() {
     const reject = async (userId: number) => {
         // Выполняем действие
         await runAction(async () => {
-            // Выполняем POST запрос
-            await apiPost(`/api/admin/registrations/${userId}/reject`);
+            // Выполняем PATCH запрос
+            await apiPatch(`/api/admin/registrations/${userId}`, { status: "rejected" });
         }, `reject-${userId}`, "Заявка отклонена");
     };
 
@@ -225,8 +225,8 @@ export default function AdminPage() {
     const toggleAccess = async (userId: number) => {
         // Выполняем действие
         await runAction(async () => {
-            // Выполняем POST запрос
-            const response = await apiPost<{ data?: { userId: number; canAccessAdmin: number } }>(`/api/admin/users/${userId}/access`);
+            // Выполняем PATCH запрос
+            const response = await apiPatch<{ data?: { userId: number; canAccessAdmin: number } }>(`/api/admin/users/${userId}`, { action: "toggle_access" });
             // Получаем данные
             const next = response.data;
             // Проверяем, что данные не пустые
@@ -267,8 +267,8 @@ export default function AdminPage() {
 
         // Выполняем действие
         await runAction(async () => {
-            // Выполняем POST запрос
-            await apiPost(`/api/admin/password-resets/${requestId}/resolve`, { newPassword: nextPassword });
+            // Выполняем PATCH запрос
+            await apiPatch(`/api/admin/password-resets/${requestId}`, { status: "resolved", newPassword: nextPassword });
             // Устанавливаем новые пароли
             setNewPasswords((prev) => ({ ...prev, [requestId]: "" }));
             // Устанавливаем id запроса сброса пароля
@@ -375,8 +375,8 @@ export default function AdminPage() {
 
         // Выполняем действие
         await runAction(async () => {
-            // Выполняем POST запрос
-            await apiPost(`/api/admin/users/${userId}/reset-password`, { newPassword });
+            // Выполняем PATCH запрос
+            await apiPatch(`/api/admin/users/${userId}`, { action: "reset_password", newPassword });
             // Устанавливаем id пользователя
             setUserResetId(null);
             // Устанавливаем черновик сброса пароля

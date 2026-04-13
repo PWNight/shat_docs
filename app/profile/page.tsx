@@ -194,7 +194,7 @@ export default function ProfilePage() {
         // Пытаемся получить ответ от сервера
         try {
             // Выполняем POST запрос на запрос сброса пароля
-            const response = await apiPost<{ message?: string }>("/api/password-resets/request");
+            const response = await apiPost<{ message?: string }>("/api/password-resets");
             // Устанавливаем уведомление
             setNotify({ message: response.message || "Заявка отправлена", type: "success" });
         } catch (error) {
