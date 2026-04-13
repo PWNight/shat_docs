@@ -60,7 +60,7 @@ type AdminOverview = {
     appStats: AppStats;
 };
 
-type TabType = "groups" | "users" | "logs";
+type TabType = "groups" | "users" | "sessions" | "logs";
 
 export default function AdminPage() {
     // Используем useState для данных админ панели
@@ -472,7 +472,8 @@ export default function AdminPage() {
             <div className="w-full overflow-x-auto">
                 <div className="flex gap-2 p-1 bg-card rounded-2xl border border-border w-fit shadow-inner relative overflow-hidden">
                     <TabButton active={tab === "groups"} label="Группы" onClick={() => setTab("groups")} />
-                    <TabButton active={tab === "users"} label="Пользователи и безопасность" onClick={() => setTab("users")} />
+                    <TabButton active={tab === "users"} label="Пользователи и заявки" onClick={() => setTab("users")} />
+                    <TabButton active={tab === "sessions"} label="Сессии" onClick={() => setTab("sessions")} />
                     <TabButton active={tab === "logs"} label="Логи" onClick={() => setTab("logs")} />
                 </div>
             </div>
@@ -675,26 +676,30 @@ export default function AdminPage() {
                     ))}
                     </div>
                     </div>
-                    <div className="grid gap-2">
-                        <h3 className="font-semibold">Текущие сессии приложения</h3>
-                        {data.sessions.length === 0 ? <p className="text-sm text-muted-foreground">Нет активных сессий</p> : null}
-                        <div className="grid md:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4 gap-2">
-                            {data.sessions.map((item) => (
-                                <div key={item.sessionId} className="border border-border rounded-xl p-3 grid gap-2">
-                                    <p className="font-medium">{item.fullName} ({item.email})</p>
-                                    <p className="text-sm text-muted-foreground">{item.deviceLabel} • {item.ipAddress || "IP неизвестен"}</p>
-                                    <p className="text-xs text-muted-foreground">Последняя активность: {new Date(item.lastSeenAt).toLocaleString()}</p>
-                                    <ActionButton
-                                        loading={actionKey === `revoke-session-${item.sessionId}`}
-                                        disabled={busy}
-                                        className="rounded-lg bg-red-50 dark:bg-zinc-700/50 text-red-600 dark:text-red-500 hover:bg-red-500 hover:text-white px-3 py-2 text-sm font-medium transition-colors disabled:opacity-60"
-                                        onClick={() => revokeAdminSession(item.sessionId)}
-                                    >
-                                        Отозвать сессию
-                                    </ActionButton>
-                                </div>
-                            ))}
-                        </div>
+                </section>
+            ) : null}
+
+            {tab === "sessions" ? (
+                <section className="grid gap-4">
+                    <h2 className="text-xl font-bold">Текущие сессии приложения</h2>
+                    {data.sessions.length === 0 ? <p className="text-sm text-muted-foreground">Нет активных сессий</p> : null}
+                    <div className="grid md:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4 gap-3">
+                        {data.sessions.map((item) => (
+                            <div key={item.sessionId} className="border border-border rounded-xl p-3 grid gap-2 bg-card">
+                                <p className="font-medium">{item.fullName} ({item.email})</p>
+                                <p className="text-sm text-muted-foreground">{item.deviceLabel} • {item.ipAddress || "IP неизвестен"}</p>
+                                <p className="text-xs text-muted-foreground">Создана: {new Date(item.createdAt).toLocaleString()}</p>
+                                <p className="text-xs text-muted-foreground">Последняя активность: {new Date(item.lastSeenAt).toLocaleString()}</p>
+                                <ActionButton
+                                    loading={actionKey === `revoke-session-${item.sessionId}`}
+                                    disabled={busy}
+                                    className="rounded-lg bg-red-50 dark:bg-zinc-700/50 text-red-600 dark:text-red-500 hover:bg-red-500 hover:text-white px-3 py-2 text-sm font-medium transition-colors disabled:opacity-60"
+                                    onClick={() => revokeAdminSession(item.sessionId)}
+                                >
+                                    Отозвать сессию
+                                </ActionButton>
+                            </div>
+                        ))}
                     </div>
                 </section>
             ) : null}
