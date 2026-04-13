@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import { execute, queryOne } from "@/utils/mysql";
 import { badRequest, handleApiError, jsonResponse, notFound, safeParseJson, serverError, successResponse } from "@/utils/api";
 import { requireAdmin, writeAdminLog } from "@/utils/admin";
+import { revokeAllUserSessions } from "@/utils/session";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const adminCheck = await requireAdmin(request);
@@ -30,6 +31,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
         const hash = await bcrypt.hash(newPassword, 10);
         await execute("UPDATE users SET password_hash = ? WHERE id = ?", [hash, resetRequest.user_id]);
+        await revokeAllUserSessions(resetRequest.user_id, adminCheck.actor.id, { reason: "admin_resolve_reset_password" });
         await execute(
             "UPDATE password_reset_requests SET status = 'resolved', resolved_by = ?, resolved_at = NOW() WHERE id = ?",
             [adminCheck.actor.id, resetId]

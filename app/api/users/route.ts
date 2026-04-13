@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { execute, query, queryOne } from "@/utils/mysql";
-import { createSession } from "@/utils/session";
+import { createSession, revokeAllUserSessions } from "@/utils/session";
 import bcrypt from "bcrypt";
 import {
     requireAuth,
@@ -100,11 +100,18 @@ export async function POST(req: NextRequest) {
 
         await execute(sql, params);
 
-        await createSession({
+        const nextSession = await createSession({
             uid: userId,
             email: email || sessionUser.email,
             full_name: full_name || sessionUser.full_name
-        });
+        }, req);
+
+        if (newPassword) {
+            await revokeAllUserSessions(userId, userId, {
+                exceptSessionId: nextSession.sessionId,
+                reason: "password_changed",
+            });
+        }
 
         return jsonResponse(successResponse(null, newPassword ? "Данные и пароль успешно обновлены" : "Данные успешно обновлены"));
 
