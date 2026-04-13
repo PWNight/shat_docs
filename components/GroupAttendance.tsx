@@ -481,23 +481,23 @@ export default function GroupAttendance({ groupId, group, isOwner, setNotify }: 
                                             disabled={!isOwner}
                                             value={s.fullName}
                                             onChange={e => updateAttendanceField(i, 'fullName', e.target.value)}
-                                            className="w-full bg-transparent outline-none focus:text-blue-600 disabled:text-gray-700 dark:disabled:text-gray-300"
+                                            className="editable-cell-input text-left focus:text-blue-600 disabled:text-gray-700 dark:disabled:text-gray-300"
                                         />
                                     </td>
                                     <td className="py-3 hover:bg-gray-100 dark:hover:bg-neutral-600">
-                                        <input disabled={!isOwner} value={s.fullDaysTotal} onChange={e => updateAttendanceField(i, 'fullDaysTotal', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" />
+                                        <input disabled={!isOwner} value={s.fullDaysTotal} onChange={e => updateAttendanceField(i, 'fullDaysTotal', e.target.value)} className="editable-cell-input" />
                                     </td>
                                     <td className="py-3 font-bold text-amber-600 hover:bg-gray-100 dark:hover:bg-neutral-600">
-                                        <input disabled={!isOwner} value={s.fullDaysSick} onChange={e => updateAttendanceField(i, 'fullDaysSick', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" />
+                                        <input disabled={!isOwner} value={s.fullDaysSick} onChange={e => updateAttendanceField(i, 'fullDaysSick', e.target.value)} className="editable-cell-input" />
                                     </td>
                                     <td className="py-3 hover:bg-gray-100 dark:hover:bg-neutral-600">
-                                        <input disabled={!isOwner} value={s.lessonsTotal} onChange={e => updateAttendanceField(i, 'lessonsTotal', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" />
+                                        <input disabled={!isOwner} value={s.lessonsTotal} onChange={e => updateAttendanceField(i, 'lessonsTotal', e.target.value)} className="editable-cell-input" />
                                     </td>
                                     <td className="py-3 font-bold text-amber-600 hover:bg-gray-100 dark:hover:bg-neutral-600">
-                                        <input disabled={!isOwner} value={s.lessonsSick} onChange={e => updateAttendanceField(i, 'lessonsSick', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" />
+                                        <input disabled={!isOwner} value={s.lessonsSick} onChange={e => updateAttendanceField(i, 'lessonsSick', e.target.value)} className="editable-cell-input" />
                                     </td>
                                     <td className="py-3 font-bold text-red-600 hover:bg-gray-100 dark:hover:bg-neutral-600">
-                                        <input disabled={!isOwner} value={s.late} onChange={e => updateAttendanceField(i, 'late', e.target.value)} className="w-full bg-transparent outline-none disabled:opacity-70 text-center" />
+                                        <input disabled={!isOwner} value={s.late} onChange={e => updateAttendanceField(i, 'late', e.target.value)} className="editable-cell-input" />
                                     </td>
                                 </tr>
                             ))}
@@ -527,11 +527,11 @@ export default function GroupAttendance({ groupId, group, isOwner, setNotify }: 
                     <DialogFooter className="gap-3">
                         <button
                             onClick={handleDeleteAttendancePeriod}
-                            className="flex-1 bg-red-600 hover:bg-red-500 text-white py-3 rounded-lg font-bold"
+                            className="dialog-danger-btn"
                         >
                             Да, удалить
                         </button>
-                        <DialogClose className="flex-1 bg-gray-200 dark:bg-zinc-700 py-3 rounded-lg font-medium">
+                        <DialogClose className="dialog-cancel-btn">
                             Отмена
                         </DialogClose>
                     </DialogFooter>

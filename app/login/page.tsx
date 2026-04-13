@@ -47,14 +47,14 @@ function LoginForm() {
 
     return (
         <form
-            className="w-full max-w-md bg-white dark:bg-card rounded-2xl p-8 shadow-lg text-gray-900 dark:text-white"
+            className="auth-card"
             action={action}
         >
             <h1 className="text-3xl font-bold mb-4 select-none">Авторизация</h1>
             <input type="hidden" name="redirectTo" value={redirectTo} />
 
             <div className="mb-2">
-                <label htmlFor="email" className="block mb-1 font-medium text-sm">
+                <label htmlFor="email" className="form-label">
                     Почта
                 </label>
                 <input
@@ -63,7 +63,7 @@ function LoginForm() {
                     id="email"
                     name="email"
                     defaultValue={state.values?.email ?? ""}
-                    className="shadow-lg w-full px-4 py-3 dark:bg-neutral-800 bg-gray-50 border dark:border-neutral-700 border-gray-200 rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
+                    className="auth-input"
                     placeholder="test@test.com"
                 />
                 {state?.fieldErrors?.email && (
@@ -72,7 +72,7 @@ function LoginForm() {
             </div>
 
             <div className="mb-6">
-                <label htmlFor="password" className="block mb-1 font-medium text-sm">
+                <label htmlFor="password" className="form-label">
                     Пароль
                 </label>
                 <div className="relative">
@@ -81,7 +81,7 @@ function LoginForm() {
                         autoComplete="current-password"
                         id="password"
                         name="password"
-                        className="shadow-lg w-full px-4 py-3 dark:bg-neutral-800 bg-gray-50 border dark:border-neutral-700 border-gray-200 rounded-lg focus:ring focus:ring-blue-400 focus:border-blue-400 outline-none transition-all placeholder-gray-400"
+                        className="auth-input"
                         placeholder="********"
                     />
                     {state?.fieldErrors?.password && (
@@ -113,7 +113,7 @@ function LoginForm() {
 
             <button
                 type="submit"
-                className="w-full bg-blue-400 hover:bg-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium py-3 px-5 rounded-lg focus:ring-2 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg select-none"
+                className="auth-submit"
                 disabled={pending}
             >
                 {pending ? (

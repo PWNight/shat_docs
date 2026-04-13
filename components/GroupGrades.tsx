@@ -612,11 +612,11 @@ export default function GroupGrades({ groupId, group, isOwner, setNotify }: Grou
                     <DialogFooter className="gap-3">
                         <button
                             onClick={handleDeleteGradesPeriod}
-                            className="flex-1 bg-red-600 hover:bg-red-500 text-white py-3 rounded-lg font-bold"
+                            className="dialog-danger-btn"
                         >
                             Да, удалить
                         </button>
-                        <DialogClose className="flex-1 bg-gray-200 dark:bg-zinc-700 py-3 rounded-lg font-medium">
+                        <DialogClose className="dialog-cancel-btn">
                             Отмена
                         </DialogClose>
                     </DialogFooter>
