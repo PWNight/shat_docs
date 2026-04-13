@@ -325,7 +325,6 @@ export default function ProfilePage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                {/* Left Sidebar: Info */}
                 <aside className="lg:col-span-4 space-y-6">
                     <div className="bg-card border border-border p-6 rounded-3xl shadow-sm">
                         <h3 className="text-xs font-black text-muted-foreground uppercase mb-8 flex items-center gap-2 tracking-widest">
@@ -339,9 +338,7 @@ export default function ProfilePage() {
                     </div>
                 </aside>
 
-                {/* Right Content: Forms & Sessions */}
                 <main className="lg:col-span-8 space-y-8 max-w-[800px]">
-                    {/* Tabs Form Section */}
                     <div className="space-y-6">
                         <div className="flex p-1.5 bg-muted/30 rounded-2xl border border-border w-full sm:w-fit">
                             {(['name', 'email', 'password'] as TabType[]).map((tab) => (
@@ -401,7 +398,6 @@ export default function ProfilePage() {
                         </div>
                     </div>
 
-                    {/* Sessions Section */}
                     <section className="h-fit bg-card border border-border p-8 rounded-3xl shadow-sm space-y-6">
                         <header>
                             <h3 className="text-xl font-bold">Активные сессии</h3>
