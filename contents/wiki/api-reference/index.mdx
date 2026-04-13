@@ -1,7 +1,7 @@
 ---
 title: API Reference
 description: Подробная документация по API v2 на основе исходного кода.
-update_date: 08-04-2026
+update_date: 13-04-2026
 ---
 
 ## Область действия
@@ -249,7 +249,7 @@ update_date: 08-04-2026
 - `500 SERVER_ERROR`.
 - `503 DB_OFFLINE` - нет подключения к базе данных.
 
-### POST `/groups/{id}`
+### PATCH `/groups/{id}`
 
 Обновление группы.
 
@@ -755,65 +755,39 @@ update_date: 08-04-2026
 
 **Ошибки:** `400`, `404`, `401/403`, `500`, `503` (DB_OFFLINE).
 
-### POST `/admin/registrations/{id}/approve`
+### PATCH `/admin/registrations/{id}`
 
-Подтверждение регистрации пользователя.
+Обработка заявки на регистрацию пользователя.
 
-**Успешный ответ `200`:**
+**Body (JSON):**
+
+```json
+{
+  "status": "approved"
+}
+```
+
+Допустимые значения `status`: `approved`, `rejected`.
+
+**Успешный ответ `200` (пример):**
 
 ```json
 {
   "success": true,
-  "data": { "userId": 12 },
+  "data": { "userId": 12, "status": "approved" },
   "message": "Регистрация подтверждена"
 }
 ```
 
-**Ошибки:** `400`, `404`, `401/403`, `500`, `503` (DB_OFFLINE).
-
-### POST `/admin/registrations/{id}/reject`
-
-Отклонение регистрации пользователя (также сбрасывает админские флаги).
-
-**Успешный ответ `200`:**
-
-```json
-{
-  "success": true,
-  "data": { "userId": 12 },
-  "message": "Регистрация отклонена"
-}
-```
+При `status: "rejected"` возвращается `"Регистрация отклонена"`.
 
 **Ошибки:** `400`, `404`, `401/403`, `500`, `503` (DB_OFFLINE).
-
-### POST `/admin/users/{id}/access`
-
-Переключение доступа к админ-панели (`canAccessAdmin` и `isAdmin`).
-
-**Успешный ответ `200`:**
-
-```json
-{
-  "success": true,
-  "data": { "userId": 12, "canAccessAdmin": 1 },
-  "message": "Права обновлены"
-}
-```
-
-**Ошибки:**
-
-- `400 BAD_REQUEST` - невалидный id, попытка изменить себя, попытка изменить root;
-- `404 NOT_FOUND` - пользователь не найден;
-- `401/403` - нет доступа;
-- `500 SERVER_ERROR`.
-- `503 DB_OFFLINE` - нет подключения к базе данных.
 
 ### PATCH `/admin/users/{id}`
 
-Обновление пользователя (ФИО и/или email).
+Обновление пользователя (ФИО/email) и выполнение админ-действий через `action`.
 
-**Body (JSON):**
+**Body (JSON), вариант 1 - обновление профиля:**
 
 ```json
 {
@@ -821,6 +795,25 @@ update_date: 08-04-2026
   "email": "ivanov@example.com"
 }
 ```
+
+**Body (JSON), вариант 2 - переключить доступ к админке:**
+
+```json
+{
+  "action": "toggle_access"
+}
+```
+
+**Body (JSON), вариант 3 - сбросить пароль:**
+
+```json
+{
+  "action": "reset_password",
+  "newPassword": "new-password-123"
+}
+```
+
+`newPassword` для `reset_password` должен быть длиной минимум 8 символов.
 
 **Ошибки:** `400` (включая `Email уже используется`), `404`, `401/403`, `500`, `503` (DB_OFFLINE).
 
@@ -835,23 +828,7 @@ update_date: 08-04-2026
 
 **Ошибки:** `400`, `404`, `401/403`, `500`, `503` (DB_OFFLINE).
 
-### POST `/admin/users/{id}/reset-password`
-
-Прямой сброс пароля пользователя из админки.
-
-**Body (JSON):**
-
-```json
-{
-  "newPassword": "new-password-123"
-}
-```
-
-`newPassword` должен быть длиной минимум 8 символов.
-
-**Ошибки:** `400`, `404`, `401/403`, `500`, `503` (DB_OFFLINE).
-
-### POST `/admin/password-resets/{id}/resolve`
+### PATCH `/admin/password-resets/{id}`
 
 Обработка заявки на сброс пароля (`password_reset_requests`): обновляет пароль пользователя и переводит заявку в `resolved`.
 
@@ -859,13 +836,14 @@ update_date: 08-04-2026
 
 ```json
 {
+  "status": "resolved",
   "newPassword": "new-password-123"
 }
 ```
 
 **Ошибки:** `400` (включая повторную обработку), `404`, `401/403`, `500`, `503` (DB_OFFLINE).
 
-### POST `/users`
+### PATCH `/users`
 
 Обновление профиля текущего пользователя.
 
@@ -903,6 +881,27 @@ update_date: 08-04-2026
 - `404 NOT_FOUND`
   - `Пользователь не найден` (при проверке пароля)
 - `500 SERVER_ERROR`.
+- `503 DB_OFFLINE` - нет подключения к базе данных.
+
+### POST `/password-resets`
+
+Создание заявки на сброс пароля для текущего пользователя.
+
+**Успешный ответ `200`:**
+
+```json
+{
+  "success": true,
+  "data": null,
+  "message": "Заявка на сброс пароля отправлена"
+}
+```
+
+**Ошибки:**
+
+- `400 BAD_REQUEST` - `У вас уже есть активная заявка на сброс пароля`;
+- `401 UNAUTHORIZED`;
+- `500 SERVER_ERROR`;
 - `503 DB_OFFLINE` - нет подключения к базе данных.
 
 ### GET `/users/{id}`

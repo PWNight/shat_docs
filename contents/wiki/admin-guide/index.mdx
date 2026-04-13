@@ -41,14 +41,13 @@ update_date: 08-04-2026
 
 Технически это выполняется через API:
 
-- `POST /api/admin/registrations/{id}/approve`
-- `POST /api/admin/registrations/{id}/reject`
+- `PATCH /api/admin/registrations/{id}` + body `{ "status": "approved" | "rejected" }`
 
 ## Управление доступом к админке
 
 Для выдачи/отзыва доступа используется:
 
-- `POST /api/admin/users/{id}/access`
+- `PATCH /api/admin/users/{id}` + body `{ "action": "toggle_access" }`
 
 Ограничения:
 
