@@ -111,6 +111,24 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
+-- Структура таблицы `auth_sessions`
+--
+
+CREATE TABLE `auth_sessions` (
+  `session_id` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_id` int NOT NULL,
+  `user_agent` varchar(1024) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ip_address` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `device_label` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_seen_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `expires_at` timestamp NOT NULL,
+  `revoked_at` timestamp NULL DEFAULT NULL,
+  `revoked_by_user_id` int DEFAULT NULL,
+  `revoked_reason` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
 -- Дамп данных таблицы `users`
 --
 
@@ -159,6 +177,14 @@ ALTER TABLE `students`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Индексы таблицы `auth_sessions`
+--
+ALTER TABLE `auth_sessions`
+  ADD PRIMARY KEY (`session_id`),
+  ADD KEY `idx_auth_sessions_user_id` (`user_id`),
+  ADD KEY `idx_auth_sessions_active` (`revoked_at`,`expires_at`);
 
 --
 -- AUTO_INCREMENT для сохранённых таблиц
@@ -221,6 +247,8 @@ ALTER TABLE `groups`
 --
 ALTER TABLE `students`
   ADD CONSTRAINT `students_ibfk_1` FOREIGN KEY (`fk_group`) REFERENCES `groups` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `auth_sessions`
+  ADD CONSTRAINT `fk_auth_sessions_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
