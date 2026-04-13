@@ -21,10 +21,11 @@ import {
     ProfileInputProps, StatCardProps, SubmitButtonProps,
     TabButtonProps,
     TeacherStats,
+    ActiveSession,
     UpdateProfileFormData,
     UserProfile
 } from "@/utils/interfaces";
-import { apiPost } from "@/utils/http-client";
+import { apiDelete, apiGet, apiPost } from "@/utils/http-client";
 
 // Типы вкладок
 type TabType = 'name' | 'email' | 'password';
@@ -41,15 +42,17 @@ export default function ProfilePage() {
     const [notify, setNotify] = useState<Notify>({ message: "", type: "" }); // Уведомления
     const [pending, setPending] = useState(false); // Загрузка
     const [pageError, setPageError] = useState<{ message: string; status?: number; code?: string } | null>(null); // Ошибка
+    const [sessions, setSessions] = useState<ActiveSession[]>([]);
 
     // Функция для загрузки данных
     const loadData = useCallback(async (userId: number) => {
         // Получаем данные пользователя и статистики
-        const [userResponse, statsResponse] = await Promise.allSettled([
+        const [userResponse, statsResponse, sessionsResponse] = await Promise.allSettled([
             // Получаем данные пользователя
             GetUser(userId),
             // Получаем данные статистики
             GetTeacherStats(),
+            apiGet<{ data?: ActiveSession[] }>("/api/sessions"),
         ]);
 
         // Ошибка
@@ -79,6 +82,12 @@ export default function ProfilePage() {
         } else {
             // Устанавливаем уведомление
             setNotify({ message: "Не удалось загрузить статистику, показываем профиль без нее", type: "warning" });
+        }
+
+        if (sessionsResponse.status === "fulfilled" && "data" in sessionsResponse.value) {
+            setSessions(sessionsResponse.value.data ?? []);
+        } else {
+            setNotify({ message: "Не удалось загрузить список устройств", type: "warning" });
         }
 
         // Проверяем, что ошибка не пустая
@@ -162,6 +171,20 @@ export default function ProfilePage() {
 
         // Устанавливаем загрузку
         setPending(false);
+    };
+
+    const revokeSession = async (sessionId: string) => {
+        setPending(true);
+        try {
+            await apiDelete(`/api/sessions/${sessionId}`);
+            const refreshed = await apiGet<{ data?: ActiveSession[] }>("/api/sessions");
+            setSessions(refreshed.data ?? []);
+            setNotify({ message: "Сессия отозвана", type: "success" });
+        } catch (error) {
+            setNotify({ message: error instanceof Error ? error.message : "Не удалось отозвать сессию", type: "error" });
+        } finally {
+            setPending(false);
+        }
     };
 
     // Функция для обработки запроса сброса пароля
@@ -367,6 +390,28 @@ export default function ProfilePage() {
                             </motion.div>
                         </AnimatePresence>
                     </div>
+
+                    <section className="bg-card border border-border p-6 rounded-2xl shadow-sm space-y-3">
+                        <h3 className="text-lg font-bold text-foreground">Устройства и активные сессии</h3>
+                        {sessions.length === 0 ? <p className="text-sm text-muted-foreground">Активных сессий нет</p> : null}
+                        <div className="space-y-2">
+                            {sessions.map((session) => (
+                                <div key={session.sessionId} className="border border-border rounded-xl p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                    <div className="text-sm">
+                                        <p className="font-semibold">{session.deviceLabel} {session.isCurrent ? "• текущее устройство" : ""}</p>
+                                        <p className="text-muted-foreground text-xs">{session.ipAddress || "IP неизвестен"} • Последняя активность: {new Date(session.lastSeenAt).toLocaleString()}</p>
+                                    </div>
+                                    <button
+                                        disabled={pending}
+                                        onClick={() => void revokeSession(session.sessionId)}
+                                        className="rounded-xl bg-red-50 text-red-600 border border-red-200 hover:bg-red-600 hover:text-white px-3 py-2 text-xs font-semibold disabled:opacity-60"
+                                    >
+                                        Отозвать
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
                 </main>
             </div>
         </div>
