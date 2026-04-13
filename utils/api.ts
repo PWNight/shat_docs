@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getSession, decryptSession } from "@/utils/session";
+import { getSession, verifySessionFromToken } from "@/utils/session";
 import { ApiErrorResponse, ApiSuccessResponse } from "./interfaces";
 
 // Функция для создания успешного ответа
@@ -97,7 +97,7 @@ export async function requireAuthSimple(): Promise<{ success: true; user: NonNul
 // Функция для извлечения сессии из request
 export async function extractSession(request: NextRequest): Promise<NonNullable<Awaited<ReturnType<typeof getSession>>> | null> {
     // Сначала проверяем куки
-    const session = await getSession();
+    const session = await getSession(request);
     if (session) {
         return session;
     }
@@ -108,7 +108,7 @@ export async function extractSession(request: NextRequest): Promise<NonNullable<
         // Убираем 'Bearer ' из заголовка
         const token = authHeader.slice(7);
         // Расшифровываем токен
-        const bearerSession = await decryptSession(token);
+        const bearerSession = await verifySessionFromToken(token, request);
         // Если токен расшифрован успешно, возвращаем сессию
         if (bearerSession) {
             return bearerSession;
