@@ -222,25 +222,22 @@ export default function ProfilePage() {
         // Возвращаем компонент загрузки
         return (
             <div className="min-h-[70vh] flex items-center justify-center p-6">
-                <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-sm">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="h-10 w-10 rounded-xl bg-blue-600 text-white flex items-center justify-center">
-                            <Loader2 className="w-5 h-5 animate-spin" />
+                <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-sm">
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="h-12 w-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center">
+                            <Loader2 className="w-6 h-6 animate-spin" />
                         </div>
                         <div>
-                            <p className="font-semibold">Загружаю личный кабинет</p>
+                            <p className="font-bold text-lg">Загружаю личный кабинет</p>
                             <p className="text-sm text-muted-foreground">Подготавливаю статистику и данные о пользователе</p>
                         </div>
                     </div>
-                    <div className="grid gap-2">
-                        <div className="h-2 rounded-full bg-muted overflow-hidden">
-                            <motion.div
-                                className="h-full w-1/3 bg-blue-600 rounded-full"
-                                animate={{ x: ["-20%", "220%"] }}
-                                transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-                            />
-                        </div>
-                        <div className="text-xs text-muted-foreground">Это займет несколько секунд</div>
+                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                        <motion.div 
+                            className="h-full bg-blue-600" 
+                            animate={{ width: ["10%", "100%", "10%"] }} 
+                            transition={{ duration: 2, repeat: Infinity }} 
+                        />
                     </div>
                 </div>
             </div>
