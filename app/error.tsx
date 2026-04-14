@@ -20,9 +20,9 @@ export default function GlobalError({
     }, [error]);
 
     return (
-        <div className="flex min-h-[70vh] flex-col items-center justify-center gap-4 px-4 text-center">
+        <div className="flex min-h-[70vh] flex-col mx-auto justify-center gap-4 px-4">
             <AlertTriangle className="h-12 w-12 text-red-500" />
-            <h2 className="text-2xl font-bold">Что-то пошло не так</h2>
+            <h2 className="text-2xl font-bold text-left">Что-то пошло не так</h2>
             <p className="max-w-md text-muted-foreground">
                 {isDbOfflineError(error)
                     ? "Нет подключения к базе данных. Проверьте доступность БД и повторите попытку."
@@ -31,7 +31,7 @@ export default function GlobalError({
             <div className="flex gap-3">
                 <button
                     onClick={reset}
-                    className="rounded-xl bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90"
+                    className="rounded-xl bg-primary dark:bg-blue-500 dark:hover:bg-blue-600 px-4 py-2 text-primary-foreground hover:bg-primary/90"
                 >
                     Повторить
                 </button>
