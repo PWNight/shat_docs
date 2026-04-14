@@ -22,7 +22,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/Dialog";
-import LineWaves from '@/components/ui/LineWaves';
+import LineWaves from '@/components/ui/animations/LineWaves';
 
 // Интерфейс для GitHubRelease
 interface GitHubRelease {
