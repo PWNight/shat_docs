@@ -30,7 +30,6 @@ const pool = mysql.createPool({
     enableKeepAlive: true,
     // Задержка начала keep alive
     keepAliveInitialDelay: 0,
-    debug: process.env.NODE_ENV === 'development',
 });
 
 // Универсальный запрос к БД с типизацией, который возвращает массив записей
