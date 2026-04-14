@@ -2,7 +2,7 @@ import Link from "next/link";
 import Anchor from "@/components/ui/Anchor";
 import { SheetLeftbar } from "./LeftBar";
 import Image from "next/image";
-import { Home, BookOpen } from "lucide-react";
+import { Home, BookOpen, LifeBuoy } from "lucide-react";
 import { AuthButton } from "@/components/AccountButton";
 import { ModeToggle } from "@/components/theme-toggle";
 
@@ -16,6 +16,11 @@ export const NAVLINKS = [
         title: "Документация",
         href: "/wiki",
         icon: <BookOpen className="w-4 h-4" />,
+    },
+    {
+        title: "Поддержка",
+        href: "/support",
+        icon: <LifeBuoy className="w-4 h-4" />,
     }
 ];
 
