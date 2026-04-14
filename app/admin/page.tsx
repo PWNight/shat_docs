@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/Button";
 import PageErrorState from "@/components/ui/PageErrorState";
 import { getDbOfflineToastMessage, getErrorKindByMeta, isDbOfflineMeta } from "@/utils/ui-errors";
 import { ApiResponseError } from "@/utils/functions";
+import Loader from "@/components/ui/animations/Loader";
 
 type AdminUser = {
     id: number;
@@ -394,29 +395,7 @@ export default function AdminPage() {
     if (loading) {
         // Возвращаем компонент загрузки
         return (
-            <div className="min-h-[70vh] flex items-center justify-center p-6">
-                <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-sm">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="h-10 w-10 rounded-xl bg-blue-600 text-white flex items-center justify-center">
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                        </div>
-                        <div>
-                            <p className="font-semibold">Загружаю админ-панель</p>
-                            <p className="text-sm text-muted-foreground">Подготавливаю данные групп, пользователей и логов</p>
-                        </div>
-                    </div>
-                    <div className="grid gap-2">
-                        <div className="h-2 rounded-full bg-muted overflow-hidden">
-                            <motion.div
-                                className="h-full w-1/3 bg-blue-600 rounded-full"
-                                animate={{ x: ["-20%", "220%"] }}
-                                transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-                            />
-                        </div>
-                        <div className="text-xs text-muted-foreground">Это займет несколько секунд</div>
-                    </div>
-                </div>
-            </div>
+            <Loader/>
         );
     }
 

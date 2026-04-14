@@ -26,6 +26,7 @@ import {
     UserProfile
 } from "@/utils/interfaces";
 import { apiDelete, apiGet, apiPost } from "@/utils/http-client";
+import Loader from "@/components/ui/animations/Loader";
 
 // Типы вкладок
 type TabType = 'name' | 'email' | 'password';
@@ -217,30 +218,10 @@ export default function ProfilePage() {
         }
     };
 
-    // Проверяем, что загрузка не пустая    
+    // Возвращаем заглушку загрузки, пока данные не готовы
     if (loading) {
-        // Возвращаем компонент загрузки
         return (
-            <div className="min-h-[70vh] flex items-center justify-center p-6">
-                <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-sm">
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="h-12 w-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center">
-                            <Loader2 className="w-6 h-6 animate-spin" />
-                        </div>
-                        <div>
-                            <p className="font-bold text-lg">Загружаю личный кабинет</p>
-                            <p className="text-sm text-muted-foreground">Подготавливаю статистику и данные о пользователе</p>
-                        </div>
-                    </div>
-                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                        <motion.div 
-                            className="h-full bg-blue-600" 
-                            animate={{ width: ["10%", "100%", "10%"] }} 
-                            transition={{ duration: 2, repeat: Infinity }} 
-                        />
-                    </div>
-                </div>
-            </div>
+            <Loader/>
         );
     }
 
