@@ -351,7 +351,7 @@ export default function MainPage() {
                                                 <DialogTrigger asChild>
                                                     <button
                                                         disabled={!latestPatch || !!releasesError}
-                                                        className="mt-4 inline-flex items-center justify-center gap-2 px-6 py-2.5 w-full sm:w-fit rounded-xl bg-muted/80 border border-border text-foreground text-sm font-bold hover:bg-muted transition-all disabled:opacity-40 disabled:pointer-events-none"
+                                                        className="mt-4 inline-flex items-center justify-center gap-2 px-6 py-2.5 w-full sm:w-fit rounded-xl bg-neutral-100 dark:bg-neutral-800 dark:hover:bg-neutral-700 hover:bg-neutral-200 border border-border text-foreground text-sm font-bold transition-all disabled:opacity-40 disabled:pointer-events-none"
                                                     >
                                                         Список исправлений
                                                     </button>
