@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Clock3, KeyRound, Users } from "lucide-react";
+import { Ban, CheckCircle2, Clock3, KeyRound, Users } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ActionButton } from "./AdminUi";
 import type { AdminOverview } from "@/app/admin/types";
@@ -12,6 +12,7 @@ type RequestsTabProps = {
     onApprove: (userId: number) => void;
     onReject: (userId: number) => void;
     onOpenResetDialog: (requestId: number) => void;
+    onCancelReset: (requestId: number) => void;
 };
 
 export default function RequestsTab({
@@ -21,6 +22,7 @@ export default function RequestsTab({
     onApprove,
     onReject,
     onOpenResetDialog,
+    onCancelReset,
 }: RequestsTabProps) {
     return (
         <section className="grid gap-6">
@@ -120,7 +122,9 @@ export default function RequestsTab({
                                         className={`font-semibold ${
                                             item.status === "pending"
                                                 ? "text-amber-500"
-                                                : "text-green-500"
+                                                : item.status === "cancelled"
+                                                    ? "text-red-500"
+                                                    : "text-green-500"
                                         }`}
                                     >
                                         {item.status}
@@ -128,12 +132,22 @@ export default function RequestsTab({
                                 </p>
 
                                 {item.status === "pending" && (
-                                    <Button
-                                        className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm"
-                                        onClick={() => onOpenResetDialog(item.id)}
-                                    >
-                                        Обработать заявку
-                                    </Button>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        <Button
+                                            className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm"
+                                            onClick={() => onOpenResetDialog(item.id)}
+                                        >
+                                            Обработать заявку
+                                        </Button>
+                                        <ActionButton
+                                            loading={actionKey === `cancel-reset-${item.id}`}
+                                            disabled={busy}
+                                            className="w-full rounded-lg bg-red-100 dark:bg-red-600/40 dark:hover:bg-red-700 dark:text-white hover:bg-red-500 hover:text-white text-red-600 text-sm"
+                                            onClick={() => onCancelReset(item.id)}
+                                        >
+                                            <Ban className="w-4 h-4" /> Отменить
+                                        </ActionButton>
+                                    </div>
                                 )}
                             </div>
                         ))}
