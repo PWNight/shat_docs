@@ -470,17 +470,36 @@ export default function AdminPage() {
             {tab === "groups" ? (
                 <section className="flex flex-col gap-4">
                     <h2 className="text-xl font-bold">Обзор и управление группами</h2>
-                    <div className="rounded-2xl border border-border bg-card p-3 sm:p-4 w-fit">
-                        <div className="flex sm:flex-row flex-col gap-2">
-                            <input className="border border-border rounded-xl px-3 py-2 bg-background" placeholder="Название группы" value={newGroupName} onChange={(e) => setNewGroupName(e.target.value)} />
-                            <select className="border border-border rounded-xl px-3 py-2 bg-background" value={newGroupTeacherId} onChange={(e) => setNewGroupTeacherId(e.target.value)}>
+                    <div className="rounded-2xl border border-border bg-card p-3 sm:p-4 w-full sm:w-fit">
+                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-2">
+                            <input 
+                                className="w-full sm:w-auto border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" 
+                                placeholder="Название группы" 
+                                value={newGroupName} 
+                                onChange={(e) => setNewGroupName(e.target.value)} 
+                            />
+                            
+                            <select 
+                                className="w-full sm:w-[240px] border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" 
+                                value={newGroupTeacherId} 
+                                onChange={(e) => setNewGroupTeacherId(e.target.value)}
+                            >
                                 <option value="">Выберите преподавателя</option>
                                 {teacherOptions.map((u) => (
-                                    <option key={u.id} value={u.id}>{u.full_name} ({u.email})</option>
+                                    <option key={u.id} value={u.id}>
+                                        {u.full_name} ({u.email})
+                                    </option>
                                 ))}
                             </select>
-                            <ActionButton loading={actionKey === "create-group"} disabled={busy} onClick={createGroup} className="rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white font-semibold px-3 py-2 text-sm transition-all disabled:opacity-60 flex items-center justify-center gap-2">
-                                <PlusCircle className="w-4 h-4" /> Создать
+
+                            <ActionButton 
+                                loading={actionKey === "create-group"} 
+                                disabled={busy} 
+                                onClick={createGroup} 
+                                className="w-full sm:w-auto rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white font-semibold px-5 py-2 text-sm transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+                            >
+                                <PlusCircle className="w-4 h-4" /> 
+                                <span>Создать</span>
                             </ActionButton>
                         </div>
                     </div>
