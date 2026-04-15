@@ -20,6 +20,18 @@ import LogsTab from "@/components/admin/LogsTab";
 import AdminDialogs from "@/components/admin/AdminDialogs";
 import type { AdminOverview, AdminUser, GroupItem, TabType } from "@/app/admin/types";
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const normalizeWhitespace = (value: string) => value.trim().replace(/\s+/g, " ");
+
+const isStrongPassword = (value: string) => {
+    const normalized = value.trim();
+    return normalized.length >= 8
+        && normalized.length <= 72
+        && /[A-Za-zА-Яа-я]/.test(normalized)
+        && /\d/.test(normalized);
+};
+
 export default function AdminPage() {
     const [data, setData] = useState<AdminOverview | null>(null);
     const [userData, setUserData] = useState<{ email: string; uid: number }>({ email: "", uid: 0 });
@@ -70,6 +82,7 @@ export default function AdminPage() {
     }, [load]);
 
     const runAction = async (action: () => Promise<void>, key: string, successMessage?: string, reloadAfter: boolean = true) => {
+        if (busy) return;
         setBusy(true);
         setActionKey(key);
         try {
@@ -117,8 +130,8 @@ export default function AdminPage() {
 
     const resolveReset = async (requestId: number) => {
         const nextPassword = (newPasswords[requestId] || "").trim();
-        if (!nextPassword || nextPassword.length < 8) {
-            setNotify({ message: "Введите новый пароль длиной минимум 8 символов", type: "warning" });
+        if (!isStrongPassword(nextPassword)) {
+            setNotify({ message: "Пароль должен быть 8-72 символа и содержать буквы и цифры", type: "warning" });
             return;
         }
         await runAction(async () => {
@@ -128,14 +141,23 @@ export default function AdminPage() {
         }, `reset-${requestId}`, "Пароль по заявке обновлен");
     };
 
+    const cancelReset = async (requestId: number) => {
+        await runAction(async () => {
+            await apiPatch(`/api/admin/password-resets/${requestId}`, { status: "cancelled" });
+            setResetRequestDialogId(null);
+            setNewPasswords((prev) => ({ ...prev, [requestId]: "" }));
+        }, `cancel-reset-${requestId}`, "Заявка на сброс отменена");
+    };
+
     const createGroup = async () => {
         const fkUser = Number(newGroupTeacherId);
-        if (!newGroupName.trim() || !Number.isFinite(fkUser) || fkUser <= 0) {
-            setNotify({ message: "Укажите название группы и корректного преподавателя", type: "warning" });
+        const normalizedName = normalizeWhitespace(newGroupName);
+        if (!normalizedName || normalizedName.length < 2 || normalizedName.length > 80 || !Number.isFinite(fkUser) || fkUser <= 0) {
+            setNotify({ message: "Название группы: 2-80 символов, и выберите корректного преподавателя", type: "warning" });
             return;
         }
         await runAction(async () => {
-            await apiPost("/api/admin/groups", { name: newGroupName.trim(), fk_user: fkUser });
+            await apiPost("/api/admin/groups", { name: normalizedName, fk_user: fkUser });
             setNewGroupName("");
             setNewGroupTeacherId("");
         }, "create-group", "Группа создана");
@@ -145,8 +167,22 @@ export default function AdminPage() {
         const draft = groupDrafts[groupId];
         if (!draft) return;
         const payload: { name?: string; fk_user?: number } = {};
-        if (draft.name.trim()) payload.name = draft.name.trim();
-        if (draft.fk_user.trim()) payload.fk_user = Number(draft.fk_user.trim());
+        if (draft.name.trim()) {
+            const normalizedName = normalizeWhitespace(draft.name);
+            if (normalizedName.length < 2 || normalizedName.length > 80) {
+                setNotify({ message: "Название группы должно быть от 2 до 80 символов", type: "warning" });
+                return;
+            }
+            payload.name = normalizedName;
+        }
+        if (draft.fk_user.trim()) {
+            const fkUser = Number(draft.fk_user.trim());
+            if (!Number.isFinite(fkUser) || fkUser <= 0) {
+                setNotify({ message: "Укажите корректного преподавателя", type: "warning" });
+                return;
+            }
+            payload.fk_user = fkUser;
+        }
         await runAction(async () => {
             await apiPatch(`/api/admin/groups/${groupId}`, payload);
             setGroupEditId(null);
@@ -161,8 +197,18 @@ export default function AdminPage() {
     const saveUser = async (userId: number) => {
         const draft = userDrafts[userId];
         if (!draft) return;
+        const normalizedName = normalizeWhitespace(draft.full_name);
+        const normalizedEmail = draft.email.trim().toLowerCase();
+        if (normalizedName.length < 2 || normalizedName.length > 120) {
+            setNotify({ message: "ФИО должно быть от 2 до 120 символов", type: "warning" });
+            return;
+        }
+        if (!EMAIL_RE.test(normalizedEmail) || normalizedEmail.length > 254) {
+            setNotify({ message: "Укажите корректный email", type: "warning" });
+            return;
+        }
         await runAction(async () => {
-            await apiPatch(`/api/admin/users/${userId}`, { full_name: draft.full_name.trim(), email: draft.email.trim() });
+            await apiPatch(`/api/admin/users/${userId}`, { full_name: normalizedName, email: normalizedEmail });
             setUserEditId(null);
         }, `save-user-${userId}`, "Пользователь обновлен");
     };
@@ -174,8 +220,8 @@ export default function AdminPage() {
 
     const resetUserPasswordDirect = async (userId: number) => {
         const newPassword = resetPasswordDraft.trim();
-        if (newPassword.length < 8) {
-            setNotify({ message: "Пароль должен быть длиной минимум 8 символов", type: "warning" });
+        if (!isStrongPassword(newPassword)) {
+            setNotify({ message: "Пароль должен быть 8-72 символа и содержать буквы и цифры", type: "warning" });
             return;
         }
         await runAction(async () => {
@@ -284,6 +330,7 @@ export default function AdminPage() {
                                     onApprove={approve}
                                     onReject={reject}
                                     onOpenResetDialog={setResetRequestDialogId}
+                                    onCancelReset={cancelReset}
                                 />
                             ) : null}
                             {tab === "sessions" ? (

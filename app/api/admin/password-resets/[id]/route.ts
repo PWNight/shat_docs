@@ -5,20 +5,17 @@ import { badRequest, handleApiError, jsonResponse, notFound, safeParseJson, serv
 import { requireAdmin, writeAdminLog } from "@/utils/admin";
 import { revokeAllUserSessions } from "@/utils/session";
 
+type ResetActionStatus = "resolved" | "cancelled";
+
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const adminCheck = await requireAdmin(request);
     if (!adminCheck.success) return adminCheck.response;
 
-    const parseResult = await safeParseJson<{ status?: "resolved"; newPassword?: string }>(request);
+    const parseResult = await safeParseJson<{ status?: ResetActionStatus; newPassword?: string }>(request);
     if (!parseResult.success) return badRequest(parseResult.error);
 
-    if (parseResult.data.status !== "resolved") {
-        return badRequest("Некорректный статус заявки. Допустимо: resolved");
-    }
-
-    const newPassword = parseResult.data.newPassword?.trim();
-    if (!newPassword || newPassword.length < 8) {
-        return badRequest("Новый пароль должен быть длиной не менее 8 символов");
+    if (parseResult.data.status !== "resolved" && parseResult.data.status !== "cancelled") {
+        return badRequest("Некорректный статус заявки. Допустимо: resolved | cancelled");
     }
 
     try {
@@ -32,6 +29,26 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         );
         if (!resetRequest) return notFound("Заявка не найдена");
         if (resetRequest.status !== "pending") return badRequest("Заявка уже обработана");
+
+        if (parseResult.data.status === "cancelled") {
+            await execute(
+                "UPDATE password_reset_requests SET status = 'cancelled', resolved_by = ?, resolved_at = NOW() WHERE id = ?",
+                [adminCheck.actor.id, resetId]
+            );
+            await writeAdminLog(adminCheck.actor.id, "ADMIN_CANCEL_PASSWORD_RESET", `requestId=${resetId}, targetUserId=${resetRequest.user_id}`);
+            return jsonResponse(successResponse({ requestId: resetId, status: "cancelled" }, "Заявка на сброс отменена"));
+        }
+
+        const newPassword = parseResult.data.newPassword?.trim();
+        if (!newPassword || newPassword.length < 8) {
+            return badRequest("Новый пароль должен быть длиной не менее 8 символов");
+        }
+        if (newPassword.length > 72) {
+            return badRequest("Новый пароль слишком длинный");
+        }
+        if (!/[A-Za-zА-Яа-я]/.test(newPassword) || !/\d/.test(newPassword)) {
+            return badRequest("Пароль должен содержать хотя бы одну букву и одну цифру");
+        }
 
         const hash = await bcrypt.hash(newPassword, 10);
         await execute("UPDATE users SET password_hash = ? WHERE id = ?", [hash, resetRequest.user_id]);

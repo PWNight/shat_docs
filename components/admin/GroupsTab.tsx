@@ -43,6 +43,7 @@ export default function GroupsTab({
                         className="w-full sm:w-auto border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                         placeholder="Название группы"
                         value={newGroupName}
+                        maxLength={80}
                         onChange={(e) => onNewGroupNameChange(e.target.value)}
                     />
 

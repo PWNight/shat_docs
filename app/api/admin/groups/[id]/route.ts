@@ -3,6 +3,10 @@ import { execute, queryOne } from "@/utils/mysql";
 import { badRequest, handleApiError, jsonResponse, notFound, safeParseJson, serverError, successResponse } from "@/utils/api";
 import { requireAdmin, writeAdminLog } from "@/utils/admin";
 
+function normalizeGroupName(value: string): string {
+    return value.trim().replace(/\s+/g, " ");
+}
+
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const adminCheck = await requireAdmin(request);
     if (!adminCheck.success) return adminCheck.response;
@@ -22,8 +26,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         const values: Array<string | number> = [];
 
         if (typeof parseResult.data.name === "string" && parseResult.data.name.trim()) {
+            const normalizedName = normalizeGroupName(parseResult.data.name);
+            if (normalizedName.length < 2 || normalizedName.length > 80) {
+                return badRequest("Название группы должно быть от 2 до 80 символов");
+            }
             updates.push("name = ?");
-            values.push(parseResult.data.name.trim());
+            values.push(normalizedName);
         }
 
         if (parseResult.data.fk_user !== undefined) {

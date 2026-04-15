@@ -12,6 +12,12 @@ type UserPatchPayload = {
     newPassword?: string;
 };
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function normalizeName(value: string): string {
+    return value.trim().replace(/\s+/g, " ");
+}
+
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const adminCheck = await requireAdmin(request);
     if (!adminCheck.success) return adminCheck.response;
@@ -52,6 +58,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             if (!newPassword || newPassword.length < 8) {
                 return badRequest("Новый пароль должен быть длиной не менее 8 символов");
             }
+            if (newPassword.length > 72) {
+                return badRequest("Новый пароль слишком длинный");
+            }
+            if (!/[A-Za-zА-Яа-я]/.test(newPassword) || !/\d/.test(newPassword)) {
+                return badRequest("Пароль должен содержать хотя бы одну букву и одну цифру");
+            }
 
             const hash = await bcrypt.hash(newPassword, 10);
             await execute("UPDATE users SET password_hash = ? WHERE id = ?", [hash, userId]);
@@ -65,12 +77,17 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         const values: Array<string | number> = [];
 
         if (typeof parseResult.data.full_name === "string" && parseResult.data.full_name.trim()) {
+            const fullName = normalizeName(parseResult.data.full_name);
+            if (fullName.length < 2 || fullName.length > 120) {
+                return badRequest("ФИО должно быть от 2 до 120 символов");
+            }
             updates.push("full_name = ?");
-            values.push(parseResult.data.full_name.trim());
+            values.push(fullName);
         }
 
         if (typeof parseResult.data.email === "string" && parseResult.data.email.trim()) {
             const email = parseResult.data.email.trim().toLowerCase();
+            if (email.length > 254 || !EMAIL_RE.test(email)) return badRequest("Некорректный email");
             const exists = await queryOne<{ id: number }>(
                 "SELECT id FROM users WHERE email = ? AND id <> ? LIMIT 1",
                 [email, userId]

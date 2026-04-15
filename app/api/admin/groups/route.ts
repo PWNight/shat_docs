@@ -3,6 +3,10 @@ import { execute, query, queryOne } from "@/utils/mysql";
 import { badRequest, handleApiError, jsonResponse, notFound, safeParseJson, serverError, successResponse } from "@/utils/api";
 import { requireAdmin, writeAdminLog } from "@/utils/admin";
 
+function normalizeGroupName(value: string): string {
+    return value.trim().replace(/\s+/g, " ");
+}
+
 export async function GET(request: NextRequest) {
     const adminCheck = await requireAdmin(request);
     if (!adminCheck.success) return adminCheck.response;
@@ -26,9 +30,10 @@ export async function POST(request: NextRequest) {
     if (!parseResult.success) return badRequest(parseResult.error);
 
     try {
-        const name = parseResult.data.name?.trim();
+        const name = parseResult.data.name ? normalizeGroupName(parseResult.data.name) : "";
         const fkUser = Number(parseResult.data.fk_user);
         if (!name) return badRequest("Название группы обязательно");
+        if (name.length < 2 || name.length > 80) return badRequest("Название группы должно быть от 2 до 80 символов");
         if (!Number.isFinite(fkUser) || fkUser <= 0) return badRequest("Некорректный преподаватель");
 
         const owner = await queryOne<{ id: number }>("SELECT id FROM users WHERE id = ? LIMIT 1", [fkUser]);

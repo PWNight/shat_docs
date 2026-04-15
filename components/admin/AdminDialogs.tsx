@@ -88,6 +88,7 @@ export default function AdminDialogs({
                             <input
                                 className="w-full border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-ring"
                                 value={(groupDrafts[editingGroup.id] || { name: editingGroup.name, fk_user: String(editingGroup.fk_user) }).name}
+                                maxLength={80}
                                 onChange={(e) => setGroupDrafts((prev) => ({ ...prev, [editingGroup.id]: { ...(prev[editingGroup.id] || { name: editingGroup.name, fk_user: String(editingGroup.fk_user) }), name: e.target.value } }))}
                             />
                             <select
@@ -133,8 +134,8 @@ export default function AdminDialogs({
                     </DialogHeader>
                     {editingUser ? (
                         <div className="grid gap-3">
-                            <input className="border border-border rounded-xl px-3 py-2 bg-background" value={(userDrafts[editingUser.id] || { full_name: editingUser.full_name, email: editingUser.email }).full_name} onChange={(e) => setUserDrafts((prev) => ({ ...prev, [editingUser.id]: { ...(prev[editingUser.id] || { full_name: editingUser.full_name, email: editingUser.email }), full_name: e.target.value } }))} />
-                            <input className="border border-border rounded-xl px-3 py-2 bg-background" value={(userDrafts[editingUser.id] || { full_name: editingUser.full_name, email: editingUser.email }).email} onChange={(e) => setUserDrafts((prev) => ({ ...prev, [editingUser.id]: { ...(prev[editingUser.id] || { full_name: editingUser.full_name, email: editingUser.email }), email: e.target.value } }))} />
+                            <input className="border border-border rounded-xl px-3 py-2 bg-background" maxLength={120} value={(userDrafts[editingUser.id] || { full_name: editingUser.full_name, email: editingUser.email }).full_name} onChange={(e) => setUserDrafts((prev) => ({ ...prev, [editingUser.id]: { ...(prev[editingUser.id] || { full_name: editingUser.full_name, email: editingUser.email }), full_name: e.target.value } }))} />
+                            <input className="border border-border rounded-xl px-3 py-2 bg-background" type="email" maxLength={254} value={(userDrafts[editingUser.id] || { full_name: editingUser.full_name, email: editingUser.email }).email} onChange={(e) => setUserDrafts((prev) => ({ ...prev, [editingUser.id]: { ...(prev[editingUser.id] || { full_name: editingUser.full_name, email: editingUser.email }), email: e.target.value } }))} />
                         </div>
                     ) : null}
                     <DialogFooter>
@@ -149,7 +150,7 @@ export default function AdminDialogs({
                         <DialogTitle>Сброс пароля</DialogTitle>
                         <DialogDescription>Введите новый пароль для пользователя {resettingUser?.full_name || ""}.</DialogDescription>
                     </DialogHeader>
-                    <input className="border border-border rounded-xl px-3 py-2 bg-background" placeholder="Новый пароль (минимум 8 символов)" value={resetPasswordDraft} onChange={(e) => setResetPasswordDraft(e.target.value)} />
+                    <input className="border border-border rounded-xl px-3 py-2 bg-background" type="password" minLength={8} maxLength={72} placeholder="Новый пароль (минимум 8 символов)" value={resetPasswordDraft} onChange={(e) => setResetPasswordDraft(e.target.value)} />
                     <DialogFooter>
                         <ActionButton loading={actionKey === `direct-reset-${userResetId}`} disabled={busy || !userResetId} onClick={() => userResetId && resetUserPasswordDirect(userResetId)} className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2">Обновить пароль</ActionButton>
                     </DialogFooter>
@@ -175,7 +176,7 @@ export default function AdminDialogs({
                         <DialogDescription>Введите новый пароль для обработки заявки.</DialogDescription>
                     </DialogHeader>
                     {resetRequestDialogId ? (
-                        <input className="border border-border rounded-xl px-3 py-2 bg-background" placeholder="Новый пароль (минимум 8 символов)" value={newPasswords[resetRequestDialogId] || ""} onChange={(e) => setNewPasswords((prev) => ({ ...prev, [resetRequestDialogId]: e.target.value }))} />
+                        <input className="border border-border rounded-xl px-3 py-2 bg-background" type="password" minLength={8} maxLength={72} placeholder="Новый пароль (минимум 8 символов)" value={newPasswords[resetRequestDialogId] || ""} onChange={(e) => setNewPasswords((prev) => ({ ...prev, [resetRequestDialogId]: e.target.value }))} />
                     ) : null}
                     <DialogFooter>
                         <ActionButton loading={actionKey === `reset-${resetRequestDialogId}`} disabled={busy || !resetRequestDialogId} onClick={() => resetRequestDialogId && resolveReset(resetRequestDialogId)} className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2">Сбросить пароль</ActionButton>
