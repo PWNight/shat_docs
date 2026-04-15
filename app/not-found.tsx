@@ -7,8 +7,7 @@ export default function NotFound() {
   const router = useRouter();
 
   return (
-    <div className="flex min-h-[80vh] flex-col items-center justify-center px-4 text-center">
-      {/* Декоративный элемент с иконкой */}
+    <div className="flex min-h-[70vh] flex-col mx-auto justify-center gap-4 px-4">
       <div className="relative mb-8">
         <div className="absolute inset-0 animate-pulse rounded-full bg-blue-100 blur-3xl dark:bg-blue-900/20" />
         <div className="relative flex h-32 w-32 items-center justify-center rounded-3xl bg-white shadow-xl dark:bg-slate-900">
@@ -16,7 +15,6 @@ export default function NotFound() {
         </div>
       </div>
 
-      {/* Текстовый блок */}
       <div className="max-w-md space-y-4">
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white sm:text-3xl">
           Упс! Похоже, вы потерялись
@@ -26,8 +24,7 @@ export default function NotFound() {
         </p>
       </div>
 
-      {/* Кнопки управления */}
-      <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+      <div className="mt-5 flex flex-wrap gap-4">
         <Link
           href="/"
           className="flex items-center gap-2 rounded-full bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-all hover:bg-blue-700 hover:shadow-lg active:scale-95"
