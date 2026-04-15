@@ -999,14 +999,12 @@ export default function AdminPage() {
                                         key={log.id}
                                         className="flex gap-3 p-4 rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-all"
                                     >
-                                        {/* Иконка */}
                                         <div
                                             className={`flex items-center justify-center w-10 h-10 rounded-xl ${style.bg} ${style.color}`}
                                         >
                                             {style.icon}
                                         </div>
 
-                                        {/* Контент */}
                                         <div className="flex flex-col flex-1">
                                             <div className="flex items-center justify-between gap-2">
                                                 <p className="font-medium text-sm">
@@ -1042,22 +1040,37 @@ export default function AdminPage() {
             </div>
 
             <Dialog open={groupEditId !== null} onOpenChange={(open) => !open && setGroupEditId(null)}>
-                <DialogContent>
+                <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle>Редактирование группы</DialogTitle>
                         <DialogDescription>Измените название и преподавателя группы.</DialogDescription>
                     </DialogHeader>
                     {editingGroup ? (
-                        <div className="grid gap-3">
-                            <input className="border border-border rounded-xl px-3 py-2 bg-background" value={(groupDrafts[editingGroup.id] || { name: editingGroup.name, fk_user: String(editingGroup.fk_user) }).name} onChange={(e) => setGroupDrafts((prev) => ({ ...prev, [editingGroup.id]: { ...(prev[editingGroup.id] || { name: editingGroup.name, fk_user: String(editingGroup.fk_user) }), name: e.target.value } }))} />
-                            <select className="border border-border rounded-xl px-3 py-2 bg-background" value={(groupDrafts[editingGroup.id] || { name: editingGroup.name, fk_user: String(editingGroup.fk_user) }).fk_user} onChange={(e) => setGroupDrafts((prev) => ({ ...prev, [editingGroup.id]: { ...(prev[editingGroup.id] || { name: editingGroup.name, fk_user: String(editingGroup.fk_user) }), fk_user: e.target.value } }))}>
+                        <div className="flex flex-col gap-4 py-4">
+                            <input 
+                                className="w-full border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-ring" 
+                                value={(groupDrafts[editingGroup.id] || { name: editingGroup.name, fk_user: String(editingGroup.fk_user) }).name} 
+                                onChange={(e) => setGroupDrafts((prev) => ({ ...prev, [editingGroup.id]: { ...(prev[editingGroup.id] || { name: editingGroup.name, fk_user: String(editingGroup.fk_user) }), name: e.target.value } }))} 
+                            />
+                            <select 
+                                className="w-full border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-ring" 
+                                value={(groupDrafts[editingGroup.id] || { name: editingGroup.name, fk_user: String(editingGroup.fk_user) }).fk_user} 
+                                onChange={(e) => setGroupDrafts((prev) => ({ ...prev, [editingGroup.id]: { ...(prev[editingGroup.id] || { name: editingGroup.name, fk_user: String(editingGroup.fk_user) }), fk_user: e.target.value } }))}
+                            >
                                 <option value="">Выберите преподавателя</option>
                                 {teacherOptions.map((u) => <option key={u.id} value={u.id}>{u.full_name} ({u.email})</option>)}
                             </select>
                         </div>
                     ) : null}
                     <DialogFooter>
-                        <ActionButton loading={actionKey === `save-group-${groupEditId}`} disabled={busy || !groupEditId} onClick={() => groupEditId && saveGroup(groupEditId)} className="rounded-lg bg-green-600 hover:bg-green-700 text-white px-4 py-2">Сохранить</ActionButton>
+                        <ActionButton 
+                            loading={actionKey === `save-group-${groupEditId}`} 
+                            disabled={busy || !groupEditId} 
+                            onClick={() => groupEditId && saveGroup(groupEditId)} 
+                            className="w-full sm:w-auto rounded-lg bg-green-600 hover:bg-green-700 text-white px-4 py-2"
+                        >
+                            Сохранить
+                        </ActionButton>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
