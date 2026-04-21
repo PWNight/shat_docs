@@ -550,7 +550,7 @@ export default function GroupGrades({ groupId, group, isOwner, setNotify }: Grou
                             <tr className="divide-x divide-gray-100 dark:divide-zinc-700 border-b dark:border-zinc-700">
                                 <th className="py-4 w-10">№</th>
                                 <th className="px-4 min-w-70 text-left">ФИО Студента</th>
-                                <th className="py-4 px-2 min-w-[150 px] bg-purple-50/50 dark:bg-purple-900/20 text-purple-500">Надбавка стипендии</th>
+                                <th className="py-4 px-2 min-w-[150px] bg-purple-50/50 dark:bg-purple-900/20 text-purple-500">Надбавка стипендии</th>
                                 <th className="py-4 px-4 min-w-32.5 bg-purple-50/50 dark:bg-purple-900/20 text-purple-500">Средний балл</th>
                                 {gradesStudents[0]?.subjects.map((sub, idx) => (
                                     <th key={idx} className="py-4 px-2 text-center truncate max-w-25" title={sub.name}>
