@@ -426,11 +426,11 @@ export default function GroupGrades({ groupId, group, isOwner, setNotify }: Grou
         const count4 = grades.filter(g => g === 4).length;
 
         // Проверяем, что количество оценок 5 больше 0 и что количество оценок 4 равно 0    
-        if (count4 === 0 && count5 > 0) return { label: "200%", color: "bg-blue-100 dark:bg-blue-900/30", multiplier: 2 };
+        if (count4 === 0 && count5 > 0) return { label: "100%", color: "bg-blue-100 dark:bg-blue-900/30", multiplier: 2 };
         // Проверяем, что количество оценок 5 больше количества оценок 4
-        if (count5 > count4) return { label: "150%", color: "bg-green-100 dark:bg-green-900/30", multiplier: 1.5 };
+        if (count5 > count4) return { label: "50%", color: "bg-green-100 dark:bg-green-900/30", multiplier: 1.5 };
         // Проверяем, что количество оценок 4 больше 0
-        if (count4 > 0) return { label: "100%", color: "bg-yellow-100 dark:bg-yellow-900/30", multiplier: 1 };
+        if (count4 > 0) return { label: "Обычная", color: "bg-yellow-100 dark:bg-yellow-900/30", multiplier: 1 };
 
         // Возвращаем информацию о стипендии
         return { label: "—", color: "bg-transparent", multiplier: 0 };
@@ -550,7 +550,7 @@ export default function GroupGrades({ groupId, group, isOwner, setNotify }: Grou
                             <tr className="divide-x divide-gray-100 dark:divide-zinc-700 border-b dark:border-zinc-700">
                                 <th className="py-4 w-10">№</th>
                                 <th className="px-4 min-w-70 text-left">ФИО Студента</th>
-                                <th className="py-4 px-3 bg-purple-50/50 dark:bg-purple-900/20 text-purple-500">Стипендия</th>
+                                <th className="py-4 px-2 min-w-[150 px] bg-purple-50/50 dark:bg-purple-900/20 text-purple-500">Надбавка стипендии</th>
                                 <th className="py-4 px-4 min-w-32.5 bg-purple-50/50 dark:bg-purple-900/20 text-purple-500">Средний балл</th>
                                 {gradesStudents[0]?.subjects.map((sub, idx) => (
                                     <th key={idx} className="py-4 px-2 text-center truncate max-w-25" title={sub.name}>
