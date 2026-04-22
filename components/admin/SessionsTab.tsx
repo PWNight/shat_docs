@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { Clock4, Monitor, ShieldCheck, ShieldX, Ban, ChevronLeft, ChevronRight } from "lucide-react";
 import { ActionButton } from "./AdminUi";
 import type { AdminOverview } from "@/app/admin/types";
-import { SessionListItem } from "@/utils/session";
+import type { SessionListItem } from "@/utils/session";
 import { Button } from "../ui/Button";
 
 type SessionsTabProps = {
@@ -14,7 +14,7 @@ type SessionsTabProps = {
     onRevokeSession: (sessionId: string) => void;
 };
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 12;
 
 export default function SessionsTab({ data, busy, actionKey, onRevokeSession }: SessionsTabProps) {
     const [currentPage, setCurrentPage] = useState(1);
@@ -28,7 +28,7 @@ export default function SessionsTab({ data, busy, actionKey, onRevokeSession }: 
     }, [data.sessions, filterStatus]);
 
     const totalItems = filteredSessions.length;
-    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+    const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
 
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const paginatedSessions = filteredSessions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
@@ -55,7 +55,7 @@ export default function SessionsTab({ data, busy, actionKey, onRevokeSession }: 
 
     return (
         <section className="grid gap-4">
-            <div className="flex items-center justify-between px-1">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-1">
                 <h2 className="text-xl font-bold tracking-tight">Сессии приложения</h2>
                 <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-full">
                     Всего: {totalItems}
@@ -63,12 +63,12 @@ export default function SessionsTab({ data, busy, actionKey, onRevokeSession }: 
             </div>
 
             <div className="flex flex-col gap-3">
-                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1 flex-nowrap">
+                <div className="grid grid-cols-2 sm:flex gap-2 sm:overflow-x-auto sm:pb-1 sm:scrollbar-hide -mx-1 px-1">
                     <Button
                         variant={filterStatus === "all" ? "default" : "outline"}
                         onClick={() => { setFilterStatus("all"); setCurrentPage(1); }}
                         size="sm"
-                        className="shrink-0 rounded-xl"
+                        className="w-full sm:w-auto sm:shrink-0 rounded-xl text-xs sm:text-sm px-2 sm:px-3"
                     >
                         Все ({data.sessions.length})
                     </Button>
@@ -76,7 +76,7 @@ export default function SessionsTab({ data, busy, actionKey, onRevokeSession }: 
                         variant={filterStatus === "active" ? "default" : "outline"}
                         onClick={() => { setFilterStatus("active"); setCurrentPage(1); }}
                         size="sm"
-                        className="shrink-0 rounded-xl"
+                        className="w-full sm:w-auto sm:shrink-0 rounded-xl text-xs sm:text-sm px-2 sm:px-3"
                     >
                         Активные ({data.sessions.filter(s => s.status === "active").length})
                     </Button>
@@ -84,7 +84,7 @@ export default function SessionsTab({ data, busy, actionKey, onRevokeSession }: 
                         variant={filterStatus === "revoked" ? "default" : "outline"}
                         onClick={() => { setFilterStatus("revoked"); setCurrentPage(1); }}
                         size="sm"
-                        className="shrink-0 rounded-xl"
+                        className="w-full sm:w-auto sm:shrink-0 rounded-xl text-xs sm:text-sm px-2 sm:px-3"
                     >
                         Отозваны ({data.sessions.filter(s => s.status === "revoked").length})
                     </Button>
@@ -92,7 +92,7 @@ export default function SessionsTab({ data, busy, actionKey, onRevokeSession }: 
                         variant={filterStatus === "expired" ? "default" : "outline"}
                         onClick={() => { setFilterStatus("expired"); setCurrentPage(1); }}
                         size="sm"
-                        className="shrink-0 rounded-xl"
+                        className="w-full sm:w-auto sm:shrink-0 rounded-xl text-xs sm:text-sm px-2 sm:px-3"
                     >
                         Истекли ({data.sessions.filter(s => s.status === "expired").length})
                     </Button>
@@ -168,16 +168,16 @@ export default function SessionsTab({ data, busy, actionKey, onRevokeSession }: 
                         {paginatedSessions.map((item) => {
                             const statusStyles = getStatusStyles(item);
                             return (
-                                <div key={item.sessionId} className="group relative overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-sm transition-all hover:shadow-md hover:border-border/80 dark:hover:bg-zinc-900/50">
-                                    <div className="absolute right-4 top-4">
+                                <div key={item.sessionId} className="group relative overflow-hidden rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-sm transition-all hover:shadow-md hover:border-border/80 dark:hover:bg-zinc-900/50">
+                                    <div className="mb-3 sm:mb-0 sm:absolute sm:right-4 sm:top-4">
                                         <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${statusStyles.bg} ${statusStyles.color}`}>
                                             {statusStyles.icon}
                                             {statusStyles.label}
                                         </span>
                                     </div>
-                                    <div className="mb-4 grid gap-1 pr-16">
-                                        <p className="font-bold leading-tight truncate text-foreground">{item.fullName}</p>
-                                        <p className="text-xs text-muted-foreground truncate">{item.email}</p>
+                                    <div className="mb-4 grid gap-1 sm:pr-16">
+                                        <p className="font-bold leading-tight break-words text-foreground">{item.fullName}</p>
+                                        <p className="text-xs text-muted-foreground break-all">{item.email}</p>
                                     </div>
                                     <div className="grid gap-2.5 rounded-xl border border-border/50 bg-muted/40 p-3.5 mb-4">
                                         <p className="text-xs font-medium flex items-center gap-2 text-foreground/80">
@@ -185,8 +185,8 @@ export default function SessionsTab({ data, busy, actionKey, onRevokeSession }: 
                                             {item.deviceLabel}
                                         </p>
                                         <div className="space-y-1">
-                                            <p className="text-[11px] text-muted-foreground font-mono truncate">IP: {item.ipAddress || "Неизвестен"}</p>
-                                            <p className="text-[11px] text-muted-foreground truncate leading-relaxed">
+                                            <p className="text-[11px] text-muted-foreground font-mono break-all">IP: {item.ipAddress || "Неизвестен"}</p>
+                                            <p className="text-[11px] text-muted-foreground leading-relaxed break-words">
                                                 UA: <span className="opacity-70">{item.userAgent || "—"}</span>
                                             </p>
                                         </div>
