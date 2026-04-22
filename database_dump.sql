@@ -69,20 +69,6 @@ CREATE TABLE `groups` (
   `fk_user` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Дамп данных таблицы `groups`
---
-
-INSERT INTO `groups` (`id`, `name`, `created_by`, `fk_user`) VALUES
-(17, '44РА', '2026-01-17 15:08:39', 27),
-(18, '44В', '2026-01-17 15:11:09', 27),
-(20, '34РА', '2026-02-24 11:42:24', 26),
-(21, '34В', '2026-03-02 06:41:33', 28),
-(22, '24В', '2026-03-02 07:06:00', 27),
-(23, '24РА', '2026-03-02 07:06:10', 28),
-(30, '2', '2026-03-05 11:24:37', 28),
-(33, 'Ахаё родион', '2026-03-27 13:53:45', 29);
-
 -- --------------------------------------------------------
 
 --
@@ -127,18 +113,6 @@ CREATE TABLE `auth_sessions` (
   `revoked_by_user_id` int DEFAULT NULL,
   `revoked_reason` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Дамп данных таблицы `users`
---
-
-INSERT INTO `users` (`id`, `email`, `full_name`, `password_hash`, `isAdmin`, `created_by`) VALUES
-(26, 'rodionvarzymov@gmail.com', 'Гошев Родион', '$2b$10$Zr3oAJiIG71K9fJAmlZe2evL2UkJZBaBXEmPl3tgN2QW1BqA.1sKG', 0, '2026-01-16 11:19:30'),
-(27, 'test@gmail.com', 'Иванов И.И.', '$2b$10$b6Co8G6/GHRvNXMSe25gjeIsX0AtUViQjqMEnOWzjg9yJ0J8HFw.e', 0, '2026-01-16 11:20:16'),
-(28, 'gmail@gmail.com', 'Гошев Родион Александрович', '$2b$10$gGD10lbGuywz2J1uwgFfp.6Ul23cNMKprDt0vcSrqSGT1x21Y5INu', 0, '2026-02-27 06:35:58'),
-(29, 'test@test.com', 'Xixu usn', '$2b$10$KxFWLyYvH3Wb8Z90FVQBaOtW8hBqV8WeTxMaHuP6vW.4wlQyOfJtO', 0, '2026-03-27 13:51:02'),
-(30, 'savelybogatyryov@yandex.ru', 'Богатырев Савелий Юрьевич', '$2b$10$RyUAgg2v2ziLxX4A.1l7ZenbpKuXNrTYQ1U3etVWhIAnaByey5gzO', 0, '2026-03-27 20:02:20');
-
 --
 -- Индексы сохранённых таблиц
 --
@@ -219,10 +193,6 @@ ALTER TABLE `students`
 --
 ALTER TABLE `users`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
-
---
--- Ограничения внешнего ключа сохраненных таблиц
---
 
 --
 -- Ограничения внешнего ключа таблицы `attendance`
