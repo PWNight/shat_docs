@@ -31,7 +31,7 @@ export default function GlobalError({
             <div className="flex gap-3">
                 <button
                     onClick={reset}
-                    className="rounded-xl bg-primary dark:bg-blue-500 dark:hover:bg-blue-600 px-4 py-2 text-primary-foreground hover:bg-primary/90"
+                    className="rounded-xl bg-blue-500 hover:bg-blue-600 px-4 py-2 text-white"
                 >
                     Повторить
                 </button>

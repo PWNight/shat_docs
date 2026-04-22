@@ -27,7 +27,7 @@ export default function NotFound() {
       <div className="mt-5 flex flex-wrap gap-4">
         <Link
           href="/"
-          className="flex items-center gap-2 rounded-full bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-all hover:bg-blue-700 hover:shadow-lg active:scale-95"
+          className="flex items-center gap-2 rounded-full bg-blue-500 px-6 py-3 text-sm font-medium text-white transition-all hover:bg-blue-600 hover:shadow-lg active:scale-95"
         >
           <Home size={18} />
           На главную
