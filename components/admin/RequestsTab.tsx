@@ -1,8 +1,10 @@
 "use client";
 
 import { Ban, CheckCircle2, Clock3, KeyRound, Users } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { ActionButton } from "./AdminUi";
+import PaginationControls from "@/components/ui/PaginationControls";
 import type { AdminOverview } from "@/app/admin/types";
 
 type RequestsTabProps = {
@@ -24,6 +26,33 @@ export default function RequestsTab({
     onOpenResetDialog,
     onCancelReset,
 }: RequestsTabProps) {
+    const ITEMS_PER_PAGE = 9;
+    const [registrationPage, setRegistrationPage] = useState(1);
+    const [resetPage, setResetPage] = useState(1);
+
+    const totalRegistrationItems = data.pendingRegistrations.length;
+    const totalResetItems = data.passwordResetRequests.length;
+
+    const paginatedRegistrations = useMemo(() => {
+        const start = (registrationPage - 1) * ITEMS_PER_PAGE;
+        return data.pendingRegistrations.slice(start, start + ITEMS_PER_PAGE);
+    }, [data.pendingRegistrations, registrationPage]);
+
+    const paginatedResets = useMemo(() => {
+        const start = (resetPage - 1) * ITEMS_PER_PAGE;
+        return data.passwordResetRequests.slice(start, start + ITEMS_PER_PAGE);
+    }, [data.passwordResetRequests, resetPage]);
+
+    useEffect(() => {
+        const totalPages = Math.max(1, Math.ceil(totalRegistrationItems / ITEMS_PER_PAGE));
+        if (registrationPage > totalPages) setRegistrationPage(totalPages);
+    }, [registrationPage, totalRegistrationItems]);
+
+    useEffect(() => {
+        const totalPages = Math.max(1, Math.ceil(totalResetItems / ITEMS_PER_PAGE));
+        if (resetPage > totalPages) setResetPage(totalPages);
+    }, [resetPage, totalResetItems]);
+
     return (
         <section className="grid gap-6">
             <div className="grid gap-3">
@@ -41,7 +70,7 @@ export default function RequestsTab({
                     </div>
                 ) : (
                     <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
-                        {data.pendingRegistrations.map((item) => (
+                        {paginatedRegistrations.map((item) => (
                             <div
                                 key={item.id}
                                 className="relative p-4 rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-all"
@@ -81,6 +110,12 @@ export default function RequestsTab({
                         ))}
                     </div>
                 )}
+                <PaginationControls
+                    currentPage={registrationPage}
+                    totalItems={totalRegistrationItems}
+                    itemsPerPage={ITEMS_PER_PAGE}
+                    onPageChange={setRegistrationPage}
+                />
             </div>
 
             <div className="grid gap-3">
@@ -98,7 +133,7 @@ export default function RequestsTab({
                     </div>
                 ) : (
                     <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
-                        {data.passwordResetRequests.map((item) => (
+                        {paginatedResets.map((item) => (
                             <div
                                 key={item.id}
                                 className="relative p-4 rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-all"
@@ -153,6 +188,12 @@ export default function RequestsTab({
                         ))}
                     </div>
                 )}
+                <PaginationControls
+                    currentPage={resetPage}
+                    totalItems={totalResetItems}
+                    itemsPerPage={ITEMS_PER_PAGE}
+                    onPageChange={setResetPage}
+                />
             </div>
         </section>
     );

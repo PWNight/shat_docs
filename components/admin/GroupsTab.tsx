@@ -1,8 +1,10 @@
 "use client";
 
 import { PlusCircle, SquarePen, Trash2, Users } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { ActionButton } from "./AdminUi";
+import PaginationControls from "@/components/ui/PaginationControls";
 import type { AdminOverview, GroupItem } from "@/app/admin/types";
 
 type GroupsTabProps = {
@@ -32,7 +34,19 @@ export default function GroupsTab({
     onStartEditGroup,
     onRequestDeleteGroup,
 }: GroupsTabProps) {
+    const ITEMS_PER_PAGE = 9;
+    const [currentPage, setCurrentPage] = useState(1);
     const teacherOptions = data.users.filter((u) => u.registration_status === "approved");
+    const totalItems = data.groups.length;
+    const paginatedGroups = useMemo(() => {
+        const start = (currentPage - 1) * ITEMS_PER_PAGE;
+        return data.groups.slice(start, start + ITEMS_PER_PAGE);
+    }, [currentPage, data.groups]);
+
+    useEffect(() => {
+        const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
+        if (currentPage > totalPages) setCurrentPage(totalPages);
+    }, [currentPage, totalItems]);
 
     return (
         <section className="flex flex-col gap-4">
@@ -72,7 +86,7 @@ export default function GroupsTab({
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4 gap-4">
-                {data.groups.map((group) => {
+                {paginatedGroups.map((group) => {
                     const isOwner = group.fk_user === userId;
                     const stat = data.groupStats.find((g) => g.id === group.id);
                     const attendancePercent = stat && stat.lessons_total > 0
@@ -186,6 +200,12 @@ export default function GroupsTab({
                     );
                 })}
             </div>
+            <PaginationControls
+                currentPage={currentPage}
+                totalItems={totalItems}
+                itemsPerPage={ITEMS_PER_PAGE}
+                onPageChange={setCurrentPage}
+            />
         </section>
     );
 }

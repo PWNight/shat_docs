@@ -1,8 +1,10 @@
 "use client";
 
 import { KeyRound, ShieldCheck, ShieldOff, SquarePen, Trash2, Users } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { ActionButton } from "./AdminUi";
+import PaginationControls from "@/components/ui/PaginationControls";
 import type { AdminOverview, AdminUser } from "@/app/admin/types";
 
 type UsersTabProps = {
@@ -24,12 +26,25 @@ export default function UsersTab({
     onRequestResetUser,
     onToggleAccess,
 }: UsersTabProps) {
+    const ITEMS_PER_PAGE = 9;
+    const [currentPage, setCurrentPage] = useState(1);
+    const totalItems = data.users.length;
+    const paginatedUsers = useMemo(() => {
+        const start = (currentPage - 1) * ITEMS_PER_PAGE;
+        return data.users.slice(start, start + ITEMS_PER_PAGE);
+    }, [currentPage, data.users]);
+
+    useEffect(() => {
+        const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
+        if (currentPage > totalPages) setCurrentPage(totalPages);
+    }, [currentPage, totalItems]);
+
     return (
         <section className="grid gap-5">
             <h2 className="text-xl font-bold">Пользователи</h2>
             <div className="grid gap-2">
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4 gap-4">
-                    {data.users.map((item) => (
+                    {paginatedUsers.map((item) => (
                         <div key={`manage-${item.id}`} className="group relative flex flex-col p-5 rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-all">
                             <div className="flex justify-between items-start mb-2">
                                 <div className="p-3 rounded-xl bg-muted text-muted-foreground">
@@ -104,6 +119,12 @@ export default function UsersTab({
                     ))}
                 </div>
             </div>
+            <PaginationControls
+                currentPage={currentPage}
+                totalItems={totalItems}
+                itemsPerPage={ITEMS_PER_PAGE}
+                onPageChange={setCurrentPage}
+            />
         </section>
     );
 }
