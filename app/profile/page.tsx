@@ -26,6 +26,7 @@ import {
 import { apiDelete, apiGet, apiPost } from "@/utils/http-client";
 import Loader from "@/components/ui/animations/Loader";
 import PaginationControls from "@/components/ui/PaginationControls";
+import { ScrollArea } from "@/components/ui/ScrollArea";
 
 // Типы вкладок
 type TabType = 'name' | 'email' | 'password';
@@ -237,7 +238,7 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500 p-4 md:p-8">
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
             {notify.message && (
                 <ErrorMessage 
                     message={notify.message} 
@@ -246,101 +247,59 @@ export default function ProfilePage() {
                 />
             )}
 
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-border pb-8">
-                <div className="space-y-1">
-                    <h1 className="text-4xl font-black tracking-tight text-foreground">Профиль</h1>
-                    <p className="text-muted-foreground font-medium">Управление учетной записью и академическая сводка</p>
-                </div>
-                <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-2 px-4 py-2.5 bg-muted/50 border border-border rounded-xl shadow-sm">
-                        <Fingerprint className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-tighter">ID: {user?.id}</span>
+            <header className="relative overflow-hidden rounded-3xl border border-border bg-card">
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent" />
+                <div className="relative p-6 sm:p-8">
+                    <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                        <div className="space-y-2 min-w-0">
+                            <p className="text-[10px] font-black uppercase tracking-[0.35em] text-muted-foreground">
+                                Личный кабинет
+                            </p>
+                            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-foreground truncate">
+                                {user?.full_name || "Профиль"}
+                            </h1>
+                            <div className="flex flex-wrap items-center gap-3 text-sm">
+                                <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background/50 px-3 py-1.5 font-semibold text-muted-foreground">
+                                    <Fingerprint className="h-4 w-4" />
+                                    ID: {user?.id}
+                                </span>
+                                <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background/50 px-3 py-1.5 font-semibold text-muted-foreground">
+                                    <CalendarDays className="h-4 w-4" />
+                                    Регистрация: {user?.created_by ? new Date(user.created_by).toLocaleDateString() : "—"}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            <button
+                                onClick={handlePasswordResetRequest}
+                                disabled={pending}
+                                className="rounded-2xl bg-destructive/10 text-destructive border border-destructive/20 px-5 py-3 text-sm font-bold hover:bg-destructive hover:text-white transition-colors disabled:opacity-50"
+                            >
+                                Сбросить пароль
+                            </button>
+                        </div>
                     </div>
-                    <button
-                        onClick={handlePasswordResetRequest}
-                        disabled={pending}
-                        className="rounded-xl bg-destructive/10 text-destructive border border-destructive/20 px-5 py-2.5 text-sm font-bold hover:bg-destructive hover:text-white transition-colors disabled:opacity-50"
-                    >
-                        Сбросить пароль
-                    </button>
                 </div>
             </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <aside className="lg:col-span-4 space-y-6">
-                    <div className="bg-card border border-border p-6 rounded-3xl shadow-sm">
-                        <h3 className="text-xs font-black text-muted-foreground uppercase mb-8 flex items-center gap-2 tracking-widest">
-                            <Info className="w-4 h-4 text-primary" /> Основные данные
-                        </h3>
-                        <div className="space-y-8">
-                            <InfoItem label="Полное имя" value={user?.full_name} icon={<UserCheck />} iconColor="text-blue-500" bgColor="bg-blue-50/80 dark:bg-blue-500/10" />
-                            <InfoItem label="Email адрес" value={user?.email} icon={<AtSign />} iconColor="text-emerald-500" bgColor="bg-emerald-50/80 dark:bg-emerald-500/10" />
-                            <InfoItem label="Регистрация" value={user?.created_by ? new Date(user.created_by).toLocaleDateString() : '—'} icon={<CalendarDays />} iconColor="text-orange-500" bgColor="bg-orange-50/80 dark:bg-orange-500/10" />
-                        </div>
-                    </div>
-                    <section className="h-fit bg-card border border-border p-8 rounded-3xl shadow-sm space-y-6">
-                        <header>
-                            <h3 className="text-xl font-bold">Активные сессии</h3>
-                            <p className="text-sm text-muted-foreground mt-1">Список устройств, имеющих доступ к вашему аккаунту.</p>
-                        </header>
-                        
-                        <div className="grid gap-3">
-                            {sessions.length === 0 ? (
-                                <div className="text-center py-12 border-2 border-dashed border-border rounded-2xl text-muted-foreground text-sm">
-                                    Активные сессии не найдены
-                                </div>
-                            ) : (
-                                paginatedSessions.map((session) => (
-                                    <div key={session.sessionId} className="group border border-border hover:border-primary/20 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors">
-                                        <div className="flex items-center gap-4">
-                                            <div className={`p-2.5 rounded-xl ${session.isCurrent ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
-                                                <ShieldCheck size={20} />
-                                            </div>
-                                            <div className="text-sm">
-                                                <p className="font-bold flex items-center gap-2">
-                                                    {session.deviceLabel}
-                                                    {session.isCurrent && <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full uppercase tracking-widest">Текущая</span>}
-                                                </p>
-                                                <p className="text-muted-foreground text-xs font-medium">
-                                                    {session.ipAddress} • {new Date(session.lastSeenAt).toLocaleString()}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        {!session.isCurrent && (
-                                            <button
-                                                disabled={pending}
-                                                onClick={() => revokeSession(session.sessionId)}
-                                                className="rounded-xl bg-destructive/5 text-destructive border border-destructive/10 hover:bg-destructive/60 hover:text-white px-4 py-2 text-xs font-bold transition-all disabled:opacity-50"
-                                            >
-                                                Завершить
-                                            </button>
-                                        )}
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                        <PaginationControls
-                            currentPage={sessionPage}
-                            totalItems={sessions.length}
-                            itemsPerPage={SESSIONS_PER_PAGE}
-                            onPageChange={setSessionPage}
-                        />
-                    </section>
-                </aside>
-                <main className="lg:col-span-8 space-y-8 max-w-[800px]">
-                    <div className="space-y-6">
-                        <div className="flex p-1.5 bg-muted/30 rounded-2xl border border-border w-full sm:w-fit">
-                            {(['name', 'email', 'password'] as TabType[]).map((tab) => (
-                                <TabButton 
-                                    key={tab} 
-                                    active={activeTab === tab} 
-                                    onClick={() => setActiveTab(tab)} 
-                                    label={tab === 'name' ? 'Имя' : tab === 'email' ? 'Почта' : 'Пароль'} 
-                                />
-                            ))}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+                <main className="lg:col-span-7 space-y-6">
+                    <section className="bg-card border border-border rounded-3xl shadow-sm overflow-hidden">
+                        <div className="p-2 sm:p-3 border-b border-border bg-muted/20">
+                            <div className="flex p-1.5 bg-background/60 rounded-2xl border border-border w-fit">
+                                {(['name', 'email', 'password'] as TabType[]).map((tab) => (
+                                    <TabButton
+                                        key={tab}
+                                        active={activeTab === tab}
+                                        onClick={() => setActiveTab(tab)}
+                                        label={tab === 'name' ? 'Имя' : tab === 'email' ? 'Почта' : 'Пароль'}
+                                    />
+                                ))}
+                            </div>
                         </div>
 
-                        <div className="bg-card border border-border p-8 rounded-3xl shadow-sm">
+                        <div className="p-6 sm:p-8">
                             <AnimatePresence mode="wait">
                                 <motion.div
                                     key={activeTab}
@@ -350,15 +309,15 @@ export default function ProfilePage() {
                                     transition={{ duration: 0.2 }}
                                 >
                                     <form onSubmit={handleAction} className="space-y-8">
-                                        <header>
-                                            <h3 className="text-2xl font-bold">
+                                        <header className="space-y-1">
+                                            <h2 className="text-2xl font-black tracking-tight">
                                                 {activeTab === 'name' && "Личные данные"}
                                                 {activeTab === 'email' && "Контактная почта"}
                                                 {activeTab === 'password' && "Безопасность"}
-                                            </h3>
-                                            <p className="text-sm text-muted-foreground mt-1">
-                                                {activeTab === 'name' && "Эти данные используются в официальных отчетах и ведомостях."}
-                                                {activeTab === 'email' && "Используется для входа в систему и восстановления пароля."}
+                                            </h2>
+                                            <p className="text-sm text-muted-foreground font-medium">
+                                                {activeTab === 'name' && "Эти данные используются в отчетах и ведомостях."}
+                                                {activeTab === 'email' && "Email используется для входа и восстановления доступа."}
                                                 {activeTab === 'password' && "Рекомендуем менять пароль раз в несколько месяцев."}
                                             </p>
                                         </header>
@@ -385,8 +344,89 @@ export default function ProfilePage() {
                                 </motion.div>
                             </AnimatePresence>
                         </div>
-                    </div>
+                    </section>
                 </main>
+
+                <aside className="lg:col-span-5 space-y-6">
+                    <section className="bg-card border border-border rounded-3xl shadow-sm p-6 sm:p-8">
+                        <h3 className="text-xs font-black text-muted-foreground uppercase mb-6 flex items-center gap-2 tracking-widest">
+                            <Info className="w-4 h-4 text-primary" /> Быстрая сводка
+                        </h3>
+                        <div className="space-y-6">
+                            <InfoItem label="Полное имя" value={user?.full_name} icon={<UserCheck />} iconColor="text-blue-500" bgColor="bg-blue-50/80 dark:bg-blue-500/10" />
+                            <InfoItem label="Email адрес" value={user?.email} icon={<AtSign />} iconColor="text-emerald-500" bgColor="bg-emerald-50/80 dark:bg-emerald-500/10" />
+                            <InfoItem label="Регистрация" value={user?.created_by ? new Date(user.created_by).toLocaleDateString() : '—'} icon={<CalendarDays />} iconColor="text-orange-500" bgColor="bg-orange-50/80 dark:bg-orange-500/10" />
+                        </div>
+                    </section>
+
+                    <section className="bg-card border border-border rounded-3xl shadow-sm p-6 sm:p-8 flex flex-col min-h-0">
+                        <header className="space-y-1">
+                            <div className="flex items-center justify-between gap-3">
+                                <h3 className="text-xl font-black tracking-tight">Активные сессии</h3>
+                                <span className="shrink-0 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border border-border bg-muted/20 text-muted-foreground">
+                                    {sessions.length}
+                                </span>
+                            </div>
+                            <p className="text-sm text-muted-foreground font-medium">Устройства, имеющие доступ к аккаунту.</p>
+                        </header>
+
+                        <div className="mt-5 flex-1 min-h-0">
+                            {sessions.length === 0 ? (
+                                <div className="text-center py-10 border-2 border-dashed border-border rounded-2xl text-muted-foreground text-sm">
+                                    Активные сессии не найдены
+                                </div>
+                            ) : (
+                                <ScrollArea className="max-h-[520px] lg:max-h-[560px] pr-2">
+                                    <div className="grid gap-2.5">
+                                        {paginatedSessions.map((session) => (
+                                            <div
+                                                key={session.sessionId}
+                                                className="break-all group border border-border hover:border-primary/20 rounded-2xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors"
+                                            >
+                                                <div className="flex items-center gap-3.5 min-w-0 w-full sm:w-auto">
+                                                    <div className={`p-2.5 rounded-xl ${session.isCurrent ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                                                        <ShieldCheck size={18} />
+                                                    </div>
+                                                    <div className="text-sm min-w-0">
+                                                        <p className="font-bold flex items-center gap-2 min-w-0">
+                                                            <span className="truncate">{session.deviceLabel}</span>
+                                                            {session.isCurrent && (
+                                                                <span className="shrink-0 text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full uppercase tracking-widest">
+                                                                    Текущая
+                                                                </span>
+                                                            )}
+                                                        </p>
+                                                        <p className="text-muted-foreground text-xs font-medium ">
+                                                            {session.ipAddress} • {new Date(session.lastSeenAt).toLocaleString()}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                {!session.isCurrent && (
+                                                    <button
+                                                        disabled={pending}
+                                                        onClick={() => revokeSession(session.sessionId)}
+                                                        className="w-full sm:w-auto rounded-xl bg-destructive/5 text-destructive border border-destructive/10 hover:bg-destructive/60 hover:text-white px-4 py-2 text-xs font-bold transition-all disabled:opacity-50"
+                                                    >
+                                                        Завершить
+                                                    </button>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </ScrollArea>
+                            )}
+                        </div>
+
+                        <div className="pt-4">
+                            <PaginationControls
+                                currentPage={sessionPage}
+                                totalItems={sessions.length}
+                                itemsPerPage={SESSIONS_PER_PAGE}
+                                onPageChange={setSessionPage}
+                            />
+                        </div>
+                    </section>
+                </aside>
             </div>
         </div>
     );
@@ -408,7 +448,7 @@ const TabButton = ({ active, onClick, label }: TabButtonProps) => (
     <button
         type="button"
         onClick={onClick}
-        className={`relative px-6 py-2 rounded-xl text-sm font-bold transition-all duration-300 w-full sm:w-32 z-10 ${
+        className={`relative px-4 sm:px-6 py-2 rounded-xl text-sm font-bold transition-all duration-300 flex-1 sm:flex-none sm:w-32 z-10 ${
             active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
         }`}
     >
