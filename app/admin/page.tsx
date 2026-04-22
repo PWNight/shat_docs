@@ -286,7 +286,7 @@ export default function AdminPage() {
                 <div className="w-full overflow-x-auto">
                     <div className="flex gap-2 p-1 bg-card rounded-2xl border border-border w-fit shadow-inner relative overflow-hidden">
                         <TabButton active={tab === "groups"} label="Группы" onClick={() => setTab("groups")} />
-                        <TabButton active={tab === "users"} label="Пользователи и заявки" onClick={() => setTab("users")} />
+                        <TabButton active={tab === "users"} label="Пользователи" onClick={() => setTab("users")} />
                         <TabButton active={tab === "requests"} label="Заявки" onClick={() => setTab("requests")} />
                         <TabButton active={tab === "sessions"} label="Сессии" onClick={() => setTab("sessions")} />
                         <TabButton active={tab === "logs"} label="Логи" onClick={() => setTab("logs")} />
