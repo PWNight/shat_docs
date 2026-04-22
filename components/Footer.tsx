@@ -3,7 +3,7 @@ import Link from "next/link";
 import { buttonVariants } from "./ui/Button";
 import { useState, useMemo } from "react";
 import Image from "next/image";
-import {LifeBuoy, Info, Loader2, Calendar, ChevronRight, Sparkles, ChevronLeft, Bug, Boxes} from "lucide-react";
+import {Info, Loader2, Calendar, ChevronRight, Sparkles, ChevronLeft, Bug, Boxes} from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -29,20 +29,11 @@ export function FooterButtons() {
     return (
         <div className="flex items-center gap-2">
             <Link
-                href="/support"
-                className={buttonVariants({
-                    size: "icon",
-                    className: "h-9 w-9 rounded-full bg-muted dark:bg-zinc-600 transition-all duration-200",
-                })}
-            >
-                <LifeBuoy className="h-5 w-5 dark:text-white" />
-            </Link>
-            <Link
                 href="https://github.com/PWNight/shat_docs"
                 target="_blank"
                 className={buttonVariants({
                     size: "icon",
-                    className: "h-9 w-9 rounded-full bg-muted dark:bg-zinc-600 transition-all duration-200",
+                    className: "h-9 w-9 rounded-full bg-zinc-600 dark:bg-zinc-600 hover:bg-zinc-700! transition-all duration-200",
                 })}
             >
                 <svg className={"w-5 h-5 fill-white"} role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
