@@ -1,5 +1,5 @@
 "use client"
-import {useActionState, useCallback, useEffect, useState} from "react";
+import {useActionState, useCallback, useEffect, useMemo, useState} from "react";
 import {useRouter} from "next/navigation";
 import {getSession} from "@/utils/session";
 import {CreateGroup, GetAllGroups} from "@/utils/handlers";
@@ -19,6 +19,7 @@ import {CreateFormProps, Group, Notify} from "@/utils/interfaces";
 import PageErrorState from "@/components/ui/PageErrorState";
 import { getErrorKindByMeta } from "@/utils/ui-errors";
 import Loader from "@/components/ui/animations/Loader";
+import PaginationControls from "@/components/ui/PaginationControls";
 
 // Форма создания группы
 const GroupCreateForm = ({ open, setOpen, dispatch, pending, state, userData }: CreateFormProps) => {
@@ -88,6 +89,8 @@ export default function ProfileGroups() {
     const [notify, setNotify] = useState<Notify>({ message: '', type: '' }); // Уведомления
     const [open, setOpen] = useState(false); // Открытие диалога
     const [pageError, setPageError] = useState<{ message: string; status?: number; code?: string } | null>(null); // Ошибка
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 9;
 
     // Функция загрузки списка групп
     const loadData = useCallback(async () => {
@@ -175,6 +178,17 @@ export default function ProfileGroups() {
         };
     }, [router, loadData]);
 
+    const totalItems = groups.length;
+    const paginatedGroups = useMemo(() => {
+        const start = (currentPage - 1) * ITEMS_PER_PAGE;
+        return groups.slice(start, start + ITEMS_PER_PAGE);
+    }, [currentPage, groups]);
+
+    useEffect(() => {
+        const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
+        if (currentPage > totalPages) setCurrentPage(totalPages);
+    }, [currentPage, totalItems]);
+
     // Проверяем, что страница не загружена
     if (!pageLoaded) {
         // Возвращаем компонент загрузки
@@ -229,8 +243,9 @@ export default function ProfileGroups() {
             </div>
 
             {groups.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 mb-8">
-                    {groups.map((group: Group) => {
+                <>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 mb-4">
+                    {paginatedGroups.map((group: Group) => {
                         const isOwner = group.fk_user === userData?.uid;
                         return (
                             <div
@@ -322,6 +337,13 @@ export default function ProfileGroups() {
                         );
                     })}
                 </div>
+                <PaginationControls
+                    currentPage={currentPage}
+                    totalItems={totalItems}
+                    itemsPerPage={ITEMS_PER_PAGE}
+                    onPageChange={setCurrentPage}
+                />
+                </>
             ) : (
                 <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-gray-50 dark:bg-zinc-800/50 rounded-3xl border-2 border-dashed border-gray-200 dark:border-zinc-700">
                     <div className="bg-white dark:bg-zinc-800 p-6 rounded-full shadow-sm mb-4">
