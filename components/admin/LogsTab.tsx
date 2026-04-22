@@ -41,13 +41,13 @@ type LogsTabProps = {
     data: AdminOverview;
 };
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 12;
 
 export default function LogsTab({ data }: LogsTabProps) {
     const [currentPage, setCurrentPage] = useState(1);
 
     const totalItems = data.logs.length;
-    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+    const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
 
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const paginatedLogs = data.logs.slice(startIndex, startIndex + ITEMS_PER_PAGE);
@@ -58,7 +58,7 @@ export default function LogsTab({ data }: LogsTabProps) {
 
     return (
         <section className="grid gap-4">
-            <div className="flex items-center justify-between px-1">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-1">
                 <h2 className="text-xl font-bold tracking-tight">Логи действий админов</h2>
                 <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-full">
                     Всего: {totalItems}
@@ -129,38 +129,32 @@ export default function LogsTab({ data }: LogsTabProps) {
                             </Button>
                         </div>
                     )}
-                    <div className="grid gap-3 min-h-[400px] content-start">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 min-h-[400px] content-start">
                         {paginatedLogs.map((log) => {
                             const style = getStyle(log.action);
                             return (
                                 <div
                                     key={log.id}
-                                    className="flex gap-4 p-4 rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-all hover:border-border/80 dark:hover:bg-zinc-900/50"
+                                    className="grid gap-3 p-3 sm:p-4 rounded-2xl border border-border bg-card shadow-sm transition-all hover:shadow-md hover:border-border/80"
                                 >
-                                    <div className={`flex items-center justify-center w-10 h-10 rounded-xl shrink-0 ${style.bg} ${style.color}`}>
-                                        {style.icon}
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className={`flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl shrink-0 ${style.bg} ${style.color}`}>
+                                            {style.icon}
+                                        </div>
+                                        <span className="text-[10px] sm:text-xs font-medium text-muted-foreground whitespace-nowrap bg-muted/70 px-2 py-1 rounded-full">
+                                            {new Date(log.created_at).toLocaleString()}
+                                        </span>
                                     </div>
 
-                                    <div className="flex flex-col flex-1 min-w-0">
-                                        <div className="flex items-center justify-between gap-2 mb-1">
-                                            <p className="font-bold text-sm truncate text-foreground">
-                                                {log.actor_name || "Система"}
-                                            </p>
-
-                                            <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap bg-muted/50 px-2 py-0.5 rounded-full">
-                                                {new Date(log.created_at).toLocaleString()}
-                                            </span>
+                                    <div className="grid gap-2 min-w-0">
+                                        <p className="font-bold text-sm sm:text-base break-words text-foreground">
+                                            {log.actor_name || "Система"}
+                                        </p>
+                                        <div className={`inline-flex w-fit items-center rounded-lg px-2.5 py-1 text-[11px] font-semibold ${style.bg} ${style.color}`}>
+                                            {style.label}
                                         </div>
-
-                                        <p className="text-sm leading-relaxed">
-                                            <span className="font-semibold text-foreground/90">
-                                                {style.label}
-                                            </span>{" "}
-                                            {log.details && (
-                                                <span className="text-muted-foreground inline-block">
-                                                    — {log.details}
-                                                </span>
-                                            )}
+                                        <p className="text-sm leading-relaxed text-muted-foreground break-words max-h-24 overflow-hidden">
+                                            {log.details || "Без дополнительных деталей"}
                                         </p>
                                     </div>
                                 </div>
