@@ -147,7 +147,7 @@ export default function SupportPage() {
                         <div className="pt-4 flex flex-col sm:flex-row gap-4">
                             <Link
                                 href="/"
-                                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-all active:scale-95"
+                                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-blue-500 text-white text-sm font-bold hover:bg-blue-600 transition-all active:scale-95"
                             >
                                 <ArrowLeft size={18} />
                                 На главную

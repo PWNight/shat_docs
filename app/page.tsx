@@ -217,7 +217,7 @@ export default function MainPage() {
                                         <div className="pt-2">
                                             <Dialog>
                                                 <DialogTrigger asChild>
-                                                    <button className="group/btn relative inline-flex items-center justify-center gap-3 px-8 py-4 w-full sm:w-fit rounded-2xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/25 active:scale-95">
+                                                    <button className="group/btn relative inline-flex items-center justify-center gap-3 px-8 py-4 w-full sm:w-fit rounded-2xl bg-blue-500 text-white text-sm font-bold hover:bg-blue-600 transition-all shadow-xl active:scale-95">
                                                         <Info size={20} />
                                                         Посмотреть изменения
                                                     </button>
@@ -281,7 +281,7 @@ export default function MainPage() {
                                         </div>
                                         <Dialog>
                                             <DialogTrigger asChild>
-                                                <button className="mt-4 inline-flex items-center justify-center gap-2 px-6 py-2.5 w-full sm:w-fit rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20">
+                                                <button className="mt-4 inline-flex items-center justify-center gap-2 px-6 py-2.5 w-full sm:w-fit rounded-xl bg-blue-500 text-white text-sm font-bold hover:bg-blue-600 transition-all shadow-lg">
                                                     Посмотреть изменения
                                                 </button>
                                             </DialogTrigger>

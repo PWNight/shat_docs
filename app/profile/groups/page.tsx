@@ -25,7 +25,7 @@ const GroupCreateForm = ({ open, setOpen, dispatch, pending, state, userData }: 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm active:scale-95">
+                <button className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm active:scale-95">
                     <Plus className="w-5 h-5" />
                     Создать группу
                 </button>
@@ -67,7 +67,7 @@ const GroupCreateForm = ({ open, setOpen, dispatch, pending, state, userData }: 
                     <button
                         type="submit"
                         disabled={pending}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                         {pending ? <Loader2 className="h-5 w-5 animate-spin" /> : "Создать группу"}
                     </button>
@@ -250,7 +250,7 @@ export default function ProfileGroups() {
                                     <div
                                         className={`p-3 rounded-xl transition-all ${
                                             isOwner
-                                                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                                                ? "bg-blue-500 text-white shadow-lg shadow-blue-500/30"
                                                 : "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
                                         }`}
                                     >
@@ -259,7 +259,7 @@ export default function ProfileGroups() {
 
                                     <div className="flex flex-col items-end gap-2">
                                         {isOwner && (
-                                            <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 bg-blue-600 text-white rounded-full shadow-sm">
+                                            <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 bg-blue-500 text-white rounded-full shadow-sm">
                                                 Ваша группа
                                             </span>
                                         )}
@@ -304,8 +304,8 @@ export default function ProfileGroups() {
                                         text-sm font-semibold transition-all duration-300
                                         border
 
-                                        bg-gray-50 hover:bg-blue-600 
-                                        dark:bg-zinc-800 dark:hover:bg-blue-600
+                                        bg-gray-50 hover:bg-blue-500 
+                                        dark:bg-zinc-800 dark:hover:bg-blue-500
 
                                         text-gray-700 hover:text-white 
                                         dark:text-gray-300

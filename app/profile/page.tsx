@@ -349,7 +349,7 @@ export default function ProfilePage() {
                                             <button
                                                 disabled={pending}
                                                 onClick={() => revokeSession(session.sessionId)}
-                                                className="rounded-xl bg-destructive/5 text-destructive border border-destructive/10 hover:bg-destructive hover:text-white px-4 py-2 text-xs font-bold transition-all disabled:opacity-50"
+                                                className="rounded-xl bg-destructive/5 text-destructive border border-destructive/10 hover:bg-destructive/60 hover:text-white px-4 py-2 text-xs font-bold transition-all disabled:opacity-50"
                                             >
                                                 Завершить
                                             </button>
@@ -484,7 +484,7 @@ const SubmitButton = ({ pending }: SubmitButtonProps) => (
     <button
         disabled={pending}
         type="submit"
-        className="w-full sm:w-auto bg-primary hover:bg-neutral-800 dark:bg-neutral-700 hover:dark:bg-neutral-600 text-primary-foreground px-4 py-4 rounded-2xl font-bold text-sm hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50 shadow-md mt-4"
+        className="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 dark:bg-blue-500 dark:hover:bg-blue-600 text-white px-4 py-4 rounded-2xl font-bold text-sm active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50 shadow-md mt-4"
     >
         {pending ? <Loader2 className="animate-spin w-4 h-4"/> : <Save className="w-4 h-4"/>}
         Сохранить изменения
