@@ -56,9 +56,9 @@ export default function SessionsTab({ data, busy, actionKey, onRevokeSession }: 
     return (
         <section className="grid gap-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-1">
-                <h2 className="text-xl font-bold tracking-tight">Сессии приложения</h2>
-                <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-full">
-                    Всего: {totalItems}
+                <h2 className="text-2xl font-black tracking-tight">Сессии</h2>
+                <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border border-border bg-muted/20 text-muted-foreground">
+                    {totalItems}
                 </span>
             </div>
 
@@ -153,7 +153,7 @@ export default function SessionsTab({ data, busy, actionKey, onRevokeSession }: 
             </div>
 
             {totalItems === 0 ? (
-                <div className="flex flex-col items-center justify-center text-center p-10 rounded-2xl border border-dashed border-border bg-card/50 min-h-[300px]">
+                <div className="flex flex-col items-center justify-center text-center p-10 rounded-2xl border border-dashed border-border bg-background/60 min-h-[300px]">
                     <div className="p-3 rounded-full bg-muted mb-3">
                         <Ban className="w-6 h-6 text-muted-foreground" />
                     </div>
@@ -168,7 +168,8 @@ export default function SessionsTab({ data, busy, actionKey, onRevokeSession }: 
                         {paginatedSessions.map((item) => {
                             const statusStyles = getStatusStyles(item);
                             return (
-                                <div key={item.sessionId} className="group relative overflow-hidden rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-sm transition-all hover:shadow-md hover:border-border/80 dark:hover:bg-zinc-900/50">
+                                <div key={item.sessionId} className="group relative overflow-hidden rounded-2xl border border-border/70 bg-background p-4 sm:p-5 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-border/80 dark:hover:bg-zinc-900/50 backdrop-blur-sm">
+                                    <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition pointer-events-none bg-gradient-to-br from-blue-500/5 to-transparent" />
                                     <div className="mb-3 sm:mb-0 sm:absolute sm:right-4 sm:top-4">
                                         <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${statusStyles.bg} ${statusStyles.color}`}>
                                             {statusStyles.icon}

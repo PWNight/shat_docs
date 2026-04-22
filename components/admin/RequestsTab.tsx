@@ -56,10 +56,15 @@ export default function RequestsTab({
     return (
         <section className="grid gap-6">
             <div className="grid gap-3">
-                <h2 className="text-xl font-bold">Заявки на регистрацию</h2>
+                <div className="flex items-end justify-between gap-3">
+                    <h2 className="text-2xl font-black tracking-tight">Заявки на регистрацию</h2>
+                    <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border border-border bg-muted/20 text-muted-foreground">
+                        {totalRegistrationItems}
+                    </span>
+                </div>
 
                 {data.pendingRegistrations.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center text-center p-8 rounded-2xl border border-dashed border-border bg-card">
+                    <div className="flex flex-col items-center justify-center text-center p-8 rounded-2xl border border-dashed border-border bg-background">
                         <div className="p-3 rounded-full bg-muted mb-3">
                             <Users className="w-6 h-6 text-muted-foreground" />
                         </div>
@@ -73,8 +78,9 @@ export default function RequestsTab({
                         {paginatedRegistrations.map((item) => (
                             <div
                                 key={item.id}
-                                className="relative p-4 rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-all"
+                                className="group relative overflow-hidden p-4 rounded-2xl border border-border/70 bg-background shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm"
                             >
+                                <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition pointer-events-none bg-gradient-to-br from-blue-500/5 to-transparent" />
                                 <div className="flex justify-between items-start mb-3">
                                     <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
                                         <Clock3 className="w-5 h-5" />
@@ -119,10 +125,15 @@ export default function RequestsTab({
             </div>
 
             <div className="grid gap-3">
-                <h2 className="text-xl font-bold">Заявки на сброс пароля</h2>
+                <div className="flex items-end justify-between gap-3">
+                    <h2 className="text-2xl font-black tracking-tight">Заявки на сброс пароля</h2>
+                    <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border border-border bg-muted/20 text-muted-foreground">
+                        {totalResetItems}
+                    </span>
+                </div>
 
                 {data.passwordResetRequests.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center text-center p-8 rounded-2xl border border-dashed border-border bg-card">
+                    <div className="flex flex-col items-center justify-center text-center p-8 rounded-2xl border border-dashed border-border bg-background">
                         <div className="p-3 rounded-full bg-muted mb-3">
                             <KeyRound className="w-6 h-6 text-muted-foreground" />
                         </div>
@@ -136,8 +147,9 @@ export default function RequestsTab({
                         {paginatedResets.map((item) => (
                             <div
                                 key={item.id}
-                                className="relative p-4 rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-all"
+                                className="group relative overflow-hidden p-4 rounded-2xl border border-border/70 bg-background shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm"
                             >
+                                <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition pointer-events-none bg-gradient-to-br from-blue-500/5 to-transparent" />
                                 <div className="flex justify-between items-start mb-3">
                                     <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
                                         <KeyRound className="w-5 h-5" />

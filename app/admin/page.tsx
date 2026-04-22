@@ -266,34 +266,55 @@ export default function AdminPage() {
     if (!data) return null;
 
     return (
-        <div className="w-[90%] mx-auto space-y-8 animate-in fade-in duration-500 bg-background min-h-screen py-4">
+        <div className="mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 space-y-8 animate-in fade-in duration-500 bg-background min-h-screen">
             {notify.message ? <NotifyAlert message={notify.message} type={notify.type} onClose={() => setNotify({ message: "", type: "" })} /> : null}
-            <div className="grid gap-6">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-foreground">Админ панель</h1>
-                    <p className="text-sm text-muted-foreground font-medium mt-1">Управление доступами, группами и операционными процессами</p>
-                </div>
-
-                <section className="grid grid-cols-2 lg:grid-cols-6 gap-2">
-                    <StatCard icon={<Users />} label="Пользователей" value={data.appStats.users_total} />
-                    <StatCard icon={<Shield />} label="Админов" value={data.appStats.admins_total} />
-                    <StatCard icon={<Layers />} label="Групп" value={data.appStats.groups_total} />
-                    <StatCard icon={<UserCog />} label="Студентов" value={data.appStats.students_total} />
-                    <StatCard icon={<Clock3 />} label="Регистраций в очереди" value={data.appStats.registrations_pending} />
-                    <StatCard icon={<KeyRound />} label="Сбросов паролей в очереди" value={data.appStats.password_resets_pending} />
-                </section>
-
-                <div className="w-full overflow-x-auto">
-                    <div className="flex gap-2 p-1 bg-card rounded-2xl border border-border w-fit shadow-inner relative overflow-hidden">
-                        <TabButton active={tab === "groups"} label="Группы" onClick={() => setTab("groups")} />
-                        <TabButton active={tab === "users"} label="Пользователи" onClick={() => setTab("users")} />
-                        <TabButton active={tab === "requests"} label="Заявки" onClick={() => setTab("requests")} />
-                        <TabButton active={tab === "sessions"} label="Сессии" onClick={() => setTab("sessions")} />
-                        <TabButton active={tab === "logs"} label="Логи" onClick={() => setTab("logs")} />
+            <header className="group relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 backdrop-blur-sm">
+                <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-blue-500/5 to-transparent" />
+                <div className="relative p-6 sm:p-8">
+                    <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+                        <div className="space-y-2 min-w-0">
+                            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">
+                                Панель администратора
+                            </h1>
+                            <p className="text-sm text-muted-foreground font-medium">
+                                Управление доступами, группами и операционными процессами
+                            </p>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="inline-flex items-center gap-2 rounded-full border border-gray-200 dark:border-zinc-700 bg-gray-100/70 dark:bg-zinc-800/70 px-3 py-1.5 text-xs font-bold text-gray-600 dark:text-gray-300">
+                                <Users className="h-4 w-4" />
+                                {userData.email}
+                            </span>
+                        </div>
                     </div>
                 </div>
+            </header>
 
-                <div className="p-1 overflow-hidden min-h-[560px]">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                <StatCard icon={<Users />} label="Пользователей" value={data.appStats.users_total} />
+                <StatCard icon={<Shield />} label="Админов" value={data.appStats.admins_total} />
+                <StatCard icon={<Layers />} label="Групп" value={data.appStats.groups_total} />
+                <StatCard icon={<UserCog />} label="Студентов" value={data.appStats.students_total} />
+                <StatCard icon={<Clock3 />} label="Регистраций в очереди" value={data.appStats.registrations_pending} />
+                <StatCard icon={<KeyRound />} label="Сбросов паролей в очереди" value={data.appStats.password_resets_pending} />
+            </div>
+
+            <div className="grid gap-6">
+                <nav className="w-full">
+                    <div className="group relative overflow-hidden rounded-2xl border border-border bg-card p-2 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 backdrop-blur-sm">
+                        <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-blue-500/5 to-transparent" />
+                        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+                            <TabButton active={tab === "groups"} label="Группы" icon={<Layers />} onClick={() => setTab("groups")} />
+                            <TabButton active={tab === "users"} label="Пользователи" icon={<Users />} onClick={() => setTab("users")} />
+                            <TabButton active={tab === "requests"} label="Заявки" icon={<KeyRound />} onClick={() => setTab("requests")} />
+                            <TabButton active={tab === "sessions"} label="Сессии" icon={<Shield />} onClick={() => setTab("sessions")} />
+                            <TabButton active={tab === "logs"} label="Логи" icon={<Clock3 />} onClick={() => setTab("logs")} />
+                        </div>
+                    </div>
+                </nav>
+
+                <section className="group relative rounded-2xl border border-border bg-card p-4 sm:p-6 shadow-sm overflow-hidden min-h-[560px] transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 backdrop-blur-sm">
+                    <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-blue-500/5 to-transparent" />
                     <AnimatePresence mode="wait">
                         <motion.div key={tab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2, ease: "easeInOut" }}>
                             {tab === "groups" ? (
@@ -339,7 +360,7 @@ export default function AdminPage() {
                             {tab === "logs" ? <LogsTab data={data} /> : null}
                         </motion.div>
                     </AnimatePresence>
-                </div>
+                </section>
             </div>
 
             <AdminDialogs

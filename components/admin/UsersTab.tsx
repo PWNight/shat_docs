@@ -41,11 +41,17 @@ export default function UsersTab({
 
     return (
         <section className="grid gap-5">
-            <h2 className="text-xl font-bold">Пользователи</h2>
+            <div className="flex items-end justify-between gap-3">
+                <h2 className="text-2xl font-black tracking-tight">Пользователи</h2>
+                <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border border-border bg-muted/20 text-muted-foreground">
+                    {totalItems}
+                </span>
+            </div>
             <div className="grid gap-2">
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4 gap-4">
                     {paginatedUsers.map((item) => (
-                        <div key={`manage-${item.id}`} className="group relative flex flex-col p-5 rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-all">
+                        <div key={`manage-${item.id}`} className="group relative overflow-hidden flex flex-col p-5 rounded-2xl border border-border/70 bg-background shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
+                            <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition pointer-events-none bg-gradient-to-br from-blue-500/5 to-transparent" />
                             <div className="flex justify-between items-start mb-2">
                                 <div className="p-3 rounded-xl bg-muted text-muted-foreground">
                                     <Users className="w-6 h-6" />

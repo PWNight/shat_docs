@@ -50,8 +50,14 @@ export default function GroupsTab({
 
     return (
         <section className="flex flex-col gap-4">
-            <h2 className="text-xl font-bold">Обзор и управление группами</h2>
-            <div className="rounded-2xl border border-border bg-card p-3 sm:p-4 w-full">
+            <div className="flex items-end justify-between gap-3">
+                <h2 className="text-2xl font-black tracking-tight">Группы</h2>
+                <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border border-border bg-muted/20 text-muted-foreground">
+                    {totalItems}
+                </span>
+            </div>
+            <div className="group relative overflow-hidden rounded-2xl border border-border/70 bg-background p-3 sm:p-4 w-full shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1 backdrop-blur-sm">
+                <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition pointer-events-none bg-gradient-to-br from-blue-500/5 to-transparent" />
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-2">
                     <input
                         className="w-full sm:flex-1 border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
@@ -78,7 +84,7 @@ export default function GroupsTab({
                         loading={actionKey === "create-group"}
                         disabled={busy}
                         onClick={onCreateGroup}
-                        className="w-full sm:w-auto rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold px-5 py-2 text-sm transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+                        className="w-full sm:w-auto rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold px-5 py-2 text-sm transition-all disabled:opacity-60 flex items-center justify-center gap-2 shadow-sm"
                     >
                         <PlusCircle className="w-4 h-4" />
                         <span>Создать</span>
@@ -96,8 +102,8 @@ export default function GroupsTab({
                         <div
                             key={group.id}
                             className={`
-                                group relative flex flex-col p-5 rounded-2xl border
-                                bg-card border-border
+                                group relative overflow-hidden flex flex-col p-5 rounded-2xl border
+                                bg-background border-border/70
                                 shadow-sm hover:shadow-xl hover:-translate-y-1
                                 transition-all duration-300
                                 ${isOwner ? "ring-1 ring-blue-500/30 border-blue-500/40" : ""}
