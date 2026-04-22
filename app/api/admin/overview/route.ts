@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { query } from "@/utils/mysql";
 import { jsonResponse, serverError, successResponse, handleApiError } from "@/utils/api";
 import { getUsersForAdmin, requireAdmin } from "@/utils/admin";
-import { listAllActiveSessions } from "@/utils/session";
+import { listAllSessions, getSession, type SessionListItem } from "@/utils/session";
 
 export async function GET(request: NextRequest) {
     const adminCheck = await requireAdmin(request);
@@ -25,7 +25,14 @@ export async function GET(request: NextRequest) {
         const logs = await query(
             "SELECT l.id, l.action, l.details, l.created_at, u.full_name as actor_name FROM admin_audit_logs l LEFT JOIN users u ON u.id = l.actor_user_id ORDER BY l.id DESC LIMIT 200"
         );
-        const sessions = await listAllActiveSessions(300);
+
+        const currentSession = await getSession(request);
+        let sessions: SessionListItem[] = await listAllSessions(500); // Fetch all sessions with a higher limit
+        sessions = sessions.map(s => ({
+            ...s,
+            isCurrent: s.sessionId === currentSession?.sid,
+        }));
+
         const appStatsRows = await query(
             "SELECT (SELECT COUNT(*) FROM users) AS users_total, (SELECT COUNT(*) FROM users WHERE registration_status = 'pending') AS registrations_pending, (SELECT COUNT(*) FROM users WHERE canAccessAdmin = 1) AS admins_total, (SELECT COUNT(*) FROM `groups`) AS groups_total, (SELECT COUNT(*) FROM students) AS students_total, (SELECT COUNT(*) FROM password_reset_requests WHERE status = 'pending') AS password_resets_pending"
         );
