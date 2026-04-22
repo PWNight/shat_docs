@@ -47,7 +47,7 @@ export default function RequestsTab({
                                 className="relative p-4 rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-all"
                             >
                                 <div className="flex justify-between items-start mb-3">
-                                    <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-600">
+                                    <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
                                         <Clock3 className="w-5 h-5" />
                                     </div>
                                     <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-muted border">
@@ -55,8 +55,8 @@ export default function RequestsTab({
                                     </span>
                                 </div>
 
-                                <h4 className="font-bold">{item.full_name}</h4>
-                                <p className="text-sm text-muted-foreground mb-4">{item.email}</p>
+                                <h4 className="font-bold break-words">{item.full_name}</h4>
+                                <p className="text-sm text-muted-foreground mb-4 break-all">{item.email}</p>
 
                                 <div className="flex gap-2">
                                     <ActionButton
@@ -104,7 +104,7 @@ export default function RequestsTab({
                                 className="relative p-4 rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-all"
                             >
                                 <div className="flex justify-between items-start mb-3">
-                                    <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600">
+                                    <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
                                         <KeyRound className="w-5 h-5" />
                                     </div>
 
@@ -113,8 +113,8 @@ export default function RequestsTab({
                                     </span>
                                 </div>
 
-                                <h4 className="font-bold">{item.full_name}</h4>
-                                <p className="text-sm text-muted-foreground">{item.email}</p>
+                                <h4 className="font-bold break-words">{item.full_name}</h4>
+                                <p className="text-sm text-muted-foreground break-all">{item.email}</p>
 
                                 <p className="text-xs mt-2 mb-4">
                                     Статус:{" "}
@@ -142,7 +142,7 @@ export default function RequestsTab({
                                         <ActionButton
                                             loading={actionKey === `cancel-reset-${item.id}`}
                                             disabled={busy}
-                                            className="w-full rounded-lg bg-red-100 dark:bg-red-600/40 dark:hover:bg-red-700 dark:text-white hover:bg-red-500 hover:text-white text-red-600 text-sm"
+                                            className="w-full rounded-lg border border-red-200 dark:border-red-900/30 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white dark:hover:bg-red-500 dark:hover:text-white text-sm"
                                             onClick={() => onCancelReset(item.id)}
                                         >
                                             <Ban className="w-4 h-4" /> Отменить

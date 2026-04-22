@@ -54,8 +54,8 @@ export default function UsersTab({
                                 </div>
                             </div>
 
-                            <h3 className="text-lg font-bold tracking-tight">{item.full_name}</h3>
-                            <p className="text-sm text-muted-foreground mb-4">{item.email}</p>
+                                <h3 className="text-lg font-bold tracking-tight break-words">{item.full_name}</h3>
+                                <p className="text-sm text-muted-foreground mb-4 break-all">{item.email}</p>
 
                             <div className="grid grid-cols-2 gap-2 mt-auto">
                                 <Button

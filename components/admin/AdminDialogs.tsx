@@ -101,7 +101,7 @@ export default function AdminDialogs({
                             </select>
                         </div>
                     ) : null}
-                    <DialogFooter>
+                    <DialogFooter className="flex-col-reverse sm:flex-row">
                         <ActionButton
                             loading={actionKey === `save-group-${groupEditId}`}
                             disabled={busy || !groupEditId}
@@ -120,7 +120,7 @@ export default function AdminDialogs({
                         <DialogTitle>Удаление группы</DialogTitle>
                         <DialogDescription>Удалить группу «{deletingGroup?.name || ""}»? Это удалит связанные данные посещаемости, оценок и студентов.</DialogDescription>
                     </DialogHeader>
-                    <DialogFooter>
+                    <DialogFooter className="flex-col-reverse sm:flex-row">
                         <ActionButton loading={actionKey === `delete-group-${groupDeleteId}`} disabled={busy || !groupDeleteId} onClick={() => groupDeleteId && deleteGroup(groupDeleteId)} className="rounded-lg bg-red-600 hover:bg-red-700 text-white px-4 py-2">Да, удалить</ActionButton>
                     </DialogFooter>
                 </DialogContent>
@@ -138,7 +138,7 @@ export default function AdminDialogs({
                             <input className="border border-border rounded-xl px-3 py-2 bg-background" type="email" maxLength={254} value={(userDrafts[editingUser.id] || { full_name: editingUser.full_name, email: editingUser.email }).email} onChange={(e) => setUserDrafts((prev) => ({ ...prev, [editingUser.id]: { ...(prev[editingUser.id] || { full_name: editingUser.full_name, email: editingUser.email }), email: e.target.value } }))} />
                         </div>
                     ) : null}
-                    <DialogFooter>
+                    <DialogFooter className="flex-col-reverse sm:flex-row">
                         <ActionButton loading={actionKey === `save-user-${userEditId}`} disabled={busy || !userEditId} onClick={() => userEditId && saveUser(userEditId)} className="rounded-lg bg-green-600 hover:bg-green-700 text-white px-4 py-2">Сохранить</ActionButton>
                     </DialogFooter>
                 </DialogContent>
@@ -151,7 +151,7 @@ export default function AdminDialogs({
                         <DialogDescription>Введите новый пароль для пользователя {resettingUser?.full_name || ""}.</DialogDescription>
                     </DialogHeader>
                     <input className="border border-border rounded-xl px-3 py-2 bg-background" type="password" minLength={8} maxLength={72} placeholder="Новый пароль (минимум 8 символов)" value={resetPasswordDraft} onChange={(e) => setResetPasswordDraft(e.target.value)} />
-                    <DialogFooter>
+                    <DialogFooter className="flex-col-reverse sm:flex-row">
                         <ActionButton loading={actionKey === `direct-reset-${userResetId}`} disabled={busy || !userResetId} onClick={() => userResetId && resetUserPasswordDirect(userResetId)} className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2">Обновить пароль</ActionButton>
                     </DialogFooter>
                 </DialogContent>
@@ -163,7 +163,7 @@ export default function AdminDialogs({
                         <DialogTitle>Удаление пользователя</DialogTitle>
                         <DialogDescription>Удалить пользователя «{deletingUser?.full_name || ""}»? Действие необратимо.</DialogDescription>
                     </DialogHeader>
-                    <DialogFooter>
+                    <DialogFooter className="flex-col-reverse sm:flex-row">
                         <ActionButton loading={actionKey === `delete-user-${userDeleteId}`} disabled={busy || !userDeleteId} onClick={() => userDeleteId && deleteUser(userDeleteId)} className="rounded-lg bg-red-600 hover:bg-red-700 text-white px-4 py-2">Да, удалить</ActionButton>
                     </DialogFooter>
                 </DialogContent>
@@ -178,7 +178,7 @@ export default function AdminDialogs({
                     {resetRequestDialogId ? (
                         <input className="border border-border rounded-xl px-3 py-2 bg-background" type="password" minLength={8} maxLength={72} placeholder="Новый пароль (минимум 8 символов)" value={newPasswords[resetRequestDialogId] || ""} onChange={(e) => setNewPasswords((prev) => ({ ...prev, [resetRequestDialogId]: e.target.value }))} />
                     ) : null}
-                    <DialogFooter>
+                    <DialogFooter className="flex-col-reverse sm:flex-row">
                         <ActionButton loading={actionKey === `reset-${resetRequestDialogId}`} disabled={busy || !resetRequestDialogId} onClick={() => resetRequestDialogId && resolveReset(resetRequestDialogId)} className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2">Сбросить пароль</ActionButton>
                     </DialogFooter>
                 </DialogContent>

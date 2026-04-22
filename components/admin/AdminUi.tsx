@@ -24,12 +24,12 @@ export function StatCard({
     };
     const tone = colorMap[label] || { border: "border-border", icon: "text-muted-foreground", iconBg: "bg-muted" };
     return (
-        <div className={`bg-card p-5 rounded-lg border ${tone.border} shadow-sm hover:shadow-md transition-all duration-300 group`}>
-            <div className={`${tone.iconBg} ${tone.icon} w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110`}>
+        <div className={`bg-card p-4 sm:p-5 rounded-lg border ${tone.border} shadow-sm hover:shadow-md transition-all duration-300 group`}>
+            <div className={`${tone.iconBg} ${tone.icon} w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center mb-3 sm:mb-4 transition-transform group-hover:scale-110`}>
                 <div className="[&>svg]:w-5 [&>svg]:h-5">{icon}</div>
             </div>
-            <p className="text-[10px] text-muted-foreground font-bold uppercase mb-1 tracking-wider">{label}</p>
-            <p className="text-2xl font-bold text-foreground leading-none">{value}</p>
+            <p className="text-[10px] text-muted-foreground font-bold uppercase mb-1 tracking-wider break-words">{label}</p>
+            <p className="text-xl sm:text-2xl font-bold text-foreground leading-none">{value}</p>
         </div>
     );
 }
@@ -39,7 +39,7 @@ export function TabButton({ active, label, onClick }: { active: boolean; label: 
         <button
             type="button"
             onClick={onClick}
-            className={`relative px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 h-10 min-h-10 whitespace-nowrap text-center min-w-[160px] z-10 ${
+            className={`relative px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 h-10 min-h-10 whitespace-nowrap text-center min-w-[120px] sm:min-w-[160px] z-10 ${
                 active ? "text-foreground" : "text-muted-foreground hover:text-foreground"
             }`}
         >
