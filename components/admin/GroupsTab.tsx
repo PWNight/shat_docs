@@ -37,10 +37,10 @@ export default function GroupsTab({
     return (
         <section className="flex flex-col gap-4">
             <h2 className="text-xl font-bold">Обзор и управление группами</h2>
-            <div className="rounded-2xl border border-border bg-card p-3 sm:p-4 w-full sm:w-fit">
+            <div className="rounded-2xl border border-border bg-card p-3 sm:p-4 w-full">
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-2">
                     <input
-                        className="w-full sm:w-auto border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                        className="w-full sm:flex-1 border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                         placeholder="Название группы"
                         value={newGroupName}
                         maxLength={80}
@@ -48,7 +48,7 @@ export default function GroupsTab({
                     />
 
                     <select
-                        className="w-full sm:w-[240px] border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                        className="w-full sm:w-[260px] border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                         value={newGroupTeacherId}
                         onChange={(e) => onNewGroupTeacherChange(e.target.value)}
                     >
@@ -83,8 +83,7 @@ export default function GroupsTab({
                             key={group.id}
                             className={`
                                 group relative flex flex-col p-5 rounded-2xl border
-                                bg-white dark:bg-zinc-900
-                                border-gray-200 dark:border-zinc-800
+                                bg-card border-border
                                 shadow-sm hover:shadow-xl hover:-translate-y-1
                                 transition-all duration-300
                                 ${isOwner ? "ring-1 ring-blue-500/30 border-blue-500/40" : ""}
@@ -97,7 +96,7 @@ export default function GroupsTab({
                                     className={`p-3 rounded-xl transition-all ${
                                         isOwner
                                             ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                                            : "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                                            : "bg-muted text-foreground"
                                     }`}
                                 >
                                     <Users className="w-6 h-6" />
@@ -111,42 +110,41 @@ export default function GroupsTab({
                                     )}
 
                                     <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1
-                                        bg-gray-100 dark:bg-zinc-800
-                                        text-gray-500 dark:text-gray-400
-                                        rounded-full border border-gray-200 dark:border-zinc-700">
+                                        bg-muted text-muted-foreground
+                                        rounded-full border border-border break-all">
                                         ID: {group.id}
                                     </span>
                                 </div>
                             </div>
 
-                            <h3 className="text-lg font-bold tracking-tight mb-2 text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                            <h3 className="text-lg font-bold tracking-tight mb-2 text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                                 {group.name}
                             </h3>
 
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                            <p className="text-sm text-muted-foreground mb-3">
                                 Владелец:{" "}
-                                <span className="font-medium text-gray-800 dark:text-gray-200">
+                                <span className="font-medium text-foreground">
                                     {group.owner_name || "—"}
                                 </span>
                             </p>
 
                             <div className="grid grid-cols-2 gap-2 mb-4">
-                                <div className="rounded-xl bg-gray-50 dark:bg-zinc-800 p-3 border border-gray-200 dark:border-zinc-700">
+                                <div className="rounded-xl bg-muted/60 p-3 border border-border">
                                     <p className="text-xs text-muted-foreground">Студенты</p>
                                     <p className="text-lg font-bold">{stat?.students_count ?? 0}</p>
                                 </div>
 
-                                <div className="rounded-xl bg-gray-50 dark:bg-zinc-800 p-3 border border-gray-200 dark:border-zinc-700">
+                                <div className="rounded-xl bg-muted/60 p-3 border border-border">
                                     <p className="text-xs text-muted-foreground">Ср. балл</p>
                                     <p className="text-lg font-bold">{stat?.avg_grade ?? "—"}</p>
                                 </div>
 
-                                <div className="rounded-xl bg-gray-50 dark:bg-zinc-800 p-3 border border-gray-200 dark:border-zinc-700">
+                                <div className="rounded-xl bg-muted/60 p-3 border border-border">
                                     <p className="text-xs text-muted-foreground">Посещаемость</p>
                                     <p className="text-lg font-bold">{attendancePercent}%</p>
                                 </div>
 
-                                <div className="rounded-xl bg-gray-50 dark:bg-zinc-800 p-3 border border-gray-200 dark:border-zinc-700">
+                                <div className="rounded-xl bg-muted/60 p-3 border border-border">
                                     <p className="text-xs text-muted-foreground">Опоздания</p>
                                     <p className="text-lg font-bold">{stat?.late_total ?? 0}</p>
                                 </div>
@@ -175,7 +173,7 @@ export default function GroupsTab({
                                         flex items-center justify-center gap-2 transition-all
                                         bg-red-50 hover:bg-red-500
                                         dark:bg-red-900/20 dark:hover:bg-red-500
-                                        text-red-600 hover:text-white!
+                                        text-red-600 hover:text-white
                                         dark:text-red-400
                                         border border-red-200 dark:border-red-900/30
                                         hover:border-red-500
