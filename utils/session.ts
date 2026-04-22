@@ -41,6 +41,7 @@ export type SessionListItem = {
     lastSeenAt: string;
     expiresAt: string;
     isCurrent: boolean;
+    status: "active" | "revoked" | "expired";
 };
 
 let cachedEncodedKey: Uint8Array | null = null;
@@ -315,4 +316,45 @@ export async function listAllActiveSessions(limit: number = 200): Promise<Sessio
         expiresAt: row.expires_at,
         isCurrent: false,
     }));
+}
+
+export async function listAllSessions(limit: number = 200, offset: number = 0): Promise<SessionListItem[]> {
+    await ensureSessionStorage();
+    const safeLimit = Number.isFinite(limit) ? Math.max(1, Math.min(1000, Math.floor(limit))) : 200;
+    const safeOffset = Number.isFinite(offset) ? Math.max(0, Math.floor(offset)) : 0;
+
+    const rows = await query<(SessionRow & { email: string; full_name: string })>(
+        `SELECT s.session_id, s.user_id, s.user_agent, s.ip_address, s.device_label, s.created_at, s.last_seen_at, s.expires_at, s.revoked_at,
+                u.email, u.full_name
+         FROM auth_sessions s
+         JOIN users u ON u.id = s.user_id
+         ORDER BY s.created_at DESC
+         LIMIT ${safeLimit} OFFSET ${safeOffset}`
+    );
+
+    const now = Date.now();
+    return rows.map((row) => {
+        let status: SessionListItem["status"];
+        if (row.revoked_at) {
+            status = "revoked";
+        } else if (new Date(row.expires_at).getTime() <= now) {
+            status = "expired";
+        } else {
+            status = "active";
+        }
+        return {
+            sessionId: row.session_id,
+            userId: row.user_id,
+            email: row.email,
+            fullName: row.full_name,
+            deviceLabel: row.device_label,
+            userAgent: row.user_agent,
+            ipAddress: row.ip_address,
+            createdAt: row.created_at,
+            lastSeenAt: row.last_seen_at,
+            expiresAt: row.expires_at,
+            isCurrent: false,
+            status,
+        };
+    });
 }

@@ -32,6 +32,7 @@ export type SessionItem = {
     lastSeenAt: string;
     expiresAt: string;
     isCurrent: boolean;
+    status: "active" | "revoked" | "expired";
 };
 
 export type AppStats = {
