@@ -361,7 +361,7 @@ export default function ProfilePage() {
                         </div>
                     </section>
 
-                    <section className="group relative bg-card border border-border rounded-2xl shadow-sm p-6 sm:p-8 flex flex-col min-h-0 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 backdrop-blur-sm overflow-hidden">
+                    <section className="max-h-[600px] group relative bg-card border border-border rounded-2xl shadow-sm p-6 sm:p-8 flex flex-col min-h-0 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 backdrop-blur-sm overflow-hidden">
                         <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-blue-500/5 to-transparent" />
                         <header className="space-y-1 relative">
                             <div className="flex items-center justify-between gap-3">

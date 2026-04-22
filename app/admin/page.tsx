@@ -266,7 +266,7 @@ export default function AdminPage() {
     if (!data) return null;
 
     return (
-        <div className="mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 space-y-8 animate-in fade-in duration-500 bg-background min-h-screen">
+        <div className="mx-auto w-[90%] sm:w-[80%] py-6 space-y-8 animate-in fade-in duration-500 bg-background min-h-screen">
             {notify.message ? <NotifyAlert message={notify.message} type={notify.type} onClose={() => setNotify({ message: "", type: "" })} /> : null}
             <header className="group relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 backdrop-blur-sm">
                 <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-blue-500/5 to-transparent" />
@@ -300,18 +300,16 @@ export default function AdminPage() {
             </div>
 
             <div className="grid gap-6">
-                <nav className="w-full">
-                    <div className="group relative overflow-hidden rounded-2xl border border-border bg-card p-2 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 backdrop-blur-sm">
-                        <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-blue-500/5 to-transparent" />
-                        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
-                            <TabButton active={tab === "groups"} label="Группы" icon={<Layers />} onClick={() => setTab("groups")} />
-                            <TabButton active={tab === "users"} label="Пользователи" icon={<Users />} onClick={() => setTab("users")} />
-                            <TabButton active={tab === "requests"} label="Заявки" icon={<KeyRound />} onClick={() => setTab("requests")} />
-                            <TabButton active={tab === "sessions"} label="Сессии" icon={<Shield />} onClick={() => setTab("sessions")} />
-                            <TabButton active={tab === "logs"} label="Логи" icon={<Clock3 />} onClick={() => setTab("logs")} />
-                        </div>
+                <div className="w-fit group relative overflow-hidden rounded-2xl border border-border bg-card p-2 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 backdrop-blur-sm">
+                    <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-blue-500/5 to-transparent" />
+                    <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+                        <TabButton active={tab === "groups"} label="Группы" icon={<Layers />} onClick={() => setTab("groups")} />
+                        <TabButton active={tab === "users"} label="Пользователи" icon={<Users />} onClick={() => setTab("users")} />
+                        <TabButton active={tab === "requests"} label="Заявки" icon={<KeyRound />} onClick={() => setTab("requests")} />
+                        <TabButton active={tab === "sessions"} label="Сессии" icon={<Shield />} onClick={() => setTab("sessions")} />
+                        <TabButton active={tab === "logs"} label="Логи" icon={<Clock3 />} onClick={() => setTab("logs")} />
                     </div>
-                </nav>
+                </div>
 
                 <section className="group relative rounded-2xl border border-border bg-card p-4 sm:p-6 shadow-sm overflow-hidden min-h-[560px] transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 backdrop-blur-sm">
                     <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-blue-500/5 to-transparent" />
