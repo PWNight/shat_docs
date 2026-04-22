@@ -301,7 +301,7 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
                     <button
                         onClick={refreshStudents}
                         disabled={isRefreshing}
-                        className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="inline-flex items-center gap-2 rounded-xl bg-blue-500 px-4 py-1 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Обновить список студентов"
                     >
                         <RefreshCw size={16} className={isRefreshing ? "animate-spin" : ""} />
@@ -379,7 +379,7 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
                     type="button"
                     onClick={generateReport}
                     disabled={isGenerating || selectedStudentIds.length === 0 || reportPeriod === null}
-                    className="inline-flex items-center justify-center rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center justify-center rounded-2xl bg-blue-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {isGenerating ? 'Формирование...' : 'Скачать отчёт'}
                 </button>

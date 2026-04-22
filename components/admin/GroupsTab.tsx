@@ -64,7 +64,7 @@ export default function GroupsTab({
                         loading={actionKey === "create-group"}
                         disabled={busy}
                         onClick={onCreateGroup}
-                        className="w-full sm:w-auto rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white font-semibold px-5 py-2 text-sm transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+                        className="w-full sm:w-auto rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold px-5 py-2 text-sm transition-all disabled:opacity-60 flex items-center justify-center gap-2"
                     >
                         <PlusCircle className="w-4 h-4" />
                         <span>Создать</span>
@@ -95,7 +95,7 @@ export default function GroupsTab({
                                 <div
                                     className={`p-3 rounded-xl transition-all ${
                                         isOwner
-                                            ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                                            ? "bg-blue-500 text-white shadow-lg shadow-blue-500/30"
                                             : "bg-muted text-foreground"
                                     }`}
                                 >
@@ -104,7 +104,7 @@ export default function GroupsTab({
 
                                 <div className="flex flex-col items-end gap-2">
                                     {isOwner && (
-                                        <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 bg-blue-600 text-white rounded-full shadow-sm">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 bg-blue-500 text-white rounded-full shadow-sm">
                                             Ваша группа
                                         </span>
                                     )}
@@ -154,8 +154,7 @@ export default function GroupsTab({
                                 <Button
                                     className="
                                         flex items-center justify-center gap-2 px-3 py-2 w-full
-                                        bg-blue-600 hover:bg-blue-700
-                                        dark:bg-blue-700 dark:hover:bg-blue-600
+                                        bg-blue-500 hover:bg-blue-600
                                         text-white font-medium rounded-lg text-sm
                                         transition-all shadow-sm hover:shadow-md
                                     "
@@ -173,7 +172,7 @@ export default function GroupsTab({
                                         flex items-center justify-center gap-2 transition-all
                                         bg-red-50 hover:bg-red-500
                                         dark:bg-red-900/20 dark:hover:bg-red-500
-                                        text-red-600 hover:text-white
+                                        text-red-600 hover:text-white!
                                         dark:text-red-400
                                         border border-red-200 dark:border-red-900/30
                                         hover:border-red-500

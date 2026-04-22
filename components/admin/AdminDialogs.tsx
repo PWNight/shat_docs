@@ -152,7 +152,7 @@ export default function AdminDialogs({
                     </DialogHeader>
                     <input className="border border-border rounded-xl px-3 py-2 bg-background" type="password" minLength={8} maxLength={72} placeholder="Новый пароль (минимум 8 символов)" value={resetPasswordDraft} onChange={(e) => setResetPasswordDraft(e.target.value)} />
                     <DialogFooter className="flex-col-reverse sm:flex-row">
-                        <ActionButton loading={actionKey === `direct-reset-${userResetId}`} disabled={busy || !userResetId} onClick={() => userResetId && resetUserPasswordDirect(userResetId)} className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2">Обновить пароль</ActionButton>
+                        <ActionButton loading={actionKey === `direct-reset-${userResetId}`} disabled={busy || !userResetId} onClick={() => userResetId && resetUserPasswordDirect(userResetId)} className="rounded-lg bg-blue-500 hover:bg-blue-600 text-white px-4 py-2">Обновить пароль</ActionButton>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -179,7 +179,7 @@ export default function AdminDialogs({
                         <input className="border border-border rounded-xl px-3 py-2 bg-background" type="password" minLength={8} maxLength={72} placeholder="Новый пароль (минимум 8 символов)" value={newPasswords[resetRequestDialogId] || ""} onChange={(e) => setNewPasswords((prev) => ({ ...prev, [resetRequestDialogId]: e.target.value }))} />
                     ) : null}
                     <DialogFooter className="flex-col-reverse sm:flex-row">
-                        <ActionButton loading={actionKey === `reset-${resetRequestDialogId}`} disabled={busy || !resetRequestDialogId} onClick={() => resetRequestDialogId && resolveReset(resetRequestDialogId)} className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2">Сбросить пароль</ActionButton>
+                        <ActionButton loading={actionKey === `reset-${resetRequestDialogId}`} disabled={busy || !resetRequestDialogId} onClick={() => resetRequestDialogId && resolveReset(resetRequestDialogId)} className="rounded-lg bg-blue-500 hover:bg-blue-600 text-white px-4 py-2">Сбросить пароль</ActionButton>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

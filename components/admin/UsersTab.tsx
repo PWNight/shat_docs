@@ -59,7 +59,7 @@ export default function UsersTab({
 
                             <div className="grid grid-cols-2 gap-2 mt-auto">
                                 <Button
-                                    className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white font-medium rounded-lg text-sm transition-all"
+                                    className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg text-sm transition-all"
                                     onClick={() => onStartEditUser(item)}
                                 >
                                     <SquarePen className="w-4 h-4" /> Редактировать

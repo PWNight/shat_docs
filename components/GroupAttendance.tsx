@@ -406,7 +406,7 @@ export default function GroupAttendance({ groupId, group, isOwner, setNotify }: 
                         <button
                             onClick={handleLoadFromDB}
                             disabled={isAttendanceLoading}
-                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white font-semibold rounded-lg text-sm transition-all disabled:opacity-50"
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg text-sm transition-all disabled:opacity-50"
                         >
                             {isAttendanceLoading ? <Loader2 size={16} className="animate-spin" /> : <Database size={16} />} Загрузить из БД
                         </button>
