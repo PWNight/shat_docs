@@ -134,7 +134,7 @@ export default function RequestsTab({
                                 {item.status === "pending" && (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                         <Button
-                                            className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm"
+                                            className="w-full rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm"
                                             onClick={() => onOpenResetDialog(item.id)}
                                         >
                                             Обработать заявку

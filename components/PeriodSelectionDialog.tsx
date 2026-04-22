@@ -70,7 +70,7 @@ export default function PeriodSelectionDialog({
                                     onClick={() => setSelectedPeriod(option.value)}
                                     className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${
                                         selectedPeriod === option.value
-                                            ? "bg-blue-600 text-white"
+                                            ? "bg-blue-500 text-white"
                                             : "bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-zinc-700"
                                     }`}
                                 >
@@ -108,7 +108,7 @@ export default function PeriodSelectionDialog({
                     <Button
                         onClick={handleConfirm}
                         disabled={selectedPeriod === null}
-                        className="w-full rounded-xl bg-blue-600 px-5 py-3 text-white font-semibold transition hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full rounded-xl bg-blue-500 px-5 py-3 text-white font-semibold transition hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         Подтвердить
                     </Button>

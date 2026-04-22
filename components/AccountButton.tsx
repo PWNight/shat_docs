@@ -60,7 +60,7 @@ export async function AuthButton() {
 
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold transition-all hover:bg-blue-700 focus:outline-none">
+            <DropdownMenuTrigger className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500 text-white font-semibold transition-all hover:bg-blue-600 focus:outline-none">
                 <UserCircle className="w-5 h-5" />
                 <span className="text-sm inline">Кабинет</span>
                 <ChevronDown className="w-4 h-4 opacity-70" />
