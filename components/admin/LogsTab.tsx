@@ -78,7 +78,7 @@ export default function LogsTab({ data }: LogsTabProps) {
             ) : (
                 <div className="grid gap-4">
                     {totalPages > 1 && (
-                        <div className="flex items-center justify-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+                        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
                             <Button
                                 variant="outline"
                                 size="icon"

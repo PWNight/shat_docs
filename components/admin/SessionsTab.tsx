@@ -62,7 +62,7 @@ export default function SessionsTab({ data, busy, actionKey, onRevokeSession }: 
                 </span>
             </div>
 
-            <div className="flex flex-col gap-3">
+            <div className="flex sm:justify-between flex-col sm:flex-row gap-3">
                 <div className="grid grid-cols-2 sm:flex gap-2 sm:overflow-x-auto sm:pb-1 sm:scrollbar-hide -mx-1 px-1">
                     <Button
                         variant={filterStatus === "all" ? "default" : "outline"}
@@ -99,7 +99,7 @@ export default function SessionsTab({ data, busy, actionKey, onRevokeSession }: 
                 </div>
 
                 {totalPages > 1 && (
-                    <div className="flex items-center justify-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
                         <Button
                             variant="outline"
                             size="icon"
