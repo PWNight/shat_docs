@@ -247,23 +247,23 @@ export default function ProfilePage() {
                 />
             )}
 
-            <header className="relative overflow-hidden rounded-3xl border border-border bg-card">
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent" />
+            <header className="group relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 backdrop-blur-sm">
+                <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-blue-500/5 to-transparent" />
                 <div className="relative p-6 sm:p-8">
                     <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                         <div className="space-y-2 min-w-0">
-                            <p className="text-[10px] font-black uppercase tracking-[0.35em] text-muted-foreground">
+                            <p className="text-[10px] font-extrabold uppercase tracking-[0.35em] text-muted-foreground">
                                 Личный кабинет
                             </p>
-                            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-foreground truncate">
+                            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground truncate">
                                 {user?.full_name || "Профиль"}
                             </h1>
                             <div className="flex flex-wrap items-center gap-3 text-sm">
-                                <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background/50 px-3 py-1.5 font-semibold text-muted-foreground">
+                                <span className="inline-flex items-center gap-2 rounded-full border border-gray-200 dark:border-zinc-700 bg-gray-100/70 dark:bg-zinc-800/70 px-3 py-1.5 font-semibold text-gray-600 dark:text-gray-300">
                                     <Fingerprint className="h-4 w-4" />
                                     ID: {user?.id}
                                 </span>
-                                <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background/50 px-3 py-1.5 font-semibold text-muted-foreground">
+                                <span className="inline-flex items-center gap-2 rounded-full border border-gray-200 dark:border-zinc-700 bg-gray-100/70 dark:bg-zinc-800/70 px-3 py-1.5 font-semibold text-gray-600 dark:text-gray-300">
                                     <CalendarDays className="h-4 w-4" />
                                     Регистрация: {user?.created_by ? new Date(user.created_by).toLocaleDateString() : "—"}
                                 </span>
@@ -274,7 +274,7 @@ export default function ProfilePage() {
                             <button
                                 onClick={handlePasswordResetRequest}
                                 disabled={pending}
-                                className="rounded-2xl bg-destructive/10 text-destructive border border-destructive/20 px-5 py-3 text-sm font-bold hover:bg-destructive hover:text-white transition-colors disabled:opacity-50"
+                                className="rounded-xl bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/30 hover:bg-red-500/80 hover:text-white px-5 py-3 text-sm font-bold transition-colors disabled:opacity-50"
                             >
                                 Сбросить пароль
                             </button>
@@ -285,8 +285,9 @@ export default function ProfilePage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
                 <main className="lg:col-span-7 space-y-6">
-                    <section className="bg-card border border-border rounded-3xl shadow-sm overflow-hidden">
-                        <div className="p-2 sm:p-3 border-b border-border bg-muted/20">
+                    <section className="group relative bg-card border border-border rounded-2xl shadow-sm overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 backdrop-blur-sm">
+                        <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-blue-500/5 to-transparent" />
+                        <div className="relative p-2 sm:p-3 border-b border-border bg-muted/20">
                             <div className="flex p-1.5 bg-background/60 rounded-2xl border border-border w-fit">
                                 {(['name', 'email', 'password'] as TabType[]).map((tab) => (
                                     <TabButton
@@ -299,7 +300,7 @@ export default function ProfilePage() {
                             </div>
                         </div>
 
-                        <div className="p-6 sm:p-8">
+                        <div className="relative p-6 sm:p-8">
                             <AnimatePresence mode="wait">
                                 <motion.div
                                     key={activeTab}
@@ -310,7 +311,7 @@ export default function ProfilePage() {
                                 >
                                     <form onSubmit={handleAction} className="space-y-8">
                                         <header className="space-y-1">
-                                            <h2 className="text-2xl font-black tracking-tight">
+                                            <h2 className="text-2xl font-extrabold tracking-tight">
                                                 {activeTab === 'name' && "Личные данные"}
                                                 {activeTab === 'email' && "Контактная почта"}
                                                 {activeTab === 'password' && "Безопасность"}
@@ -348,41 +349,44 @@ export default function ProfilePage() {
                 </main>
 
                 <aside className="lg:col-span-5 space-y-6">
-                    <section className="bg-card border border-border rounded-3xl shadow-sm p-6 sm:p-8">
-                        <h3 className="text-xs font-black text-muted-foreground uppercase mb-6 flex items-center gap-2 tracking-widest">
+                    <section className="group relative bg-card border border-border rounded-2xl shadow-sm p-6 sm:p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 backdrop-blur-sm overflow-hidden">
+                        <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-blue-500/5 to-transparent" />
+                        <h3 className="text-xs font-extrabold text-muted-foreground uppercase mb-6 flex items-center gap-2 tracking-widest">
                             <Info className="w-4 h-4 text-primary" /> Быстрая сводка
                         </h3>
-                        <div className="space-y-6">
+                        <div className="space-y-6 relative">
                             <InfoItem label="Полное имя" value={user?.full_name} icon={<UserCheck />} iconColor="text-blue-500" bgColor="bg-blue-50/80 dark:bg-blue-500/10" />
                             <InfoItem label="Email адрес" value={user?.email} icon={<AtSign />} iconColor="text-emerald-500" bgColor="bg-emerald-50/80 dark:bg-emerald-500/10" />
                             <InfoItem label="Регистрация" value={user?.created_by ? new Date(user.created_by).toLocaleDateString() : '—'} icon={<CalendarDays />} iconColor="text-orange-500" bgColor="bg-orange-50/80 dark:bg-orange-500/10" />
                         </div>
                     </section>
 
-                    <section className="bg-card border border-border rounded-3xl shadow-sm p-6 sm:p-8 flex flex-col min-h-0">
-                        <header className="space-y-1">
+                    <section className="group relative bg-card border border-border rounded-2xl shadow-sm p-6 sm:p-8 flex flex-col min-h-0 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 backdrop-blur-sm overflow-hidden">
+                        <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-blue-500/5 to-transparent" />
+                        <header className="space-y-1 relative">
                             <div className="flex items-center justify-between gap-3">
-                                <h3 className="text-xl font-black tracking-tight">Активные сессии</h3>
-                                <span className="shrink-0 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border border-border bg-muted/20 text-muted-foreground">
+                                <h3 className="text-xl font-extrabold tracking-tight">Активные сессии</h3>
+                                <span className="shrink-0 text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full border border-border bg-muted/20 text-muted-foreground">
                                     {sessions.length}
                                 </span>
                             </div>
                             <p className="text-sm text-muted-foreground font-medium">Устройства, имеющие доступ к аккаунту.</p>
                         </header>
 
-                        <div className="mt-5 flex-1 min-h-0">
+                        <div className="mt-5 flex-1 min-h-0 relative">
                             {sessions.length === 0 ? (
                                 <div className="text-center py-10 border-2 border-dashed border-border rounded-2xl text-muted-foreground text-sm">
                                     Активные сессии не найдены
                                 </div>
                             ) : (
-                                <ScrollArea className="max-h-[520px] lg:max-h-[560px] pr-2">
+                                <ScrollArea className="h-[520px] lg:h-[560px] pr-2">
                                     <div className="grid gap-2.5">
                                         {paginatedSessions.map((session) => (
                                             <div
                                                 key={session.sessionId}
-                                                className="break-all group border border-border hover:border-primary/20 rounded-2xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors"
+                                                className="break-all group relative overflow-hidden border border-border rounded-2xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all duration-300 bg-background/40 hover:bg-background/60 hover:shadow-md"
                                             >
+                                                <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition pointer-events-none bg-gradient-to-br from-blue-500/5 to-transparent" />
                                                 <div className="flex items-center gap-3.5 min-w-0 w-full sm:w-auto">
                                                     <div className={`p-2.5 rounded-xl ${session.isCurrent ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
                                                         <ShieldCheck size={18} />
@@ -405,7 +409,7 @@ export default function ProfilePage() {
                                                     <button
                                                         disabled={pending}
                                                         onClick={() => revokeSession(session.sessionId)}
-                                                        className="w-full sm:w-auto rounded-xl bg-destructive/5 text-destructive border border-destructive/10 hover:bg-destructive/60 hover:text-white px-4 py-2 text-xs font-bold transition-all disabled:opacity-50"
+                                                        className="w-full sm:w-auto rounded-xl bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/30 hover:bg-red-500/80 hover:text-white px-4 py-2 text-xs font-bold transition-all disabled:opacity-50 relative"
                                                     >
                                                         Завершить
                                                     </button>
