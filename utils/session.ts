@@ -288,6 +288,7 @@ export async function listUserSessions(userId: number, currentSessionId?: string
         lastSeenAt: row.last_seen_at,
         expiresAt: row.expires_at,
         isCurrent: row.session_id === currentSessionId,
+        status: "active",
     }));
 }
 
@@ -315,6 +316,7 @@ export async function listAllActiveSessions(limit: number = 200): Promise<Sessio
         lastSeenAt: row.last_seen_at,
         expiresAt: row.expires_at,
         isCurrent: false,
+        status: "active",
     }));
 }
 
