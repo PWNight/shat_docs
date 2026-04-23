@@ -309,7 +309,7 @@ export default function ProfilePage() {
                                     exit={{ opacity: 0, x: -10 }}
                                     transition={{ duration: 0.2 }}
                                 >
-                                    <form onSubmit={handleAction} className="space-y-8">
+                                    <form onSubmit={handleAction} className="space-y-8 max-w-2xl">
                                         <header className="space-y-1">
                                             <h2 className="text-2xl font-extrabold tracking-tight">
                                                 {activeTab === 'name' && "Личные данные"}
@@ -361,7 +361,7 @@ export default function ProfilePage() {
                         </div>
                     </section>
 
-                    <section className="max-h-[600px] group relative bg-card border border-border rounded-2xl shadow-sm p-6 sm:p-8 flex flex-col min-h-0 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 backdrop-blur-sm overflow-hidden">
+                    <section className="h-[600px] group relative bg-card border border-border rounded-2xl shadow-sm p-6 sm:p-8 flex flex-col min-h-0 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 backdrop-blur-sm overflow-hidden">
                         <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-blue-500/5 to-transparent" />
                         <header className="space-y-1 relative">
                             <div className="flex items-center justify-between gap-3">
@@ -379,7 +379,7 @@ export default function ProfilePage() {
                                     Активные сессии не найдены
                                 </div>
                             ) : (
-                                <ScrollArea className="h-[520px] lg:h-[560px] pr-2">
+                                <ScrollArea className="h-full min-h-0 pr-2">
                                     <div className="grid gap-2.5">
                                         {paginatedSessions.map((session) => (
                                             <div
@@ -468,7 +468,7 @@ const TabButton = ({ active, onClick, label }: TabButtonProps) => (
 );
 
 const ProfileInput = ({ label, ...props }: ProfileInputProps) => (
-    <div className="space-y-2">
+    <div className="space-y-2 max-w-xl">
         <label className="text-[12px] font-bold ml-1 uppercase tracking-widest text-muted-foreground/80">{label}</label>
         <input
             {...props}

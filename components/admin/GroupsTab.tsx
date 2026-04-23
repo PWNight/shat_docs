@@ -50,7 +50,7 @@ export default function GroupsTab({
 
     return (
         <section className="flex flex-col gap-4">
-            <div className="flex items-end justify-between gap-3">
+            <div className="flex flex-wrap items-end justify-between gap-3">
                 <h2 className="text-2xl font-black tracking-tight">Группы</h2>
                 <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border border-border bg-muted/20 text-muted-foreground">
                     {totalItems}
@@ -58,9 +58,9 @@ export default function GroupsTab({
             </div>
             <div className="group relative overflow-hidden rounded-2xl border border-border/70 bg-background p-3 sm:p-4 w-full shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1 backdrop-blur-sm">
                 <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition pointer-events-none bg-gradient-to-br from-blue-500/5 to-transparent" />
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-2">
+                <div className="flex flex-col lg:flex-row gap-3 sm:gap-2">
                     <input
-                        className="w-full sm:flex-1 border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                        className="w-full lg:flex-1 border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                         placeholder="Название группы"
                         value={newGroupName}
                         maxLength={80}
@@ -68,7 +68,7 @@ export default function GroupsTab({
                     />
 
                     <select
-                        className="w-full sm:w-[260px] border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                        className="w-full lg:w-[260px] border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                         value={newGroupTeacherId}
                         onChange={(e) => onNewGroupTeacherChange(e.target.value)}
                     >
@@ -84,7 +84,7 @@ export default function GroupsTab({
                         loading={actionKey === "create-group"}
                         disabled={busy}
                         onClick={onCreateGroup}
-                        className="w-full sm:w-auto rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold px-5 py-2 text-sm transition-all disabled:opacity-60 flex items-center justify-center gap-2 shadow-sm"
+                        className="w-full lg:w-auto rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold px-5 py-2 text-sm transition-all disabled:opacity-60 flex items-center justify-center gap-2 shadow-sm"
                     >
                         <PlusCircle className="w-4 h-4" />
                         <span>Создать</span>
@@ -131,7 +131,7 @@ export default function GroupsTab({
 
                                     <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1
                                         bg-muted text-muted-foreground
-                                        rounded-full border border-border break-all">
+                                        rounded-full border border-border break-words text-right max-w-full">
                                         ID: {group.id}
                                     </span>
                                 </div>

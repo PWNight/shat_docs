@@ -268,7 +268,7 @@ export default function ProfileGroups() {
 
             <section className="rounded-3xl border border-border bg-card p-4 sm:p-6 shadow-sm">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                    <div className="relative w-full lg:max-w-md">
+                    <div className="relative w-full lg:max-w-md xl:max-w-lg">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <input
                             value={query}
@@ -340,7 +340,7 @@ export default function ProfileGroups() {
                                         </div>
                                     </div>
 
-                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 
+                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 break-words 
                                         tracking-tight transition-colors 
                                         group-hover:text-blue-600 dark:group-hover:text-blue-400">
                                         {group.name}
