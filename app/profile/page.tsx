@@ -238,7 +238,7 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <div className="space-y-6 animate-in fade-in duration-300">
             {notify.message && (
                 <ErrorMessage 
                     message={notify.message} 
@@ -247,15 +247,14 @@ export default function ProfilePage() {
                 />
             )}
 
-            <header className="group relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 backdrop-blur-sm">
-                <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-blue-500/5 to-transparent" />
-                <div className="relative p-6 sm:p-8">
+            <header className="rounded-2xl border border-border bg-card shadow-sm">
+                <div className="p-6 sm:p-8">
                     <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                         <div className="space-y-2 min-w-0">
                             <p className="text-[10px] font-extrabold uppercase tracking-[0.35em] text-muted-foreground">
                                 Личный кабинет
                             </p>
-                            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground truncate">
+                            <h1 className="text-3xl font-bold tracking-tight text-foreground truncate">
                                 {user?.full_name || "Профиль"}
                             </h1>
                             <div className="flex flex-wrap items-center gap-3 text-sm">
@@ -274,7 +273,7 @@ export default function ProfilePage() {
                             <button
                                 onClick={handlePasswordResetRequest}
                                 disabled={pending}
-                                className="rounded-xl bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/30 hover:bg-red-500/80 hover:text-white px-5 py-3 text-sm font-bold transition-colors disabled:opacity-50"
+                                className="rounded-xl bg-red-500 text-white hover:bg-red-600 px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50"
                             >
                                 Сбросить пароль
                             </button>
@@ -285,10 +284,9 @@ export default function ProfilePage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
                 <main className="lg:col-span-7 space-y-6">
-                    <section className="group relative bg-card border border-border rounded-2xl shadow-sm overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 backdrop-blur-sm">
-                        <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-blue-500/5 to-transparent" />
-                        <div className="relative p-2 sm:p-3 border-b border-border bg-muted/20">
-                            <div className="flex p-1.5 bg-background/60 rounded-2xl border border-border w-fit">
+                    <section className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+                        <div className="p-2 sm:p-3 border-b border-border bg-muted/20">
+                            <div className="flex p-1.5 bg-background rounded-2xl border border-border w-fit">
                                 {(['name', 'email', 'password'] as TabType[]).map((tab) => (
                                     <TabButton
                                         key={tab}
@@ -300,7 +298,7 @@ export default function ProfilePage() {
                             </div>
                         </div>
 
-                        <div className="relative p-6 sm:p-8">
+                        <div className="p-6 sm:p-8">
                             <AnimatePresence mode="wait">
                                 <motion.div
                                     key={activeTab}
@@ -349,21 +347,19 @@ export default function ProfilePage() {
                 </main>
 
                 <aside className="lg:col-span-5 space-y-6">
-                    <section className="group relative bg-card border border-border rounded-2xl shadow-sm p-6 sm:p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 backdrop-blur-sm overflow-hidden">
-                        <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-blue-500/5 to-transparent" />
+                    <section className="bg-card border border-border rounded-2xl shadow-sm p-6 sm:p-8 overflow-hidden">
                         <h3 className="text-xs font-extrabold text-muted-foreground uppercase mb-6 flex items-center gap-2 tracking-widest">
-                            <Info className="w-4 h-4 text-primary" /> Быстрая сводка
+                            <Info className="w-4 h-4 text-primary" /> Информация
                         </h3>
-                        <div className="space-y-6 relative">
+                        <div className="space-y-5">
                             <InfoItem label="Полное имя" value={user?.full_name} icon={<UserCheck />} iconColor="text-blue-500" bgColor="bg-blue-50/80 dark:bg-blue-500/10" />
                             <InfoItem label="Email адрес" value={user?.email} icon={<AtSign />} iconColor="text-emerald-500" bgColor="bg-emerald-50/80 dark:bg-emerald-500/10" />
                             <InfoItem label="Регистрация" value={user?.created_by ? new Date(user.created_by).toLocaleDateString() : '—'} icon={<CalendarDays />} iconColor="text-orange-500" bgColor="bg-orange-50/80 dark:bg-orange-500/10" />
                         </div>
                     </section>
 
-                    <section className="h-[600px] group relative bg-card border border-border rounded-2xl shadow-sm p-6 sm:p-8 flex flex-col min-h-0 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 backdrop-blur-sm overflow-hidden">
-                        <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-blue-500/5 to-transparent" />
-                        <header className="space-y-1 relative">
+                    <section className="h-[600px] bg-card border border-border rounded-2xl shadow-sm p-6 sm:p-8 flex flex-col min-h-0 overflow-hidden">
+                        <header className="space-y-1">
                             <div className="flex items-center justify-between gap-3">
                                 <h3 className="text-xl font-extrabold tracking-tight">Активные сессии</h3>
                                 <span className="shrink-0 text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full border border-border bg-muted/20 text-muted-foreground">
@@ -384,9 +380,8 @@ export default function ProfilePage() {
                                         {paginatedSessions.map((session) => (
                                             <div
                                                 key={session.sessionId}
-                                                className="break-all group relative overflow-hidden border border-border rounded-2xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all duration-300 bg-background/40 hover:bg-background/60 hover:shadow-md"
+                                                className="break-all overflow-hidden border border-border rounded-2xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-background"
                                             >
-                                                <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition pointer-events-none bg-gradient-to-br from-blue-500/5 to-transparent" />
                                                 <div className="flex items-center gap-3.5 min-w-0 w-full sm:w-auto">
                                                     <div className={`p-2.5 rounded-xl ${session.isCurrent ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
                                                         <ShieldCheck size={18} />
@@ -409,7 +404,7 @@ export default function ProfilePage() {
                                                     <button
                                                         disabled={pending}
                                                         onClick={() => revokeSession(session.sessionId)}
-                                                        className="w-full sm:w-auto rounded-xl bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/30 hover:bg-red-500/80 hover:text-white px-4 py-2 text-xs font-bold transition-all disabled:opacity-50 relative"
+                                                        className="w-full sm:w-auto rounded-xl bg-red-500 text-white hover:bg-red-600 px-4 py-2 text-xs font-semibold transition-all disabled:opacity-50"
                                                     >
                                                         Завершить
                                                     </button>
@@ -438,7 +433,7 @@ export default function ProfilePage() {
 
 const InfoItem = ({ label, value, icon, iconColor, bgColor }: InfoItemProps) => (
     <div className="flex items-center gap-4 group">
-        <div className={`${bgColor} ${iconColor} p-3.5 rounded-2xl shrink-0 transition-transform group-hover:scale-105 border border-border/50`}>
+        <div className={`${bgColor} ${iconColor} p-3 rounded-2xl shrink-0 border border-border/50`}>
             {React.cloneElement(icon, { size: 20 })}
         </div>
         <div className="min-w-0">

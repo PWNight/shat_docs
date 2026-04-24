@@ -224,7 +224,7 @@ export default function ProfileGroups() {
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-6 animate-in fade-in duration-300">
             {notify.message && (
                 <ErrorMessage
                     message={notify.message}
@@ -233,15 +233,14 @@ export default function ProfileGroups() {
                 />
             )}
 
-            <header className="group relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 backdrop-blur-sm">
-                <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-blue-500/5 to-transparent" />
-                <div className="relative p-6 sm:p-8">
+            <header className="rounded-2xl border border-border bg-card shadow-sm">
+                <div className="p-6 sm:p-8">
                     <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
                         <div className="space-y-2 min-w-0">
                             <p className="text-[10px] font-extrabold uppercase tracking-[0.35em] text-muted-foreground">
                                 Личный кабинет
                             </p>
-                            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">
+                            <h1 className="text-3xl font-bold tracking-tight text-foreground">
                                 Группы
                             </h1>
                             <p className="text-sm text-muted-foreground font-medium">
@@ -266,7 +265,7 @@ export default function ProfileGroups() {
                 </div>
             </header>
 
-            <section className="rounded-3xl border border-border bg-card p-4 sm:p-6 shadow-sm">
+            <section className="rounded-2xl border border-border bg-card p-4 sm:p-6 shadow-sm">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div className="relative w-full lg:max-w-md xl:max-w-lg">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -285,7 +284,7 @@ export default function ProfileGroups() {
                             <button
                                 type="button"
                                 onClick={() => setQuery("")}
-                                className="text-xs font-bold px-3 py-2 rounded-2xl border border-border bg-background hover:bg-muted/40 transition-colors"
+                                className="text-xs font-semibold px-3 py-2 rounded-xl border border-border bg-background hover:bg-muted/40 transition-colors"
                             >
                                 Сбросить
                             </button>
@@ -302,18 +301,15 @@ export default function ProfileGroups() {
                             return (
                                 <div
                                     key={group.id}
-                                    className={`group relative flex flex-col p-6 rounded-2xl border transition-all duration-300 
-                                    backdrop-blur-sm
+                                    className={`flex flex-col p-5 rounded-2xl border transition-colors duration-200
                                     ${
                                         isOwner
-                                            ? "bg-blue-500/10 border-blue-500/40 shadow-md shadow-blue-500/10"
+                                            ? "bg-blue-500/10 border-blue-500/40"
                                             : "bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 hover:border-blue-400/60"
                                     }
-                                    hover:shadow-xl hover:-translate-y-1`}
+                                    `}
                                 >
-                                    <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition pointer-events-none bg-gradient-to-br from-blue-500/5 to-transparent" />
-
-                                    <div className="flex justify-between items-start mb-3 relative z-10">
+                                    <div className="flex justify-between items-start mb-3">
                                         <div
                                             className={`p-3 rounded-xl transition-all ${
                                                 isOwner
@@ -340,9 +336,7 @@ export default function ProfileGroups() {
                                         </div>
                                     </div>
 
-                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 break-words 
-                                        tracking-tight transition-colors 
-                                        group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 break-words tracking-tight">
                                         {group.name}
                                     </h3>
 
@@ -368,7 +362,7 @@ export default function ProfileGroups() {
                                         href={`/profile/groups/${group.id}`}
                                         className="
                                             mt-auto inline-flex items-center justify-center gap-2 w-full py-3 rounded-xl 
-                                            text-sm font-semibold transition-all duration-300
+                                            text-sm font-semibold transition-colors
                                             border
 
                                             bg-gray-50 hover:bg-blue-500 
@@ -380,7 +374,7 @@ export default function ProfileGroups() {
                                             border-gray-200 hover:border-blue-600 
                                             dark:border-zinc-700
 
-                                            shadow-sm hover:shadow-md
+                                            shadow-sm
                                         "
                                     >
                                         Подробнее

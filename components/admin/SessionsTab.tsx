@@ -168,8 +168,7 @@ export default function SessionsTab({ data, busy, actionKey, onRevokeSession }: 
                         {paginatedSessions.map((item) => {
                             const statusStyles = getStatusStyles(item);
                             return (
-                                <div key={item.sessionId} className="group relative overflow-hidden rounded-2xl border border-border/70 bg-background p-4 sm:p-5 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-border/80 dark:hover:bg-zinc-900/50 backdrop-blur-sm">
-                                    <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition pointer-events-none bg-gradient-to-br from-blue-500/5 to-transparent" />
+                                <div key={item.sessionId} className="overflow-hidden rounded-2xl border border-border/70 bg-background p-4 sm:p-5 shadow-sm transition-colors duration-200 hover:border-border/80 dark:hover:bg-zinc-900/50">
                                     <div className="mb-3 sm:mb-0 sm:absolute sm:right-4 sm:top-4">
                                         <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${statusStyles.bg} ${statusStyles.color}`}>
                                             {statusStyles.icon}

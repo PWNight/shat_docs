@@ -53,7 +53,7 @@ export default function GroupsTab({
             <div className="flex flex-wrap items-end justify-between gap-3">
                 <h2 className="text-2xl font-black tracking-tight">Группы</h2>
                 <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border border-border bg-muted/20 text-muted-foreground">
-                    {totalItems}
+                    {totalItems} группы
                 </span>
             </div>
             <div className="group relative overflow-hidden rounded-2xl border border-border/70 bg-background p-3 sm:p-4 w-full shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1 backdrop-blur-sm">
@@ -109,8 +109,6 @@ export default function GroupsTab({
                                 ${isOwner ? "ring-1 ring-blue-500/30 border-blue-500/40" : ""}
                             `}
                         >
-                            <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-blue-500/5 to-transparent pointer-events-none" />
-
                             <div className="flex justify-between items-start mb-3 relative z-10">
                                 <div
                                     className={`p-3 rounded-xl transition-all ${
@@ -137,7 +135,7 @@ export default function GroupsTab({
                                 </div>
                             </div>
 
-                            <h3 className="text-lg font-bold tracking-tight mb-2 text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                            <h3 className="text-lg font-bold tracking-tight mb-2 text-foreground">
                                 {group.name}
                             </h3>
 

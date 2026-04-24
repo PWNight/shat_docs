@@ -266,14 +266,13 @@ export default function AdminPage() {
     if (!data) return null;
 
     return (
-        <div className="mx-auto w-[90%] sm:w-[80%] py-6 space-y-8 animate-in fade-in duration-500 bg-background min-h-screen">
+        <div className="mx-auto w-[90%] sm:w-[80%] py-6 space-y-6 animate-in fade-in duration-300 bg-background min-h-screen">
             {notify.message ? <NotifyAlert message={notify.message} type={notify.type} onClose={() => setNotify({ message: "", type: "" })} /> : null}
-            <header className="group relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 backdrop-blur-sm">
-                <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-blue-500/5 to-transparent" />
-                <div className="relative p-6 sm:p-8">
+            <header className="rounded-2xl border border-border bg-card shadow-sm">
+                <div className="p-6 sm:p-8">
                     <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
                         <div className="space-y-2 min-w-0">
-                            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">
+                            <h1 className="text-3xl font-bold tracking-tight text-foreground">
                                 Панель администратора
                             </h1>
                             <p className="text-sm text-muted-foreground font-medium">
@@ -300,8 +299,7 @@ export default function AdminPage() {
             </div>
 
             <div className="grid gap-6">
-                <div className="w-fit group relative overflow-hidden rounded-2xl border border-border bg-card p-2 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 backdrop-blur-sm">
-                    <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-blue-500/5 to-transparent" />
+                <div className="w-fit rounded-2xl border border-border bg-card p-2 shadow-sm">
                     <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
                         <TabButton active={tab === "groups"} label="Группы" icon={<Layers />} onClick={() => setTab("groups")} />
                         <TabButton active={tab === "users"} label="Пользователи" icon={<Users />} onClick={() => setTab("users")} />
@@ -311,8 +309,7 @@ export default function AdminPage() {
                     </div>
                 </div>
 
-                <section className="group relative rounded-2xl border border-border bg-card p-4 sm:p-6 shadow-sm overflow-hidden min-h-[560px] transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 backdrop-blur-sm">
-                    <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-blue-500/5 to-transparent" />
+                <section className="overflow-hidden min-h-[560px]">
                     <AnimatePresence mode="wait">
                         <motion.div key={tab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2, ease: "easeInOut" }}>
                             {tab === "groups" ? (
