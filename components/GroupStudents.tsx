@@ -3,21 +3,23 @@ import React, { useEffect, useRef, useState } from "react";
 import { Edit, Trash2, Save, X, User, Loader2, RefreshCw } from "lucide-react";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogClose } from "@/components/ui/Dialog";
 import { GetAttendance, GetGrades, GetStudents, UpdateStudent, DeleteStudent } from "@/utils/handlers";
-import { exportGradesToWord, exportToWord } from "@/utils/functions";
+import { exportGradesToWord, exportToWord, createGradesReportData, createAttendanceReportData } from "@/utils/functions";
 import { Group, Notify, Student, MONTH_NAMES, SEMESTER_NAMES, AttendanceStudent, AttendanceTotal, GradeStudent } from "@/utils/interfaces";
 import { getDbOfflineToastMessage, isDbOfflineMeta } from "@/utils/ui-errors";
+import ReportEditDialog from "@/components/ReportEditDialog";
 
 // Интерфейс для компонента GroupStudents
 interface GroupStudentsProps {
     groupId: string;
     groupName: string;
+    group: Group;
     students: Student[];
     setStudents: React.Dispatch<React.SetStateAction<Student[]>>;
     isOwner: boolean;
     setNotify: (notify: Notify) => void;
 }
 
-export default function GroupStudents({ groupId, groupName, students, setStudents, isOwner, setNotify }: GroupStudentsProps) {
+export default function GroupStudents({ groupId, groupName, group, students, setStudents, isOwner, setNotify }: GroupStudentsProps) {
     // Используем useRef для отслеживания монтирования компонента       
     const isMountedRef = useRef(true);
     // Используем useState для отслеживания студента, которого редактируем
@@ -36,6 +38,10 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
     const [reportPeriod, setReportPeriod] = useState<number | null>(null);
     // Используем useState для отслеживания генерации отчёта
     const [isGenerating, setIsGenerating] = useState(false);
+    // Используем useState для отслеживания диалога редактирования отчёта
+    const [showReportEditDialog, setShowReportEditDialog] = useState(false);
+    // Используем useState для хранения данных отчёта для редактирования
+    const [reportDataForEdit, setReportDataForEdit] = useState<any>(null);
 
     // Используем useEffect для отслеживания монтирования компонента
     useEffect(() => {
@@ -88,7 +94,7 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
                 if (!attendanceRes.success) {
                     // Проверяем, что ошибка вызвана отсутствием интернета
                     const dbOffline = isDbOfflineMeta(attendanceRes.status, attendanceRes.code);
-                    // Устанавливаем уведомление о ошибке загрузки посещаемости
+                    // Устанавливаем уведомление о загрузке посещаемости
                     setNotify({
                         message: dbOffline ? getDbOfflineToastMessage() : (attendanceRes.message || 'Ошибка загрузки посещаемости'),
                         type: dbOffline ? 'warning' : 'error',
@@ -98,7 +104,7 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
 
                 // Проверяем, что данные посещаемости не пустые
                 if (!attendanceRes.data) {
-                    // Устанавливаем уведомление о ошибке загрузки посещаемости
+                    // Устанавливаем уведомление о загрузке посещаемости
                     setNotify({ message: 'Ошибка загрузки посещаемости', type: 'error' });
                     return;
                 }
@@ -107,7 +113,7 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
                 const reportStudents = attendanceRes.data.filter((item: AttendanceStudent) => selectedStudentNames.includes(item.fullName));
                 // Проверяем, что данные посещаемости для выбранных студентов не пустые
                 if (!reportStudents.length) {
-                    // Устанавливаем уведомление о ошибке загрузки посещаемости для выбранных студентов
+                    // Устанавливаем уведомление о загрузке посещаемости для выбранных студентов
                     setNotify({ message: 'Нет данных посещаемости для выбранных студентов', type: 'warning' });
                     return;
                 }
@@ -127,8 +133,8 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
                     late: 0,
                 });
 
-                // Экспортируем данные посещаемости в Word
-                await exportToWord(reportStudents, total, {
+                // Создаем данные для редактирования
+                const reportData = createAttendanceReportData(reportStudents, total, {
                     id: 0,
                     name: groupName,
                     fk_user: 0,
@@ -136,8 +142,13 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
                     created_by: '',
                 } as Group);
 
-                // Устанавливаем уведомление о успешном формировании отчёта по посещаемости
-                setNotify({ message: 'Отчёт по посещаемости сформирован', type: 'success' });
+                if (reportData) {
+                    setReportDataForEdit(reportData);
+                    setShowReportEditDialog(true);
+                }
+
+                // Устанавливаем уведомление о подготовке отчёта к редактированию
+                setNotify({ message: 'Отчёт подготовлен к редактированию', type: 'success' });
             } else {
                 // Получаем данные успеваемости
                 const gradesRes = await GetGrades(groupId, reportPeriod);
@@ -145,7 +156,7 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
                 if (!gradesRes.success) {
                     // Проверяем, что ошибка вызвана отсутствием интернета
                     const dbOffline = isDbOfflineMeta(gradesRes.status, gradesRes.code);
-                    // Устанавливаем уведомление о ошибке загрузки успеваемости
+                    // Устанавливаем уведомление о загрузке успеваемости
                     setNotify({
                         message: dbOffline ? getDbOfflineToastMessage() : (gradesRes.message || 'Ошибка загрузки успеваемости'),
                         type: dbOffline ? 'warning' : 'error',
@@ -155,7 +166,7 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
 
                 // Проверяем, что данные успеваемости не пустые
                 if (!gradesRes.data) {
-                    // Устанавливаем уведомление о ошибке загрузки успеваемости
+                    // Устанавливаем уведомление о загрузке успеваемости
                     setNotify({ message: 'Ошибка загрузки успеваемости', type: 'error' });
                     return;
                 }
@@ -164,13 +175,13 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
                 const reportStudents = gradesRes.data.filter((item: GradeStudent) => selectedStudentNames.includes(item.fullName));
                 // Проверяем, что данные успеваемости для выбранных студентов не пустые
                 if (!reportStudents.length) {
-                    // Устанавливаем уведомление о ошибке загрузки успеваемости для выбранных студентов
+                    // Устанавливаем уведомление о загрузке успеваемости для выбранных студентов
                     setNotify({ message: 'Нет данных успеваемости для выбранных студентов', type: 'warning' });
                     return;
                 }
 
-                // Экспортируем данные успеваемости в Word
-                await exportGradesToWord(reportStudents, {
+                // Создаем данные для редактирования
+                const reportData = createGradesReportData(reportStudents, {
                     id: 0,
                     name: groupName,
                     fk_user: 0,
@@ -178,8 +189,13 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
                     created_by: '',
                 } as Group);
 
-                // Устанавливаем уведомление о успешном формировании отчёта по успеваемости
-                setNotify({ message: 'Отчёт по успеваемости сформирован', type: 'success' });
+                if (reportData) {
+                    setReportDataForEdit(reportData);
+                    setShowReportEditDialog(true);
+                }
+
+                // Устанавливаем уведомление о подготовке отчёта к редактированию
+                setNotify({ message: 'Отчёт подготовлен к редактированию', type: 'success' });
             }
         } catch (error) {
             setNotify({ message: error instanceof Error ? error.message : 'Ошибка при формировании отчёта', type: 'error' });
@@ -381,7 +397,7 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
                     disabled={isGenerating || selectedStudentIds.length === 0 || reportPeriod === null}
                     className="inline-flex items-center justify-center rounded-2xl bg-blue-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    {isGenerating ? 'Формирование...' : 'Скачать отчёт'}
+                    {isGenerating ? 'Подготовка...' : 'Редактировать отчёт'}
                 </button>
             </div>
 
@@ -473,6 +489,16 @@ export default function GroupStudents({ groupId, groupName, students, setStudent
                     ))}
                 </div>
             )}
+            
+            {/* Report Edit Dialog */}
+            <ReportEditDialog
+                open={showReportEditDialog}
+                onClose={() => setShowReportEditDialog(false)}
+                reportType={reportType}
+                reportData={reportDataForEdit}
+                group={group}
+                setNotify={setNotify}
+            />
         </div>
     );
 }

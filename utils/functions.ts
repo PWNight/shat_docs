@@ -56,33 +56,27 @@ type CellOptions = {
 
 // Функция для создания ячейки таблицы
 const createCell = (text: string, options: CellOptions = {}): TableCell => {
+    // Разделяем текст по переносам строк для создания отдельных параграфов
+    const lines = text.split('\n');
+    
     return new TableCell({
-        // Устанавливаем ширину ячейки
-        width: options.width
-            ? { size: options.width, type: WidthType.PERCENTAGE }
-            : undefined,
-        // Устанавливаем текст ячейки
-        children: [
+        children: lines.map((line, index) => 
             new Paragraph({
-                // Устанавливаем выравнивание текста
-                alignment: options.align ?? AlignmentType.LEFT,
-                // Устанавливаем отступы текста
-                spacing: { before: 80, after: 80 },
-                // Устанавливаем текст ячейки
                 children: [
-                    // Устанавливаем текст ячейки
                     new TextRun({
-                        text,
-                        // Устанавливаем жирность, размер и цвет текста
-                        bold: options.bold,
-                        size: options.size ?? 20,
-                        color: options.color,
+                        text: line,
+                        bold: options.bold || false,
+                        size: options.size || 20,
+                        break: index > 0 ? 1 : 0, // Добавляем перенос строки для последующих строк
                     }),
                 ],
-            }),
-        ],
+                alignment: options.align || AlignmentType.LEFT,
+                spacing: index < lines.length - 1 ? { after: 50 } : {}, // Добавляем небольшой отступ между строками
+            })
+        ),
+        width: options.width ? { size: options.width, type: WidthType.PERCENTAGE } : undefined,
         // Устанавливаем вертикальное выравнивание текста
-        verticalAlign: VerticalAlign.CENTER,
+        verticalAlign: VerticalAlign.TOP, // Изменяем на TOP для лучшего отображения столбцов
         // Устанавливаем затенение ячейки
         shading: options.shading
             ? { fill: options.shading, type: ShadingType.CLEAR }
@@ -97,28 +91,66 @@ const createCell = (text: string, options: CellOptions = {}): TableCell => {
     });
 };
 
-// Функция для экспорта успеваемости в Word
-export const exportGradesToWord = async (
+// Функция для создания данных отчёта по успеваемости для редактирования
+export const createGradesReportData = (
     students: GradeStudent[],
     group: Group
-): Promise<void> => {
+) => {
     // Проверяем, есть ли студенты
-    if (!students.length) return;
-
-    // Получаем предметы студента
-    const subjects = students[0].subjects;
-
-    // Получаем ширину для ФИО, среднего балла и предметов
-    const fioWidth = 30;
-    const avgWidth = 10;
-    // Получаем ширину для предметов
-    const subjectWidth = Math.floor(
-        (100 - fioWidth - avgWidth) / subjects.length
-    );
+    if (!students.length) return null;
 
     // Получаем полугодие
     const periodSemester = students[0]?.periodSemester;
     const semesterText = periodSemester ? SEMESTER_NAMES[periodSemester as 1 | 2] : "";
+    
+    // Вычисляем статистику для отчёта
+    const totalStudents = students.length;
+    const excellentStudents = students.filter(s => s.averageScore >= 4.5).length;
+    const goodStudents = students.filter(s => s.averageScore >= 3.5 && s.averageScore < 4.5).length;
+    const failingStudents = students.filter(s => s.subjects.some(sub => {
+        const grade = parseInt(sub.grade);
+        return grade === 2 || sub.grade === '';
+    })).length;
+    
+    // Получаем старосту (несколько студентов как в образце)
+    const groupLeader = students.length > 0 ? students.slice(0, 2).map(s => s.fullName).join(',\n') : '';
+
+    return {
+        semesterText,
+        totalStudents,
+        excellentStudents,
+        goodStudents,
+        failingStudents,
+        groupLeader,
+        performance1: totalStudents - failingStudents,
+        quality1: excellentStudents + goodStudents,
+        unrespectful: '',
+        events: '',
+        achievements: '',
+        groupWins: '',
+        clubs: '',
+        classHours: '',
+        violations: '',
+    };
+};
+
+// Функция для экспорта успеваемости в Word с пользовательскими данными
+export const exportGradesToWord = async (
+    students: GradeStudent[],
+    group: Group,
+    customData?: any
+): Promise<void> => {
+    // Проверяем, есть ли студенты
+    if (!students.length) return;
+
+    // Используем пользовательские данные или вычисляем по умолчанию
+    const data = customData || createGradesReportData(students, group);
+    if (!data) return;
+
+    const semesterText = data.semesterText || '';
+    const totalStudents = data.totalStudents || students.length;
+    const excellentStudents = data.excellentStudents || 0;
+    const groupLeader = data.groupLeader || '';
     
     // Создаем документ Word
     const doc = new Document({
@@ -128,163 +160,195 @@ export const exportGradesToWord = async (
                 properties: {
                     page: {
                         size: {
-                            orientation: PageOrientation.LANDSCAPE,
+                            orientation: PageOrientation.PORTRAIT,
                         },
-                        margin: { top: 700, bottom: 700, left: 700, right: 700 },
+                        margin: { top: 1000, bottom: 1000, left: 1000, right: 1000 },
                     },
                 },
                 // Устанавливаем контент страницы
                 children: [
-                    // Устанавливаем заголовок
+                    // Устанавливаем заголовок - точно как в образце
                     new Paragraph({
                         // Устанавливаем текст заголовка
-                        text: "ВЕДОМОСТЬ УСПЕВАЕМОСТИ",
-                        // Устанавливаем уровень заголовка
-                        heading: HeadingLevel.HEADING_1,
+                        children: [
+                            new TextRun({
+                                text: "ОТЧЕТ",
+                                bold: true,
+                                size: 28,
+                            }),
+                        ],
                         // Устанавливаем выравнивание текста
                         alignment: AlignmentType.CENTER,
                         spacing: { after: 200 },
                     }),
-                    // Устанавливаем текст группы
+                    // Устанавливаем подзаголовок - точно как в образце
                     new Paragraph({
-                        // Устанавливаем текст группы
-                        text: `Группа: ${group.name}`,
+                        // Устанавливаем текст подзаголовка
+                        children: [
+                            new TextRun({
+                                text: `по итогам работы группы за ${semesterText}`,
+                                bold: true,
+                                size: 24,
+                            }),
+                        ],
                         // Устанавливаем выравнивание текста
                         alignment: AlignmentType.CENTER,
-                        // Устанавливаем отступы текста
-                        spacing: { after: 100 },
+                        spacing: { after: 400 },
                     }),
-                    // Устанавливаем текст полугодие
-                    ...(semesterText ? [new Paragraph({
-                        // Устанавливаем текст полугодие
-                        text: `Полугодие: ${semesterText}`,
+                    
+                    // Заголовок для конкурсных критериев - точно как в образце
+                    new Paragraph({
+                        // Устанавливаем текст заголовка
+                        children: [
+                            new TextRun({
+                                text: "КОНКУРСНЫЕ КРИТЕРИИ ОЦЕНКИ",
+                                bold: true,
+                                size: 24,
+                            }),
+                        ],
                         // Устанавливаем выравнивание текста
                         alignment: AlignmentType.CENTER,
-                        // Устанавливаем отступы текста
-                        spacing: { after: 300 },
-                    })] : [new Paragraph({
-                        // Устанавливаем текст пустой строки
-                        text: "",
-                        // Устанавливаем отступы текста
-                        spacing: { after: 300 },
-                    })]),
-                    // Устанавливаем таблицу
+                        spacing: { after: 400 },
+                    }),
+                    
+                    // Таблица 1: Информация о группе - без заливки
                     new Table({
                         width: { size: 100, type: WidthType.PERCENTAGE },
-                        // Устанавливаем строки таблицы
                         rows: [
                             new TableRow({
-                                tableHeader: true,
-                                // Устанавливаем ячейки таблицы
                                 children: [
-                                    createCell("ФИО студента", {
-                                        // Устанавливаем жирность текста
+                                    createCell("Группа №", { bold: true, align: AlignmentType.CENTER }),
+                                    createCell("Количество человек в группе по списку", { bold: true, align: AlignmentType.CENTER }),
+                                    createCell("Староста группы", { bold: true, align: AlignmentType.CENTER }),
+                                    createCell("Классный воспитатель", { bold: true, align: AlignmentType.CENTER }),
+                                ],
+                            }),
+                            new TableRow({
+                                children: [
+                                    createCell(group.name, { align: AlignmentType.CENTER }),
+                                    createCell(String(totalStudents), { align: AlignmentType.CENTER }),
+                                    createCell(groupLeader, { align: AlignmentType.CENTER }),
+                                    createCell(data.classTeacher || group.leader || "-", { align: AlignmentType.CENTER }),
+                                ],
+                            }),
+                        ],
+                    }),
+                    
+                    // Пустая строка между таблицами
+                    new Paragraph({ text: "", spacing: { after: 300 } }),
+                    
+                    // Таблица 2: Конкурсные критерии оценки - без заливки
+                    new Table({
+                        width: { size: 100, type: WidthType.PERCENTAGE },
+                        rows: [
+                            new TableRow({
+                                children: [
+                                    createCell("1. Успеваемость в группе (количество человек в группе без «2» и неаттестованных по предметам)", { 
                                         bold: true,
-                                        // Устанавливаем затенение ячейки
-                                        shading: COLORS.headerBg,
-                                        // Устанавливаем ширину ячейки
-                                        width: fioWidth,
-                                        size: 16,
+                                        width: 70
                                     }),
-                                    // Устанавливаем ячейки предметов
-                                    ...subjects.map((s) =>
-                                        createCell(formatSubject(s.name), {
-                                            // Устанавливаем жирность текста
-                                            bold: true,
-                                            // Устанавливаем выравнивание текста
-                                            align: AlignmentType.CENTER,
-                                            // Устанавливаем затенение ячейки
-                                            shading: COLORS.headerBg,
-                                            // Устанавливаем ширину ячейки
-                                            width: subjectWidth,
-                                            size: 16,
-                                        })
-                                    ),
-                                    // Устанавливаем ячейку среднего балла
-                                    createCell("Средний балл", {
-                                        bold: true,
-                                        // Устанавливаем выравнивание текста
+                                    createCell(String(data.performance1 || totalStudents), { 
                                         align: AlignmentType.CENTER,
-                                        // Устанавливаем затенение ячейки
-                                        shading: COLORS.headerBg,
-                                        width: avgWidth,
-                                        size: 16,
+                                        width: 30
                                     }),
                                 ],
                             }),
-                            // Устанавливаем строки студентов
-                            ...students.map((s) => {
-                                const avg = Number(s.averageScore);
-                                // Устанавливаем строку студента
-                                return new TableRow({
-                                    children: [
-                                        createCell(s.fullName, {
-                                            // Устанавливаем жирность текста
-                                            bold: true,
-                                            // Устанавливаем ширину ячейки
-                                            width: fioWidth,
-                                            size: 16,
-                                        }),
-                                        // Устанавливаем ячейки предметов
-                                        ...s.subjects.map((sub) => {
-                                            // Устанавливаем оценку предмета
-                                            const g = parseInt(sub.grade);
-                                            return createCell(sub.grade || "-", {
-                                                // Устанавливаем выравнивание текста
-                                                align: AlignmentType.CENTER,
-                                                // Устанавливаем жирность текста
-                                                bold: true,
-                                                width: subjectWidth,
-                                                size: 16,
-                                                shading:
-                                                    g === 5
-                                                        ? COLORS.grade5
-                                                        : g <= 2 && g > 0
-                                                            ? COLORS.grade2
-                                                            : undefined,
-                                            });
-                                        }),
-                                        // Устанавливаем ячейку среднего балла
-                                        createCell(
-                                            !isNaN(avg) ? avg.toFixed(2) : "-",
-                                            {
-                                                // Устанавливаем выравнивание текста
-                                                align: AlignmentType.CENTER,
-                                                // Устанавливаем жирность текста
-                                                bold: true,
-                                                // Устанавливаем затенение ячейки
-                                                shading: COLORS.totalBg,
-                                                // Устанавливаем ширину ячейки
-                                                width: avgWidth,
-                                                // Устанавливаем размер текста
-                                                size: 16,
-                                            }
-                                        ),
-                                    ],
-                                });
+                            new TableRow({
+                                children: [
+                                    createCell("2. Качество знаний: обучаются на «4» и «5»", { bold: true }),
+                                    createCell(String(data.quality1 || 0), { align: AlignmentType.CENTER }),
+                                ],
                             }),
-                        ],
-                    }),
-                    // Устанавливаем пустую строку
-                    new Paragraph({ text: "", spacing: { after: 400 } }),
-                    // Устанавливаем текст преподавателя
-                    new Paragraph({
-                        // Устанавливаем текст преподавателя
-                        children: [
-                            // Устанавливаем текст преподавателя
-                            new TextRun("Преподаватель: _____________________"),
-                        ],
-                        // Устанавливаем отступы текста
-                        spacing: { after: 200 },
-                    }),
-                    // Устанавливаем строку даты
-                    new Paragraph({
-                        // Устанавливаем текст даты
-                        children: [
-                            // Устанавливаем текст даты
-                            new TextRun(
-                                `Дата: ${new Date().toLocaleDateString("ru-RU")}`
-                            ),
+                            new TableRow({
+                                children: [
+                                    createCell("3. Количество отличников в группе", { bold: true }),
+                                    createCell(String(excellentStudents), { align: AlignmentType.CENTER }),
+                                ],
+                            }),
+                            new TableRow({
+                                children: [
+                                    createCell("4. Количество человек в группе пропускающих занятия без уважительной причины и количество пропущенных часов у каждого студента", { 
+                                        bold: true
+                                    }),
+                                    createCell(data.unrespectful || "-", { align: AlignmentType.CENTER }),
+                                ],
+                            }),
+                            new TableRow({
+                                children: [
+                                    createCell("5. Участие группы в мероприятиях техникума, города, области, региона, страны (указать мероприятия и количество участников из группы)", { 
+                                        bold: true
+                                    }),
+                                    createCell(data.events || "-", { align: AlignmentType.CENTER }),
+                                ],
+                            }),
+                            new TableRow({
+                                children: [
+                                    createCell("6. Победа студента группы в любом виде деятельности (указать фамилию, имя, название мероприятия, указать призовое место)", { 
+                                        bold: true
+                                    }),
+                                    createCell(data.achievements || "-", { align: AlignmentType.CENTER }),
+                                ],
+                            }),
+                            new TableRow({
+                                children: [
+                                    createCell("7. Победа группы в спортивных мероприятиях и профессиональных конкурсах, олимпиадах, научно-практических конференциях техникума (указать мероприятие, призовое место)", { 
+                                        bold: true
+                                    }),
+                                    createCell(data.groupWins || "-", { align: AlignmentType.CENTER }),
+                                ],
+                            }),
+                            new TableRow({
+                                children: [
+                                    createCell("8. Посещение кружков и секций (указать количество человек и сколько раз посещали секцию)", { 
+                                        bold: true
+                                    }),
+                                    createCell(data.clubs || "-", { align: AlignmentType.CENTER }),
+                                ],
+                            }),
+                            new TableRow({
+                                children: [
+                                    createCell("9. Проведение классных часов в группе (количество и тема)", { bold: true }),
+                                    createCell(data.classHours || "-", { align: AlignmentType.CENTER }),
+                                ],
+                            }),
+                            new TableRow({
+                                children: [
+                                    createCell("10. Правонарушения в группе, количество человек получивших (указать фамилии)", { 
+                                        bold: true
+                                    }),
+                                    createCell(data.violations || "-", { align: AlignmentType.CENTER }),
+                                ],
+                            }),
+                            new TableRow({
+                                children: [
+                                    createCell("- замечание", { bold: false }),
+                                    createCell("", { align: AlignmentType.CENTER }),
+                                ],
+                            }),
+                            new TableRow({
+                                children: [
+                                    createCell("-выговор", { bold: false }),
+                                    createCell("", { align: AlignmentType.CENTER }),
+                                ],
+                            }),
+                            new TableRow({
+                                children: [
+                                    createCell("- уголовное правонарушение", { bold: false }),
+                                    createCell("", { align: AlignmentType.CENTER }),
+                                ],
+                            }),
+                            new TableRow({
+                                children: [
+                                    createCell("- административное правонарушение", { bold: false }),
+                                    createCell("", { align: AlignmentType.CENTER }),
+                                ],
+                            }),
+                            new TableRow({
+                                children: [
+                                    createCell("- были приглашены на совет профилактики, педсовет", { bold: false }),
+                                    createCell("", { align: AlignmentType.CENTER }),
+                                ],
+                            }),
                         ],
                     }),
                 ],
@@ -295,198 +359,190 @@ export const exportGradesToWord = async (
     // Создаем blob
     const blob = await Packer.toBlob(doc);
     // Сохраняем blob
-    saveAs(blob, `Успеваемость_${group.name}.docx`);
+    saveAs(blob, `Отчет_по_группе_${group.name}.docx`);
 };
 
-// Функция для экспорта посещаемости в Word
-export const exportToWord = async (
+// Функция для создания данных отчёта по посещаемости для редактирования
+export const createAttendanceReportData = (
     students: AttendanceStudent[],
     total: AttendanceTotal,
     group: Group
-): Promise<void> => {
-    if (!students.length) return;
+) => {
+    if (!students.length) return null;
 
     // Получаем месяц
     const periodMonth = students[0]?.periodMonth;
     const monthText = periodMonth ? MONTH_NAMES[periodMonth as keyof typeof MONTH_NAMES] : "";
+    const currentYear = new Date().getFullYear();
+
+    // Формируем информацию о пропусках по болезни - в столбик как в образце
+    const sickStudents = students
+        .filter(s => s.fullDaysSick > 0 || s.lessonsSick > 0)
+        .map(s => {
+            const sickDays = s.fullDaysSick > 0 ? `${s.fullDaysSick} дн.` : '';
+            const sickLessons = s.lessonsSick > 0 ? `${s.lessonsSick} ч` : '';
+            const sickInfo = [sickDays, sickLessons].filter(Boolean).join(', ');
+            return `${s.fullName} – ${sickInfo}`;
+        })
+        .join('\n');
+
+    // Формируем информацию о пропусках без уважительной причины - в столбик как в образце
+    const unrespectfulStudents = students
+        .filter(s => {
+            // Предполагаем, что пропуски без уважительной причины = общие пропуски - пропуски по болезни
+            const unrespectfulDays = s.fullDaysTotal - s.fullDaysSick;
+            const unrespectfulLessons = s.lessonsTotal - s.lessonsSick;
+            return unrespectfulDays > 0 || unrespectfulLessons > 0;
+        })
+        .map(s => {
+            const unrespectfulDays = s.fullDaysTotal - s.fullDaysSick;
+            const unrespectfulLessons = s.lessonsTotal - s.lessonsSick;
+            const hours = Math.max(unrespectfulDays, unrespectfulLessons);
+            return `${s.fullName} – ${hours} ч`;
+        })
+        .join('\n');
+
+    // Формируем информацию о профилактической работе - в столбик как в образце
+    const preventiveWork = students
+        .filter(s => {
+            const unrespectfulDays = s.fullDaysTotal - s.fullDaysSick;
+            const unrespectfulLessons = s.lessonsTotal - s.lessonsSick;
+            return unrespectfulDays > 0 || unrespectfulLessons > 0;
+        })
+        .map(s => `${s.fullName} – Индивидуальная беседа`)
+        .join('\n');
+
+    return {
+        monthText,
+        currentYear,
+        totalStudents: students.length,
+        sickStudents,
+        respectfulAbsences: '',
+        unrespectfulAbsences: unrespectfulStudents,
+        preventiveWork,
+        classTeacher: group.leader || '',
+    };
+};
+
+// Функция для экспорта посещаемости в Word с пользовательскими данными
+export const exportToWord = async (
+    students: AttendanceStudent[],
+    total: AttendanceTotal,
+    group: Group,
+    customData?: any
+): Promise<void> => {
+    if (!students.length) return;
+
+    // Используем пользовательские данные или вычисляем по умолчанию
+    const data = customData || createAttendanceReportData(students, total, group);
+    if (!data) return;
+
+    const monthText = data.monthText || '';
+    const currentYear = data.currentYear || new Date().getFullYear();
 
     // Создаем документ Word
     const doc = new Document({
         sections: [
             {
+                // Устанавливаем свойства страницы - альбомная ориентация
+                properties: {
+                    page: {
+                        size: {
+                            orientation: PageOrientation.LANDSCAPE,
+                        },
+                        margin: { top: 1000, bottom: 1000, left: 1000, right: 1000 },
+                    },
+                },
                 // Устанавливаем контент страницы
                 children: [
-                    // Устанавливаем заголовок
+                    // Устанавливаем заголовок - точно как в образце
                     new Paragraph({
                         // Устанавливаем текст заголовка
-                        text: "ОТЧЕТ ПО ПОСЕЩАЕМОСТИ",
-                        // Устанавливаем уровень заголовка
-                        heading: HeadingLevel.HEADING_1,
+                        children: [
+                            new TextRun({
+                                text: `ОТЧЕТ по посещаемости`,
+                                bold: true,
+                                size: 28,
+                            }),
+                            new TextRun({
+                                text: `\n${group.name} группа за ${monthText} ${currentYear} года.`,
+                                bold: true,
+                                size: 28,
+                            }),
+                        ],
                         // Устанавливаем выравнивание текста
                         alignment: AlignmentType.CENTER,
                         // Устанавливаем отступы текста
                         spacing: { after: 200 },
                     }),
-                    // Устанавливаем текст группы
+                    // Устанавливаем текст классного руководителя - точно как в образце
                     new Paragraph({
-                        // Устанавливаем текст группы
-                        text: `Группа: ${group.name}`,
-                        // Устанавливаем выравнивание текста
-                        alignment: AlignmentType.CENTER,
-                        // Устанавливаем отступы текста
-                        spacing: { after: 100 },
+                        // Устанавливаем текст классного руководителя
+                        children: [
+                            new TextRun({
+                                text: `Классный руководитель`,
+                                size: 24,
+                            }),
+                            new TextRun({
+                                text: `\n${data.classTeacher || group.leader || '_________________'}`,
+                                size: 24,
+                            }),
+                        ],
+                        spacing: { after: 400 },
                     }),
-                    // Устанавливаем текст месяца
-                    ...(monthText ? [new Paragraph({
-                        // Устанавливаем текст месяца
-                        text: `Месяц: ${monthText}`,
-                        alignment: AlignmentType.CENTER,
-                        spacing: { after: 300 },
-                    })] : [new Paragraph({
-                        // Устанавливаем текст пустой строки
-                        text: "",
-                        // Устанавливаем отступы текста
-                        spacing: { after: 300 },
-                    })]),
-                    // Устанавливаем таблицу
+                    
+                    // Основная таблица посещаемости - без заливки, с улучшенными отступами
                     new Table({
-                        // Устанавливаем ширину таблицы
                         width: { size: 100, type: WidthType.PERCENTAGE },
                         rows: [
                             new TableRow({
-                                tableHeader: true,
-                                // Устанавливаем ячейки таблицы
                                 children: [
-                                    // Устанавливаем ячейку ФИО студента
-                                    createCell("ФИО студента", {
-                                        bold: true,
-                                        shading: COLORS.headerBg,
-                                        width: 30,
-                                    }),
-                                    // Устанавливаем ячейку Полные дни
-                                    createCell("Полные дни", {
-                                        bold: true,
-                                        shading: COLORS.headerBg,
+                                    createCell("Всего студентов в группе", { 
+                                        bold: true, 
                                         align: AlignmentType.CENTER,
+                                        width: 20
                                     }),
-                                    // Устанавливаем ячейку Болезнь (дни)
-                                    createCell("Болезнь (дни)", {
-                                        bold: true,
-                                        shading: COLORS.headerBg,
+                                    createCell("Пропущено по болезни (указать кол-во часов и Ф.И.О. студента)", { 
+                                        bold: true, 
                                         align: AlignmentType.CENTER,
+                                        width: 20
                                     }),
-                                    // Устанавливаем ячейку Всего уроков
-                                    createCell("Всего уроков", {
-                                        bold: true,
-                                        shading: COLORS.headerBg,
+                                    createCell("Пропущено по уважительной причине (указать причину, кол-во часов, Ф.И.О. студента)", { 
+                                        bold: true, 
                                         align: AlignmentType.CENTER,
+                                        width: 20
                                     }),
-                                    // Устанавливаем ячейку Болезнь (уроки)
-                                    createCell("Болезнь (уроки)", {
-                                        bold: true,
-                                        shading: COLORS.headerBg,
+                                    createCell("Пропущено без уважительной причины (указать кол-во часов, Ф.И.О. студента)", { 
+                                        bold: true, 
                                         align: AlignmentType.CENTER,
+                                        width: 20
                                     }),
-                                    // Устанавливаем ячейку Опоздания
-                                    createCell("Опоздания", {
-                                        bold: true,
-                                        shading: COLORS.headerBg,
+                                    createCell("Проводимая профилактическая работа классного руководителя по устранению пропусков занятий без уважительной причины (указать отдельно по каждому студенту)", { 
+                                        bold: true, 
                                         align: AlignmentType.CENTER,
+                                        width: 20
                                     }),
                                 ],
                             }),
-                            // Устанавливаем строки студентов
-                            ...students.map((s) => {
-                                // Устанавливаем строку студента
-                                return new TableRow({
-                                    children: [
-                                        // Устанавливаем ячейку ФИО студента
-                                        createCell(s.fullName, { width: 30 }),
-                                        // Устанавливаем ячейку Полные дни
-                                        createCell(String(s.fullDaysTotal), {
-                                            // Устанавливаем выравнивание текста
-                                            align: AlignmentType.CENTER,
-                                        }),
-                                        createCell(String(s.fullDaysSick), {
-                                            // Устанавливаем выравнивание текста
-                                            align: AlignmentType.CENTER,
-                                            color: COLORS.sick,
-                                        }),
-                                        createCell(String(s.lessonsTotal), {
-                                            // Устанавливаем выравнивание текста
-                                            align: AlignmentType.CENTER,
-                                        }),
-                                        createCell(String(s.lessonsSick), {
-                                            // Устанавливаем выравнивание текста
-                                            align: AlignmentType.CENTER,
-                                            color: COLORS.sick,
-                                        }),
-                                        createCell(String(s.late), {
-                                            // Устанавливаем выравнивание текста
-                                            align: AlignmentType.CENTER,
-                                            color: COLORS.late,
-                                            // Устанавливаем жирность текста
-                                            bold: s.late > 0,
-                                        }),
-                                    ],
-                                });
-                            }),
-                            // Устанавливаем строку итого
                             new TableRow({
-                                // Устанавливаем ячейки таблицы
                                 children: [
-                                    // Устанавливаем ячейку ИТОГО
-                                    createCell("ИТОГО", {
-                                        // Устанавливаем жирность текста
-                                        bold: true,
-                                        shading: COLORS.totalBg,
+                                    createCell(String(data.totalStudents || students.length), { 
+                                        align: AlignmentType.CENTER
                                     }),
-                                    // Устанавливаем ячейку Полные дни
-                                    createCell(String(total.fullDaysTotal), {
-                                        align: AlignmentType.CENTER,
+                                    createCell(data.sickStudents || "-", { 
+                                        align: AlignmentType.LEFT
                                     }),
-                                    // Устанавливаем ячейку Болезнь (дни)
-                                    createCell(String(total.fullDaysSick), {
-                                        align: AlignmentType.CENTER,
-                                        color: COLORS.sick,
+                                    createCell(data.respectfulAbsences || "-", { 
+                                        align: AlignmentType.LEFT
                                     }),
-                                    // Устанавливаем ячейку Всего уроков
-                                    createCell(String(total.lessonsTotal), {
-                                        align: AlignmentType.CENTER,
+                                    createCell(data.unrespectfulAbsences || "-", { 
+                                        align: AlignmentType.LEFT
                                     }),
-                                    // Устанавливаем ячейку Болезнь (уроки)
-                                    createCell(String(total.lessonsSick), {
-                                        align: AlignmentType.CENTER,
-                                        color: COLORS.sick,
-                                    }),
-                                    // Устанавливаем ячейку Опоздания
-                                    createCell(String(total.late), {
-                                        align: AlignmentType.CENTER,
-                                        color: COLORS.late,
+                                    createCell(data.preventiveWork || "-", { 
+                                        align: AlignmentType.LEFT
                                     }),
                                 ],
                             }),
-                        ],
-                    }),
-                    // Устанавливаем пустую строку
-                    new Paragraph({ text: "", spacing: { after: 400 } }),
-                    // Устанавливаем текст преподавателя
-                    new Paragraph({
-                        // Устанавливаем текст преподавателя
-                        children: [
-                            // Устанавливаем текст преподавателя
-                            new TextRun("Преподаватель: _____________________"),
-                        ],
-                        spacing: { after: 200 },
-                    }),
-                    // Устанавливаем строку даты    
-                    new Paragraph({
-                        // Устанавливаем текст даты
-                        children: [
-                            // Устанавливаем текст даты
-                            new TextRun(
-                                `Дата: ${new Date().toLocaleDateString("ru-RU")}`
-                            ),
                         ],
                     }),
                 ],
@@ -497,7 +553,7 @@ export const exportToWord = async (
     // Создаем blob
     const blob = await Packer.toBlob(doc);
     // Сохраняем blob
-    saveAs(blob, `Посещаемость_${group.name}.docx`);
+    saveAs(blob, `Отчет_по_посещаемости_${group.name}.docx`);
 };
 
 // Функция для объединения классов Tailwind
