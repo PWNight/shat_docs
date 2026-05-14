@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 import { NextRequest } from "next/server";
 import crypto from "crypto";
 import { logger } from "@/utils/logger";
-import { execute, query, queryOne } from "@/utils/mysql";
+import { execute, getDb, query, queryOne } from "@/utils/sqlite";
 
 export interface SessionPayload {
     uid: number;
@@ -84,28 +84,13 @@ function getClientIp(request?: NextRequest): string | null {
 
 async function ensureSessionStorage(): Promise<void> {
     if (!sessionStorageBootstrap) {
-        sessionStorageBootstrap = (async () => {
-            await execute(`
-                CREATE TABLE IF NOT EXISTS auth_sessions (
-                    session_id VARCHAR(64) PRIMARY KEY,
-                    user_id INT NOT NULL,
-                    user_agent VARCHAR(1024) NULL,
-                    ip_address VARCHAR(64) NULL,
-                    device_label VARCHAR(128) NOT NULL,
-                    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    last_seen_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    expires_at TIMESTAMP NOT NULL,
-                    revoked_at TIMESTAMP NULL,
-                    revoked_by_user_id INT NULL,
-                    revoked_reason VARCHAR(255) NULL,
-                    INDEX idx_auth_sessions_user_id (user_id),
-                    INDEX idx_auth_sessions_active (revoked_at, expires_at),
-                    CONSTRAINT fk_auth_sessions_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-            `);
-        })().finally(() => {
-            sessionStorageBootstrap = null;
-        });
+        sessionStorageBootstrap = Promise.resolve()
+            .then(() => {
+                getDb();
+            })
+            .finally(() => {
+                sessionStorageBootstrap = null;
+            });
     }
     await sessionStorageBootstrap;
 }
@@ -197,7 +182,7 @@ async function validateSessionToken(sessionToken: string, request?: NextRequest)
     if (new Date(sessionRow.expires_at).getTime() <= Date.now()) return null;
     if (sessionRow.user_id !== payload.uid) return null;
 
-    await execute("UPDATE auth_sessions SET last_seen_at = NOW() WHERE session_id = ?", [payload.sid]);
+    await execute("UPDATE auth_sessions SET last_seen_at = datetime('now') WHERE session_id = ?", [payload.sid]);
 
     if (request) {
         const userAgent = request.headers.get("user-agent");
@@ -235,8 +220,8 @@ export async function revokeSessionById(
 
     const result = await execute(
         `UPDATE auth_sessions
-         SET revoked_at = NOW(), revoked_by_user_id = ?, revoked_reason = ?
-         WHERE revoked_at IS NULL AND expires_at > NOW() AND session_id = ?${ownerClause}`,
+         SET revoked_at = datetime('now'), revoked_by_user_id = ?, revoked_reason = ?
+         WHERE revoked_at IS NULL AND julianday(expires_at) > julianday('now') AND session_id = ?${ownerClause}`,
         params
     );
     return result.affectedRows > 0;
@@ -251,16 +236,16 @@ export async function revokeAllUserSessions(
     if (options?.exceptSessionId) {
         await execute(
             `UPDATE auth_sessions
-             SET revoked_at = NOW(), revoked_by_user_id = ?, revoked_reason = ?
-             WHERE user_id = ? AND revoked_at IS NULL AND expires_at > NOW() AND session_id <> ?`,
+             SET revoked_at = datetime('now'), revoked_by_user_id = ?, revoked_reason = ?
+             WHERE user_id = ? AND revoked_at IS NULL AND julianday(expires_at) > julianday('now') AND session_id <> ?`,
             [actorUserId, options.reason || null, userId, options.exceptSessionId]
         );
         return;
     }
     await execute(
         `UPDATE auth_sessions
-         SET revoked_at = NOW(), revoked_by_user_id = ?, revoked_reason = ?
-         WHERE user_id = ? AND revoked_at IS NULL AND expires_at > NOW()`,
+         SET revoked_at = datetime('now'), revoked_by_user_id = ?, revoked_reason = ?
+         WHERE user_id = ? AND revoked_at IS NULL AND julianday(expires_at) > julianday('now')`,
         [actorUserId, options?.reason || null, userId]
     );
 }
@@ -272,7 +257,7 @@ export async function listUserSessions(userId: number, currentSessionId?: string
                 u.email, u.full_name
          FROM auth_sessions s
          JOIN users u ON u.id = s.user_id
-         WHERE s.user_id = ? AND s.revoked_at IS NULL AND s.expires_at > NOW()
+         WHERE s.user_id = ? AND s.revoked_at IS NULL AND julianday(s.expires_at) > julianday('now')
          ORDER BY s.last_seen_at DESC`,
         [userId]
     );
@@ -300,7 +285,7 @@ export async function listAllActiveSessions(limit: number = 200): Promise<Sessio
                 u.email, u.full_name
          FROM auth_sessions s
          JOIN users u ON u.id = s.user_id
-         WHERE s.revoked_at IS NULL AND s.expires_at > NOW()
+         WHERE s.revoked_at IS NULL AND julianday(s.expires_at) > julianday('now')
          ORDER BY s.last_seen_at DESC
          LIMIT ${safeLimit}`
     );

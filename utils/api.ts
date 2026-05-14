@@ -129,16 +129,20 @@ export function handleApiError(
     // Преобразуем ошибку в объект
     const err = error as { code?: unknown; message?: unknown };
     // Получаем код ошибки и сообщение
-    const errorCode = typeof err?.code === "string" ? err.code : "";
+    const errorCode = typeof err?.code === "string" ? err.code : typeof err?.code === "number" ? String(err.code) : "";
     const errorMessage = typeof err?.message === "string" ? err.message : "";
 
-    // Проверяем, является ли ошибка ошибкой подключения к MySQL
+    // Проверяем, является ли ошибка ошибкой доступа к базе данных (сеть / файловая БД)
     if (
         ["ETIMEDOUT", "ECONNREFUSED", "ENOTFOUND", "EHOSTUNREACH", "PROTOCOL_CONNECTION_LOST"].includes(errorCode) ||
-        // Проверяем, содержит ли сообщение ошибку подключения к MySQL
+        errorCode.startsWith("SQLITE_CANTOPEN") ||
+        errorCode === "SQLITE_BUSY" ||
+        errorCode === "SQLITE_IOERR" ||
+        errorCode === "SQLITE_CORRUPT" ||
         /connect\s+etimedout/i.test(errorMessage) ||
-        // Проверяем, содержит ли сообщение ошибку поиска адреса
-        /getaddrinfo\s+enotfound/i.test(errorMessage)
+        /getaddrinfo\s+enotfound/i.test(errorMessage) ||
+        /unable\s+to\s+open\s+database/i.test(errorMessage) ||
+        /database\s+is\s+locked/i.test(errorMessage)
     ) {
         return { message: "Нет подключения к базе данных", code: "DB_OFFLINE" };
     }
