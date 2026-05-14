@@ -37,7 +37,9 @@ yarn-error.log*
 .vercel
 .idea
 
-# typescript
+# local sqlite database
+/data/
+
 *.tsbuildinfo
 next-env.d.ts
 storage.json

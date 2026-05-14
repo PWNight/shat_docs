@@ -1,5 +1,6 @@
 import {version} from "./package.json"
 const nextConfig = {
+    serverExternalPackages: ["better-sqlite3"],
     env: {
         APP_VERSION: version,
     },
