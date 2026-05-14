@@ -128,6 +128,23 @@ function runMigrations(db: Database.Database): void {
     `);
 }
 
+function normalizeSqliteParam(value: unknown): unknown {
+    if (value === undefined) {
+        return null;
+    }
+    if (value instanceof Date) {
+        return value.toISOString();
+    }
+    if (typeof value === "boolean") {
+        return value ? 1 : 0;
+    }
+    return value;
+}
+
+function normalizeSqliteParams(params: unknown[]): unknown[] {
+    return params.map(normalizeSqliteParam);
+}
+
 export function getDb(): Database.Database {
     if (dbInstance) {
         return dbInstance;
@@ -141,7 +158,7 @@ export function getDb(): Database.Database {
 export async function query<T = RowDataPacket>(sql: string, params: unknown[] = []): Promise<T[]> {
     const db = getDb();
     const stmt = db.prepare(sql);
-    return Promise.resolve(stmt.all(...params) as T[]);
+    return Promise.resolve(stmt.all(...normalizeSqliteParams(params)) as T[]);
 }
 
 export async function queryOne<T = RowDataPacket>(
@@ -150,14 +167,14 @@ export async function queryOne<T = RowDataPacket>(
 ): Promise<T | null> {
     const db = getDb();
     const stmt = db.prepare(sql);
-    const row = stmt.get(...params) as T | undefined;
+    const row = stmt.get(...normalizeSqliteParams(params)) as T | undefined;
     return Promise.resolve(row ?? null);
 }
 
 export async function execute(sql: string, params: unknown[] = []): Promise<ResultSetHeader> {
     const db = getDb();
     const stmt = db.prepare(sql);
-    const result = stmt.run(...params);
+    const result = stmt.run(...normalizeSqliteParams(params));
     return Promise.resolve({
         affectedRows: result.changes,
         insertId: Number(result.lastInsertRowid),
