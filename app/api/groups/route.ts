@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { execute, query, queryOne } from "@/utils/mysql";
+import { execute, query, queryOne } from "@/utils/sqlite";
 import { GroupFormSchema } from "@/utils/definitions";
 import {
     requireAuth,
@@ -24,7 +24,7 @@ export async function GET() {
 
     try {
         const groups = await query(
-            'SELECT `groups`.id, name, `groups`.created_by, fk_user, users.full_name AS leader FROM `groups` JOIN users ON fk_user = users.id',
+            'SELECT "groups".id, name, "groups".created_by, fk_user, users.full_name AS leader FROM "groups" JOIN users ON fk_user = users.id',
         );
         return jsonResponse(successResponse(groups));
     } catch (error) {
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
 
         // Проверяем, существует ли группа с таким именем
         const group = await queryOne(
-            'SELECT * FROM `groups` WHERE name = ? LIMIT 1',
+            'SELECT * FROM "groups" WHERE name = ? LIMIT 1',
             [name]
         );
         if (group) {
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
         // TODO: Проверка наличия закреплённой за преподавателем группы
 
         await execute(
-            'INSERT INTO `groups` (name, fk_user) VALUES (?, ?)',
+            'INSERT INTO "groups" (name, fk_user) VALUES (?, ?)',
             [name, fk_user]
         );
 

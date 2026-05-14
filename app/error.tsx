@@ -52,8 +52,11 @@ function isDbOfflineError(error: Error): boolean {
         msg.includes("etimedout") ||
         msg.includes("econnrefused") ||
         msg.includes("enotfound") ||
-        msg.includes("connect") && msg.includes("timeout") ||
-        msg.includes("pool") && msg.includes("connect") ||
-        msg.includes("mysql")
+        (msg.includes("connect") && msg.includes("timeout")) ||
+        (msg.includes("pool") && msg.includes("connect")) ||
+        msg.includes("sqlite_cantopen") ||
+        msg.includes("unable to open database") ||
+        msg.includes("database is locked") ||
+        msg.includes("sqlite_ioerr")
     );
 }

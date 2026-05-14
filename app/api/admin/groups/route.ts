@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { execute, query, queryOne } from "@/utils/mysql";
+import { execute, query, queryOne } from "@/utils/sqlite";
 import { badRequest, handleApiError, jsonResponse, notFound, safeParseJson, serverError, successResponse } from "@/utils/api";
 import { requireAdmin, writeAdminLog } from "@/utils/admin";
 
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
     try {
         const groups = await query(
-            "SELECT g.id, g.name, g.created_by, g.fk_user, u.full_name AS owner_name FROM `groups` g LEFT JOIN users u ON u.id = g.fk_user ORDER BY g.id DESC"
+            "SELECT g.id, g.name, g.created_by, g.fk_user, u.full_name AS owner_name FROM \"groups\" g LEFT JOIN users u ON u.id = g.fk_user ORDER BY g.id DESC"
         );
         return jsonResponse(successResponse(groups));
     } catch (error) {
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
         const owner = await queryOne<{ id: number }>("SELECT id FROM users WHERE id = ? LIMIT 1", [fkUser]);
         if (!owner) return notFound("Преподаватель не найден");
 
-        await execute("INSERT INTO `groups` (name, fk_user) VALUES (?, ?)", [name, fkUser]);
+        await execute("INSERT INTO \"groups\" (name, fk_user) VALUES (?, ?)", [name, fkUser]);
         await writeAdminLog(adminCheck.actor.id, "ADMIN_CREATE_GROUP", `name=${name}, fk_user=${fkUser}`);
 
         return jsonResponse(successResponse(null, "Группа создана"));

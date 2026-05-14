@@ -12,7 +12,10 @@ export function isDbOfflineText(text: string | null | undefined): boolean {
         msg.includes("нет подключения к базе данных") ||
         (msg.includes("connect") && msg.includes("timeout")) ||
         (msg.includes("getaddrinfo") && msg.includes("enotfound")) ||
-        (msg.includes("mysql") && msg.includes("connect"))
+        (msg.includes("unable to open database")) ||
+        (msg.includes("database is locked")) ||
+        msg.includes("sqlite_cantopen") ||
+        msg.includes("sqlite_ioerr")
     );
 }
 

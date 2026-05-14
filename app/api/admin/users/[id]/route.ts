@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import bcrypt from "bcrypt";
-import { execute, queryOne } from "@/utils/mysql";
+import { execute, queryOne } from "@/utils/sqlite";
 import { badRequest, handleApiError, jsonResponse, notFound, safeParseJson, serverError, successResponse } from "@/utils/api";
 import { requireAdmin, writeAdminLog } from "@/utils/admin";
 import { revokeAllUserSessions } from "@/utils/session";

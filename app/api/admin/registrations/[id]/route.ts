@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { execute, queryOne } from "@/utils/mysql";
+import { execute, queryOne } from "@/utils/sqlite";
 import { badRequest, handleApiError, jsonResponse, notFound, safeParseJson, serverError, successResponse } from "@/utils/api";
 import { requireAdmin, writeAdminLog } from "@/utils/admin";
 
@@ -33,7 +33,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
         if (status === "approved") {
             await execute(
-                "UPDATE users SET registration_status = 'approved', approved_by = ?, approved_at = NOW() WHERE id = ?",
+                "UPDATE users SET registration_status = 'approved', approved_by = ?, approved_at = datetime('now') WHERE id = ?",
                 [adminCheck.actor.id, targetId]
             );
             await writeAdminLog(adminCheck.actor.id, "APPROVE_REGISTRATION", `targetUserId=${targetId}`);
@@ -41,7 +41,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         }
 
         await execute(
-            "UPDATE users SET registration_status = 'rejected', canAccessAdmin = 0, isAdmin = 0, approved_by = ?, approved_at = NOW() WHERE id = ?",
+            "UPDATE users SET registration_status = 'rejected', canAccessAdmin = 0, isAdmin = 0, approved_by = ?, approved_at = datetime('now') WHERE id = ?",
             [adminCheck.actor.id, targetId]
         );
         await writeAdminLog(adminCheck.actor.id, "REJECT_REGISTRATION", `targetUserId=${targetId}`);

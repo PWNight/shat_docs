@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { execute, query } from "@/utils/mysql";
+import { execute, query } from "@/utils/sqlite";
 import {
     requireAuth,
     safeParseJson,
@@ -80,10 +80,11 @@ export async function POST(request: NextRequest) {
             await execute(
                 `INSERT INTO grades (fk_group, full_name, subjects_json, average_score, period_semester)
                  VALUES (?, ?, ?, ?, ?)
-                     ON DUPLICATE KEY UPDATE
-                        subjects_json = VALUES(subjects_json),
-                        average_score = VALUES(average_score),
-                        period_semester = VALUES(period_semester)`,
+                 ON CONFLICT(fk_group, full_name, period_semester) DO UPDATE SET
+                        subjects_json = excluded.subjects_json,
+                        average_score = excluded.average_score,
+                        period_semester = excluded.period_semester,
+                        updated_at = datetime('now')`,
                 [groupId, student.fullName, JSON.stringify(student.subjects), student.averageScore, student.periodSemester || null]
             );
         }

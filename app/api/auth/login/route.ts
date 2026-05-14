@@ -1,4 +1,4 @@
-import { queryOne } from '@/utils/mysql';
+import { queryOne } from "@/utils/sqlite";
 import bcrypt from 'bcrypt';
 import { NextRequest } from "next/server";
 import { LoginFormSchema } from "@/utils/definitions";
@@ -37,8 +37,16 @@ export async function POST(request: NextRequest) {
     const { email, password } = validation.data;
 
     try {
+        type LoginUserRow = {
+            id: number;
+            email: string;
+            full_name: string;
+            password_hash: string;
+            registration_status: string;
+        };
+
         // Получаем пользователя из базы данных
-        const user = await queryOne(
+        const user = await queryOne<LoginUserRow>(
             "SELECT id, email, full_name, password_hash, registration_status FROM users WHERE email = ? LIMIT 1",
             [email]
         );

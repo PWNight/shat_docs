@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import {queryOne} from "@/utils/mysql";
+import { queryOne } from "@/utils/sqlite";
 import {
     requireAuth,
     notFound,

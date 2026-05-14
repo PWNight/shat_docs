@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { NextRequest, NextResponse } from "next/server";
-import { execute, query, queryOne } from "@/utils/mysql";
+import { execute, query, queryOne } from "@/utils/sqlite";
 import { handleApiError, requireAuth, forbidden, serverError } from "@/utils/api";
 
 // Тип для строки пользователя администратора
@@ -34,7 +34,7 @@ async function bootstrapRootAccountInternal(): Promise<void> {
 
     // Создаем root-аккаунт
     await execute(
-        "INSERT INTO users (email, full_name, password_hash, isAdmin, isRoot, canAccessAdmin, registration_status, approved_at) VALUES (?, ?, ?, 1, 1, 1, 'approved', NOW())",
+        "INSERT INTO users (email, full_name, password_hash, isAdmin, isRoot, canAccessAdmin, registration_status, approved_at) VALUES (?, ?, ?, 1, 1, 1, 'approved', datetime('now'))",
         [rootEmail, rootName, passwordHash]
     );
 }

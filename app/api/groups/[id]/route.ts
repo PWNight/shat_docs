@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { execute, queryOne } from "@/utils/mysql";
+import { execute, queryOne } from "@/utils/sqlite";
 import { GroupFormSchema } from "@/utils/definitions";
 import {
     requireAuth,
@@ -26,7 +26,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
     try {
         const group = await queryOne(
-            'SELECT `groups`.id, name, `groups`.created_by, fk_user, users.full_name AS leader FROM `groups` JOIN users ON fk_user = users.id WHERE `groups`.id = ?',
+            'SELECT "groups".id, name, "groups".created_by, fk_user, users.full_name AS leader FROM "groups" JOIN users ON fk_user = users.id WHERE "groups".id = ?',
             [id]
         );
         if (!group) {
@@ -63,7 +63,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     try {
-        const group = await queryOne('SELECT * FROM `groups` WHERE id = ?', [id]);
+        const group = await queryOne('SELECT * FROM "groups" WHERE id = ?', [id]);
         if (!group) {
             return notFound(`Группа с айди ${id} не найдена`);
         }
@@ -85,8 +85,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         }
 
         values.push(id);
-        const sql = `UPDATE \`groups\` SET ${updates.join(', ')} WHERE id = ?`;
-        await execute(sql, values);
+        await execute(`UPDATE "groups" SET ${updates.join(", ")} WHERE id = ?`, values);
 
         return jsonResponse(successResponse(null, "Группа успешно обновлена"));
     } catch (error) {
@@ -107,7 +106,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     const { user } = authResult;
 
     try {
-        const group = await queryOne('SELECT * FROM `groups` WHERE id = ? LIMIT 1', [id]);
+        const group = await queryOne('SELECT * FROM "groups" WHERE id = ? LIMIT 1', [id]);
         if (!group) {
             return notFound(`Группа с айди ${id} не найдена`);
         }
@@ -116,7 +115,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
             return forbidden(`Вы не можете удалить эту группу`);
         }
 
-        await execute("DELETE FROM `groups` WHERE id = ?", [id]);
+        await execute('DELETE FROM "groups" WHERE id = ?', [id]);
         return jsonResponse(successResponse(null, `Группа с айди ${id} успешно удалена`));
     } catch (error) {
         const { message, code } = handleApiError(error);

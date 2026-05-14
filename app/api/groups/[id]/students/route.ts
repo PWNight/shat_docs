@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import {query, execute} from "@/utils/mysql";
+import { query, execute } from "@/utils/sqlite";
 import {
     requireAuth,
     safeParseJson,
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest, {params}: { params: Promise<{ i
 
         for (const student of students) {
             await execute(
-                'INSERT INTO students (full_name, fk_group) VALUES (?, ?) ON DUPLICATE KEY UPDATE full_name = VALUES(full_name)',
+                'INSERT INTO students (full_name, fk_group) VALUES (?, ?) ON CONFLICT(full_name, fk_group) DO UPDATE SET full_name = excluded.full_name',
                 [student.fullName, id]
             );
         }

@@ -1,7 +1,6 @@
 import { NextRequest } from "next/server";
-import { queryOne, execute } from '@/utils/mysql';
-import { Student } from '@/utils/interfaces';
-import { RowDataPacket } from 'mysql2';
+import { queryOne, execute, type RowDataPacket } from "@/utils/sqlite";
+import { Student } from "@/utils/interfaces";
 import {
     requireAuth,
     badRequest,

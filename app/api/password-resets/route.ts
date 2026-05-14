@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { execute, queryOne } from "@/utils/mysql";
+import { execute, queryOne } from "@/utils/sqlite";
 import { badRequest, handleApiError, jsonResponse, serverError, successResponse } from "@/utils/api";
 import { requireAuth } from "@/utils/api";
 

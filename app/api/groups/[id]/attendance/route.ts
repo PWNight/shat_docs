@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { execute } from "@/utils/mysql";
+import { execute, query } from "@/utils/sqlite";
 import {
     requireAuth,
     safeParseJson,
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest, {params}: { params: Promise<{ id
         const { searchParams } = new URL(request.url);
         const periodMonth = searchParams.get('periodMonth');
 
-        let query = `SELECT
+        let sql = `SELECT
                 id as number,
                 full_name as fullName,
                 full_days_total as fullDaysTotal,
@@ -40,11 +40,11 @@ export async function GET(request: NextRequest, {params}: { params: Promise<{ id
             if (Number.isNaN(parsedMonth)) {
                 return badRequest("periodMonth должен быть числом");
             }
-            query += ` AND period_month = ?`;
+            sql += ` AND period_month = ?`;
             params_arr.push(parsedMonth);
         }
 
-        const rows = await execute(query, params_arr);
+        const rows = await query(sql, params_arr);
 
         return jsonResponse(successResponse(rows));
     } catch (error) {
@@ -86,13 +86,14 @@ export async function POST(request: NextRequest) {
                 `INSERT INTO attendance
                 (fk_group, full_name, full_days_total, full_days_sick, lessons_total, lessons_sick, late, period_month)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                ON DUPLICATE KEY UPDATE
-                full_days_total = VALUES(full_days_total),
-                full_days_sick = VALUES(full_days_sick),
-                lessons_total = VALUES(lessons_total),
-                lessons_sick = VALUES(lessons_sick),
-                late = VALUES(late),
-                period_month = VALUES(period_month)`,
+                ON CONFLICT(fk_group, full_name, period_month) DO UPDATE SET
+                full_days_total = excluded.full_days_total,
+                full_days_sick = excluded.full_days_sick,
+                lessons_total = excluded.lessons_total,
+                lessons_sick = excluded.lessons_sick,
+                late = excluded.late,
+                period_month = excluded.period_month,
+                updated_at = datetime('now')`,
                 [
                     groupId,
                     student.fullName,

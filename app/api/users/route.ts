@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { execute, query, queryOne } from "@/utils/mysql";
+import { execute, query, queryOne } from "@/utils/sqlite";
 import { createSession, revokeAllUserSessions } from "@/utils/session";
 import bcrypt from "bcrypt";
 import {
@@ -74,7 +74,7 @@ export async function PATCH(req: NextRequest) {
             }
 
             // Проверка текущего пароля
-            const dbUser = await queryOne("SELECT password_hash FROM users WHERE id = ?", [userId]);
+            const dbUser = await queryOne<{ password_hash: string }>("SELECT password_hash FROM users WHERE id = ?", [userId]);
             if (!dbUser) {
                 return notFound("Пользователь не найден");
             }

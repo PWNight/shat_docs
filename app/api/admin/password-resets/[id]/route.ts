@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import bcrypt from "bcrypt";
-import { execute, queryOne } from "@/utils/mysql";
+import { execute, queryOne } from "@/utils/sqlite";
 import { badRequest, handleApiError, jsonResponse, notFound, safeParseJson, serverError, successResponse } from "@/utils/api";
 import { requireAdmin, writeAdminLog } from "@/utils/admin";
 import { revokeAllUserSessions } from "@/utils/session";
@@ -32,7 +32,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
         if (parseResult.data.status === "cancelled") {
             await execute(
-                "UPDATE password_reset_requests SET status = 'cancelled', resolved_by = ?, resolved_at = NOW() WHERE id = ?",
+                "UPDATE password_reset_requests SET status = 'cancelled', resolved_by = ?, resolved_at = datetime('now') WHERE id = ?",
                 [adminCheck.actor.id, resetId]
             );
             await writeAdminLog(adminCheck.actor.id, "ADMIN_CANCEL_PASSWORD_RESET", `requestId=${resetId}, targetUserId=${resetRequest.user_id}`);
@@ -54,7 +54,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         await execute("UPDATE users SET password_hash = ? WHERE id = ?", [hash, resetRequest.user_id]);
         await revokeAllUserSessions(resetRequest.user_id, adminCheck.actor.id, { reason: "admin_resolve_reset_password" });
         await execute(
-            "UPDATE password_reset_requests SET status = 'resolved', resolved_by = ?, resolved_at = NOW() WHERE id = ?",
+            "UPDATE password_reset_requests SET status = 'resolved', resolved_by = ?, resolved_at = datetime('now') WHERE id = ?",
             [adminCheck.actor.id, resetId]
         );
         await writeAdminLog(adminCheck.actor.id, "RESET_USER_PASSWORD", `requestId=${resetId}, targetUserId=${resetRequest.user_id}`);

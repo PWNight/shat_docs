@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { execute, queryOne } from "@/utils/mysql";
+import { execute, queryOne } from "@/utils/sqlite";
 import { badRequest, handleApiError, jsonResponse, notFound, safeParseJson, serverError, successResponse } from "@/utils/api";
 import { requireAdmin, writeAdminLog } from "@/utils/admin";
 
@@ -19,7 +19,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         const groupId = Number(id);
         if (!Number.isFinite(groupId) || groupId <= 0) return badRequest("Некорректный id группы");
 
-        const group = await queryOne<{ id: number }>("SELECT id FROM `groups` WHERE id = ? LIMIT 1", [groupId]);
+        const group = await queryOne<{ id: number }>("SELECT id FROM \"groups\" WHERE id = ? LIMIT 1", [groupId]);
         if (!group) return notFound("Группа не найдена");
 
         const updates: string[] = [];
@@ -46,7 +46,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         if (updates.length === 0) return badRequest("Нет данных для обновления");
         values.push(groupId);
 
-        await execute(`UPDATE \`groups\` SET ${updates.join(", ")} WHERE id = ?`, values);
+        await execute(`UPDATE "groups" SET ${updates.join(", ")} WHERE id = ?`, values);
         await writeAdminLog(adminCheck.actor.id, "ADMIN_UPDATE_GROUP", `groupId=${groupId}`);
         return jsonResponse(successResponse(null, "Группа обновлена"));
     } catch (error) {
@@ -64,10 +64,10 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         const groupId = Number(id);
         if (!Number.isFinite(groupId) || groupId <= 0) return badRequest("Некорректный id группы");
 
-        const group = await queryOne<{ id: number }>("SELECT id FROM `groups` WHERE id = ? LIMIT 1", [groupId]);
+        const group = await queryOne<{ id: number }>("SELECT id FROM \"groups\" WHERE id = ? LIMIT 1", [groupId]);
         if (!group) return notFound("Группа не найдена");
 
-        await execute("DELETE FROM `groups` WHERE id = ?", [groupId]);
+        await execute("DELETE FROM \"groups\" WHERE id = ?", [groupId]);
         await writeAdminLog(adminCheck.actor.id, "ADMIN_DELETE_GROUP", `groupId=${groupId}`);
         return jsonResponse(successResponse(null, "Группа удалена"));
     } catch (error) {

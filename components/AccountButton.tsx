@@ -9,7 +9,7 @@ import {
     DropdownMenuTrigger,
     DropdownMenuSeparator,
 } from "@/components/ui/DropdownMenu";
-import { queryOne } from "@/utils/mysql";
+import { queryOne } from "@/utils/sqlite";
 import { DatabaseZap } from "lucide-react";
 
 export async function AuthButton() {

@@ -1,4 +1,4 @@
-import { execute, queryOne } from '@/utils/mysql';
+import { execute, queryOne } from "@/utils/sqlite";
 import bcrypt from 'bcrypt';
 import { NextRequest } from "next/server";
 import { RegisterFormSchema } from "@/utils/definitions";
