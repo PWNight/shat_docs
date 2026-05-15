@@ -7,6 +7,46 @@ import { ActionButton } from "./AdminUi";
 import PaginationControls from "@/components/ui/PaginationControls";
 import type { AdminOverview, GroupItem } from "@/app/admin/types";
 
+// Вспомогательные функции для определения цвета
+function getGradeTone(avgGrade: number | null): string {
+    if (avgGrade == null) return "bg-muted/60 border-border";
+    if (avgGrade >= 4.5) return "bg-emerald-500/10 border-emerald-500/30";
+    if (avgGrade >= 3.5) return "bg-amber-500/10 border-amber-500/30";
+    return "bg-red-500/10 border-red-500/30";
+}
+
+function getLessonsMissedTone(lessonsMissed: number): string {
+    if (lessonsMissed <= 5) return "bg-emerald-500/10 border-emerald-500/30";
+    if (lessonsMissed <= 15) return "bg-amber-500/10 border-amber-500/30";
+    return "bg-red-500/10 border-red-500/30";
+}
+
+function getDaysMissedTone(daysMissed: number): string {
+    if (daysMissed <= 2) return "bg-emerald-500/10 border-emerald-500/30";
+    if (daysMissed <= 7) return "bg-amber-500/10 border-amber-500/30";
+    return "bg-red-500/10 border-red-500/30";
+}
+
+function getLateTone(late: number): string {
+    if (late <= 2) return "bg-emerald-500/10 border-emerald-500/30";
+    if (late <= 5) return "bg-amber-500/10 border-amber-500/30";
+    return "bg-red-500/10 border-red-500/30";
+}
+
+function getExcellentTone(excellent: number, total: number): string {
+    if (total === 0) return "bg-muted/60 border-border";
+    const percent = (excellent / total) * 100;
+    if (percent >= 30) return "bg-emerald-500/10 border-emerald-500/30";
+    if (percent >= 10) return "bg-amber-500/10 border-amber-500/30";
+    return "bg-red-500/10 border-red-500/30";
+}
+
+function getAtRiskTone(atRisk: number): string {
+    if (atRisk === 0) return "bg-emerald-500/10 border-emerald-500/30";
+    if (atRisk <= 2) return "bg-amber-500/10 border-amber-500/30";
+    return "bg-red-500/10 border-red-500/30";
+}
+
 type GroupsTabProps = {
     data: AdminOverview;
     userId: number;
@@ -149,31 +189,32 @@ export default function GroupsTab({
                                     <p className="text-lg font-bold">{stat?.students_count ?? 0}</p>
                                 </div>
 
-                                <div className="rounded-xl bg-muted/60 p-3 border border-border">
+                                <div className={`rounded-xl p-3 border ${getGradeTone(stat?.avg_grade ?? null)}`}>
                                     <p className="text-xs text-muted-foreground">Ср. балл</p>
                                     <p className="text-lg font-bold">
                                         {stat?.avg_grade != null ? stat.avg_grade.toFixed(2) : "—"}
                                     </p>
                                 </div>
 
-                                <div className="rounded-xl bg-muted/60 p-3 border border-border">
-                                    <p className="text-xs text-muted-foreground">Посещаемость</p>
-                                    <p className="text-lg font-bold">{stat?.attendance_percent ?? 0}%</p>
-                                </div>
-
-                                <div className="rounded-xl bg-emerald-500/5 p-3 border border-emerald-500/20">
+                                <div className={`rounded-xl p-3 border ${getExcellentTone(stat?.excellent_students ?? 0, stat?.students_count ?? 0)}`}>
                                     <p className="text-xs text-muted-foreground">Отличники</p>
                                     <p className="text-lg font-bold">{stat?.excellent_students ?? 0}</p>
                                 </div>
-                                <div className="rounded-xl bg-red-500/5 p-3 border border-red-500/20">
+                                <div className={`rounded-xl p-3 border ${getAtRiskTone(stat?.at_risk_students ?? 0)}`}>
                                     <p className="text-xs text-muted-foreground">Под риском</p>
                                     <p className="text-lg font-bold">{stat?.at_risk_students ?? 0}</p>
                                 </div>
-                                <div className="rounded-xl bg-muted/60 p-3 border border-border">
-                                    <p className="text-xs text-muted-foreground">Пропуски / опозд.</p>
-                                    <p className="text-lg font-bold">
-                                        {stat?.lessons_sick ?? 0} / {stat?.late_total ?? 0}
-                                    </p>
+                                <div className={`rounded-xl p-3 border ${getLessonsMissedTone(stat?.lessons_missed ?? 0)}`}>
+                                    <p className="text-xs text-muted-foreground">Пропуски (пары)</p>
+                                    <p className="text-lg font-bold">{stat?.lessons_missed ?? 0}</p>
+                                </div>
+                                <div className={`rounded-xl p-3 border ${getDaysMissedTone(stat?.days_missed ?? 0)}`}>
+                                    <p className="text-xs text-muted-foreground">Пропуски (дни)</p>
+                                    <p className="text-lg font-bold">{stat?.days_missed ?? 0}</p>
+                                </div>
+                                <div className={`rounded-xl p-3 border ${getLateTone(stat?.late_total ?? 0)}`}>
+                                    <p className="text-xs text-muted-foreground">Опоздания</p>
+                                    <p className="text-lg font-bold">{stat?.late_total ?? 0}</p>
                                 </div>
                             </div>
 

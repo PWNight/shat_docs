@@ -10,11 +10,11 @@ export type GroupStats = {
     avg_grade: number | null;
     excellent_students: number;
     at_risk_students: number;
-    lessons_total: number;
+    lessons_missed: number;
     lessons_sick: number;
     late_total: number;
-    full_days_sick: number;
-    attendance_percent: number;
+    days_missed: number;
+    days_sick: number;
 };
 
 type GroupStatsRow = {
@@ -26,10 +26,11 @@ type GroupStatsRow = {
     avg_grade: number | null;
     excellent_students: number;
     at_risk_students: number;
-    lessons_total: number;
+    lessons_missed: number;
     lessons_sick: number;
     late_total: number;
-    full_days_sick: number;
+    days_missed: number;
+    days_sick: number;
 };
 
 const GROUP_STATS_BODY = `
@@ -57,19 +58,14 @@ const GROUP_STATS_BODY = `
             HAVING AVG(gr.average_score) < 3.5
         )
     ) AS at_risk_students,
-    (SELECT COALESCE(SUM(a.lessons_total), 0) FROM attendance a WHERE a.fk_group = g.id) AS lessons_total,
+    (SELECT COALESCE(SUM(a.lessons_total), 0) FROM attendance a WHERE a.fk_group = g.id) AS lessons_missed,
     (SELECT COALESCE(SUM(a.lessons_sick), 0) FROM attendance a WHERE a.fk_group = g.id) AS lessons_sick,
     (SELECT COALESCE(SUM(a.late), 0) FROM attendance a WHERE a.fk_group = g.id) AS late_total,
-    (SELECT COALESCE(SUM(a.full_days_sick), 0) FROM attendance a WHERE a.fk_group = g.id) AS full_days_sick
+    (SELECT COALESCE(SUM(a.full_days_total), 0) FROM attendance a WHERE a.fk_group = g.id) AS days_missed,
+    (SELECT COALESCE(SUM(a.full_days_sick), 0) FROM attendance a WHERE a.fk_group = g.id) AS days_sick
 `;
 
 function normalizeGroupStats(row: GroupStatsRow): GroupStats {
-    const lessons_total = Number(row.lessons_total ?? 0);
-    const lessons_sick = Number(row.lessons_sick ?? 0);
-    const attended = Math.max(0, lessons_total - lessons_sick);
-    const attendance_percent =
-        lessons_total > 0 ? Number(((attended / lessons_total) * 100).toFixed(1)) : 0;
-
     return {
         id: Number(row.id),
         name: row.name,
@@ -79,11 +75,11 @@ function normalizeGroupStats(row: GroupStatsRow): GroupStats {
         avg_grade: row.avg_grade != null ? Number(row.avg_grade) : null,
         excellent_students: Number(row.excellent_students ?? 0),
         at_risk_students: Number(row.at_risk_students ?? 0),
-        lessons_total,
-        lessons_sick,
+        lessons_missed: Number(row.lessons_missed ?? 0),
+        lessons_sick: Number(row.lessons_sick ?? 0),
         late_total: Number(row.late_total ?? 0),
-        full_days_sick: Number(row.full_days_sick ?? 0),
-        attendance_percent,
+        days_missed: Number(row.days_missed ?? 0),
+        days_sick: Number(row.days_sick ?? 0),
     };
 }
 

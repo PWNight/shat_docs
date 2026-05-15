@@ -51,7 +51,27 @@ function StatTile({
 
 export default function GroupStatsPanel({ stats, compact = false }: GroupStatsPanelProps) {
     const avgGradeDisplay = stats.avg_grade != null ? stats.avg_grade.toFixed(2) : "—";
-    const lessonsAttended = Math.max(0, stats.lessons_total - stats.lessons_sick);
+    
+    // Цветовая логика для среднего балла
+    const gradeTone = stats.avg_grade != null 
+        ? (stats.avg_grade >= 4.5 ? "success" : stats.avg_grade >= 3.5 ? "default" : "danger")
+        : "default";
+    
+    // Цветовая логика для пропусков (дни)
+    const daysMissedTone = stats.days_missed <= 2 ? "success" : stats.days_missed <= 7 ? "warning" : "danger";
+    
+    // Цветовая логика для пропусков (пары)
+    const lessonsMissedTone = stats.lessons_missed <= 5 ? "success" : stats.lessons_missed <= 15 ? "warning" : "danger";
+    
+    // Цветовая логика для опозданий
+    const lateTone = stats.late_total <= 2 ? "success" : stats.late_total <= 5 ? "warning" : "danger";
+    
+    // Цветовая логика для отличников (процент от студентов)
+    const excellentPercent = stats.students_count > 0 ? (stats.excellent_students / stats.students_count) * 100 : 0;
+    const excellentTone = excellentPercent >= 30 ? "success" : excellentPercent >= 10 ? "default" : "warning";
+    
+    // Цветовая логика для студентов под риском
+    const atRiskTone = stats.at_risk_students === 0 ? "success" : stats.at_risk_students <= 2 ? "warning" : "danger";
 
     return (
         <section className="rounded-2xl border border-border/70 bg-card p-4 sm:p-5 shadow-sm">
@@ -80,46 +100,41 @@ export default function GroupStatsPanel({ stats, compact = false }: GroupStatsPa
                     icon={<GraduationCap className="h-3.5 w-3.5" />}
                     label="Средний балл"
                     value={avgGradeDisplay}
+                    tone={gradeTone}
                 />
                 <StatTile
                     icon={<TrendingUp className="h-3.5 w-3.5" />}
                     label="Отличники"
                     value={stats.excellent_students}
                     hint="средний балл ≥ 4,5"
-                    tone="success"
+                    tone={excellentTone}
                 />
                 <StatTile
                     icon={<AlertTriangle className="h-3.5 w-3.5" />}
                     label="Под риском"
                     value={stats.at_risk_students}
                     hint="средний балл < 3,5"
-                    tone={stats.at_risk_students > 0 ? "danger" : "default"}
-                />
-                <StatTile
-                    icon={<ClipboardCheck className="h-3.5 w-3.5" />}
-                    label="Посещаемость"
-                    value={`${stats.attendance_percent}%`}
-                    hint={`${lessonsAttended} из ${stats.lessons_total} уроков`}
-                    tone={
-                        stats.attendance_percent >= 90
-                            ? "success"
-                            : stats.attendance_percent >= 75
-                              ? "default"
-                              : "warning"
-                    }
+                    tone={atRiskTone}
                 />
                 <StatTile
                     icon={<CalendarDays className="h-3.5 w-3.5" />}
-                    label="Пропуски"
-                    value={stats.lessons_sick}
-                    hint={`${stats.full_days_sick} дн. по болезни`}
-                    tone={stats.lessons_sick > 0 ? "warning" : "default"}
+                    label="Пропуски (дни)"
+                    value={stats.days_missed}
+                    hint={`${stats.days_sick} дн. по болезни`}
+                    tone={daysMissedTone}
+                />
+                <StatTile
+                    icon={<ClipboardCheck className="h-3.5 w-3.5" />}
+                    label="Пропуски (пары)"
+                    value={stats.lessons_missed}
+                    hint={`${stats.lessons_sick} по болезни`}
+                    tone={lessonsMissedTone}
                 />
                 <StatTile
                     icon={<Clock className="h-3.5 w-3.5" />}
                     label="Опоздания"
                     value={stats.late_total}
-                    tone={stats.late_total > 0 ? "warning" : "default"}
+                    tone={lateTone}
                 />
             </div>
         </section>
