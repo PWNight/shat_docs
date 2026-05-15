@@ -6,6 +6,7 @@ import {
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/utils/http-client";
 import {z} from "zod";
 import {AttendanceStudent, GradeStudent, Group, Student, TeacherStats, UserProfile} from "@/utils/interfaces";
+import type { GroupStats } from "@/utils/group-stats";
 import { ApiResponseError } from "@/utils/functions";
 import { logger } from "@/utils/logger";
 import { isValidEntityId, isValidMonth, isValidSemester } from "@/utils/validators";
@@ -355,6 +356,16 @@ export async function UpdateProfile(data: object): Promise<HandlerResult> {
         // Возвращаем ошибку
     } catch (error) {
         // Возвращаем ошибку
+        return toErrorResult(error, "Неизвестная ошибка сервера");
+    }
+}
+
+export async function GetGroupStats(id: string): Promise<HandlerResult<GroupStats>> {
+    if (!isValidEntityId(id)) return { success: false, message: "Некорректный id группы" };
+    try {
+        const { data } = await apiGet<{ data?: GroupStats }>(`/api/groups/${id}/stats`);
+        return { success: true, message: "Успешно", data };
+    } catch (error) {
         return toErrorResult(error, "Неизвестная ошибка сервера");
     }
 }

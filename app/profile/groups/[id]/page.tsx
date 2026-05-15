@@ -19,8 +19,10 @@ import ErrorMessage from "@/components/NotifyAlert";
 import PageErrorState from "@/components/ui/PageErrorState";
 import { getErrorKindByMeta } from "@/utils/ui-errors";
 import { getSession, SessionPayload } from "@/utils/session";
-import { GetGroup, GetUsersList, UpdateGroup, DeleteGroup, GetStudents } from "@/utils/handlers";
+import { GetGroup, GetGroupStats, GetUsersList, UpdateGroup, DeleteGroup, GetStudents } from "@/utils/handlers";
 import { Group, Notify, Student } from "@/utils/interfaces";
+import type { GroupStats } from "@/utils/group-stats";
+import GroupStatsPanel from "@/components/GroupStatsPanel";
 import Loader from "@/components/ui/animations/Loader";
 
 interface UserListItem { id: number; full_name: string; }
@@ -41,6 +43,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
     const [notify, setNotify] = useState<Notify>({ message: '', type: '' }); // Уведомления
     const [updateFormData, setUpdateFormData] = useState({ name: '', fk_user: '' }); // Данные формы
     const [students, setStudents] = useState<Student[]>([]); // Список студентов
+    const [groupStats, setGroupStats] = useState<GroupStats | null>(null);
     const [isPending, startTransition] = useTransition(); // Загрузка
     const [pageError, setPageError] = useState<{ message: string; status?: number; code?: string } | null>(null); // Ошибка
 
@@ -76,7 +79,11 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
         setUpdateFormData({ name: groupData.name, fk_user: String(groupData.fk_user) });
 
         // Получаем данные преподавателей и студентов
-        const [usersRes, studentsRes] = await Promise.allSettled([GetUsersList(), GetStudents(id)]);
+        const [usersRes, studentsRes, statsRes] = await Promise.allSettled([
+            GetUsersList(),
+            GetStudents(id),
+            GetGroupStats(id),
+        ]);
         // Проверяем, что запрос успешен
         if (usersRes.status === "fulfilled" && usersRes.value.success && "data" in usersRes.value) {
             // Устанавливаем данные преподавателей
@@ -93,6 +100,10 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
         } else {
             // Устанавливаем уведомление
             setNotify({ message: "Не удалось загрузить список студентов", type: "warning" });
+        }
+
+        if (statsRes.status === "fulfilled" && statsRes.value.success && statsRes.value.data) {
+            setGroupStats(statsRes.value.data);
         }
     }, [router]);
 
@@ -291,6 +302,8 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                     )}
                 </div>
             </div>
+
+            {groupStats ? <GroupStatsPanel stats={groupStats} /> : null}
 
             <div className="flex gap-4 lg:justify-start justify-between border-b dark:border-zinc-700 relative">
                 <button

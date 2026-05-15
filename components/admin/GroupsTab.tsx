@@ -95,9 +95,6 @@ export default function GroupsTab({
                 {paginatedGroups.map((group) => {
                     const isOwner = group.fk_user === userId;
                     const stat = data.groupStats.find((g) => g.id === group.id);
-                    const attendancePercent = stat && stat.lessons_total > 0
-                        ? (((stat.lessons_total - stat.lessons_sick) / stat.lessons_total) * 100).toFixed(1)
-                        : "0";
                     return (
                         <div
                             key={group.id}
@@ -154,17 +151,29 @@ export default function GroupsTab({
 
                                 <div className="rounded-xl bg-muted/60 p-3 border border-border">
                                     <p className="text-xs text-muted-foreground">Ср. балл</p>
-                                    <p className="text-lg font-bold">{stat?.avg_grade ?? "—"}</p>
+                                    <p className="text-lg font-bold">
+                                        {stat?.avg_grade != null ? stat.avg_grade.toFixed(2) : "—"}
+                                    </p>
                                 </div>
 
                                 <div className="rounded-xl bg-muted/60 p-3 border border-border">
                                     <p className="text-xs text-muted-foreground">Посещаемость</p>
-                                    <p className="text-lg font-bold">{attendancePercent}%</p>
+                                    <p className="text-lg font-bold">{stat?.attendance_percent ?? 0}%</p>
                                 </div>
 
+                                <div className="rounded-xl bg-emerald-500/5 p-3 border border-emerald-500/20">
+                                    <p className="text-xs text-muted-foreground">Отличники</p>
+                                    <p className="text-lg font-bold">{stat?.excellent_students ?? 0}</p>
+                                </div>
+                                <div className="rounded-xl bg-red-500/5 p-3 border border-red-500/20">
+                                    <p className="text-xs text-muted-foreground">Под риском</p>
+                                    <p className="text-lg font-bold">{stat?.at_risk_students ?? 0}</p>
+                                </div>
                                 <div className="rounded-xl bg-muted/60 p-3 border border-border">
-                                    <p className="text-xs text-muted-foreground">Опоздания</p>
-                                    <p className="text-lg font-bold">{stat?.late_total ?? 0}</p>
+                                    <p className="text-xs text-muted-foreground">Пропуски / опозд.</p>
+                                    <p className="text-lg font-bold">
+                                        {stat?.lessons_sick ?? 0} / {stat?.late_total ?? 0}
+                                    </p>
                                 </div>
                             </div>
 
