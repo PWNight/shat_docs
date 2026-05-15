@@ -1,7 +1,7 @@
 ---
 title: API Reference
 description: Подробная документация по API v2 на основе исходного кода.
-update_date: 15-04-2026
+update_date: 15-05-2026
 ---
 
 ## Область действия
@@ -310,6 +310,56 @@ update_date: 15-04-2026
 
 - `401 UNAUTHORIZED`
 - `403 FORBIDDEN` - `Вы не можете удалить эту группу`
+- `404 NOT_FOUND` - `Группа с айди ... не найдена`
+- `500 SERVER_ERROR`.
+- `503 DB_OFFLINE` - нет подключения к базе данных.
+
+### GET `/groups/{id}/stats`
+
+Получение статистики группы.
+
+**Path params:** `id`.
+
+**Успешный ответ `200`:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "name": "10А",
+    "students_count": 25,
+    "grades_periods": 2,
+    "attendance_periods": 3,
+    "avg_grade": 4.2,
+    "excellent_students": 8,
+    "at_risk_students": 2,
+    "lessons_missed": 15,
+    "lessons_sick": 8,
+    "late_total": 3,
+    "days_missed": 5,
+    "days_sick": 2
+  }
+}
+```
+
+**Описание полей:**
+
+- `students_count` - количество студентов в группе
+- `grades_periods` - количество периодов успеваемости
+- `attendance_periods` - количество периодов посещаемости
+- `avg_grade` - средний балл по группе
+- `excellent_students` - количество отличников (средний балл ≥ 4.5)
+- `at_risk_students` - количество студентов под риском (средний балл < 3.5)
+- `lessons_missed` - общее количество пропущенных пар
+- `lessons_sick` - количество пропущенных пар по болезни
+- `late_total` - общее количество опозданий
+- `days_missed` - общее количество пропущенных дней
+- `days_sick` - количество пропущенных дней по болезни
+
+**Ошибки:**
+
+- `401 UNAUTHORIZED`
 - `404 NOT_FOUND` - `Группа с айди ... не найдена`
 - `500 SERVER_ERROR`.
 - `503 DB_OFFLINE` - нет подключения к базе данных.
