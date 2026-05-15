@@ -168,16 +168,16 @@ export default function SessionsTab({ data, busy, actionKey, onRevokeSession }: 
                         {paginatedSessions.map((item) => {
                             const statusStyles = getStatusStyles(item);
                             return (
-                                <div key={item.sessionId} className="overflow-hidden rounded-2xl border border-border/70 bg-background p-4 sm:p-5 shadow-sm transition-colors duration-200 hover:border-border/80 dark:hover:bg-zinc-900/50">
-                                    <div className="mb-3 sm:mb-0 sm:absolute sm:right-4 sm:top-4">
-                                        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${statusStyles.bg} ${statusStyles.color}`}>
+                                <div key={item.sessionId} className="relative overflow-hidden rounded-2xl border border-border/70 bg-background p-4 sm:p-5 shadow-sm transition-colors duration-200 hover:border-border/80 dark:hover:bg-zinc-900/50">
+                                    <div className="mb-4 flex items-start justify-between gap-3">
+                                        <div className="grid min-w-0 flex-1 gap-1">
+                                            <p className="font-bold leading-tight break-words text-foreground">{item.fullName}</p>
+                                            <p className="text-xs text-muted-foreground break-all">{item.email}</p>
+                                        </div>
+                                        <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${statusStyles.bg} ${statusStyles.color}`}>
                                             {statusStyles.icon}
                                             {statusStyles.label}
                                         </span>
-                                    </div>
-                                    <div className="mb-4 grid gap-1 sm:pr-16">
-                                        <p className="font-bold leading-tight break-words text-foreground">{item.fullName}</p>
-                                        <p className="text-xs text-muted-foreground break-all">{item.email}</p>
                                     </div>
                                     <div className="grid gap-2.5 rounded-xl border border-border/50 bg-muted/40 p-3.5 mb-4">
                                         <p className="text-xs font-medium flex items-center gap-2 text-foreground/80">
