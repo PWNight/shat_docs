@@ -13,13 +13,21 @@ import {
     successResponse,
     handleApiError
 } from "@/utils/api";
+import { checkRateLimit, rateLimitResponse } from "@/utils/rate-limit";
+import { validateCsrfToken } from "@/utils/csrf";
 
 // Получение списка групп
 export async function GET() {
-    // Проверяем авторизацию
+    // Rate limiting: 60 requests per minute per user
     const authResult = await requireAuthSimple();
     if (!authResult.success) {
         return authResult.response;
+    }
+
+    const clientId = `user:${authResult.user.uid}`;
+    const rateLimitResult = checkRateLimit(`groups:get:${clientId}`, 60, 60 * 1000);
+    if (!rateLimitResult.success) {
+        return rateLimitResponse(rateLimitResult.resetTime, 60);
     }
 
     try {
@@ -39,6 +47,19 @@ export async function POST(request: NextRequest) {
     const authResult = await requireAuth(request);
     if (!authResult.success) {
         return authResult.response;
+    }
+
+    // CSRF protection
+    const csrfValid = await validateCsrfToken(request);
+    if (!csrfValid) {
+        return badRequest("Invalid CSRF token");
+    }
+
+    // Rate limiting: 10 requests per minute per user
+    const clientId = `user:${authResult.user.uid}`;
+    const rateLimitResult = checkRateLimit(`groups:post:${clientId}`, 10, 60 * 1000);
+    if (!rateLimitResult.success) {
+        return rateLimitResponse(rateLimitResult.resetTime, 10);
     }
 
     // Безопасно парсим JSON

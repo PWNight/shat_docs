@@ -9,11 +9,19 @@ import {
     badRequest,
 } from "@/utils/api";
 import { fetchGroupStatsById } from "@/utils/group-stats";
+import { checkRateLimit, rateLimitResponse } from "@/utils/rate-limit";
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const authResult = await requireAuth(_request);
     if (!authResult.success) {
         return authResult.response;
+    }
+
+    // Rate limiting: 60 requests per minute per user
+    const clientId = `user:${authResult.user.uid}`;
+    const rateLimitResult = checkRateLimit(`stats:get:${clientId}`, 60, 60 * 1000);
+    if (!rateLimitResult.success) {
+        return rateLimitResponse(rateLimitResult.resetTime, 60);
     }
 
     const { id } = await params;

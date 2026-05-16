@@ -13,6 +13,8 @@ import {
     successResponse,
     handleApiError
 } from "@/utils/api";
+import { checkRateLimit, rateLimitResponse } from "@/utils/rate-limit";
+import { validateCsrfToken } from "@/utils/csrf";
 
 // Получение группы
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -20,6 +22,13 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     const authResult = await requireAuth(_request);
     if (!authResult.success) {
         return authResult.response;
+    }
+
+    // Rate limiting: 60 requests per minute per user
+    const clientId = `user:${authResult.user.uid}`;
+    const rateLimitResult = checkRateLimit(`groups:id:get:${clientId}`, 60, 60 * 1000);
+    if (!rateLimitResult.success) {
+        return rateLimitResponse(rateLimitResult.resetTime, 60);
     }
 
     const { id } = await params;
@@ -45,6 +54,19 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const authResult = await requireAuth(request);
     if (!authResult.success) {
         return authResult.response;
+    }
+
+    // CSRF protection
+    const csrfValid = await validateCsrfToken(request);
+    if (!csrfValid) {
+        return badRequest("Invalid CSRF token");
+    }
+
+    // Rate limiting: 20 requests per minute per user
+    const clientId = `user:${authResult.user.uid}`;
+    const rateLimitResult = checkRateLimit(`groups:id:patch:${clientId}`, 20, 60 * 1000);
+    if (!rateLimitResult.success) {
+        return rateLimitResponse(rateLimitResult.resetTime, 20);
     }
 
     const { id } = await params;
@@ -100,6 +122,19 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     const authResult = await requireAuth(request);
     if (!authResult.success) {
         return authResult.response;
+    }
+
+    // CSRF protection
+    const csrfValid = await validateCsrfToken(request);
+    if (!csrfValid) {
+        return badRequest("Invalid CSRF token");
+    }
+
+    // Rate limiting: 5 requests per minute per user
+    const clientId = `user:${authResult.user.uid}`;
+    const rateLimitResult = checkRateLimit(`groups:id:delete:${clientId}`, 5, 60 * 1000);
+    if (!rateLimitResult.success) {
+        return rateLimitResponse(rateLimitResult.resetTime, 5);
     }
 
     const { id } = await params;

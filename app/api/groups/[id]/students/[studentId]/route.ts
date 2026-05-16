@@ -10,6 +10,8 @@ import {
     successResponse,
     handleApiError,
 } from "@/utils/api";
+import { checkRateLimit, rateLimitResponse } from "@/utils/rate-limit";
+import { validateCsrfToken } from "@/utils/csrf";
 
 type StudentRow = Student & RowDataPacket;
 
@@ -21,6 +23,19 @@ export async function PATCH(
     const authResult = await requireAuth(req);
     if (!authResult.success) {
         return authResult.response;
+    }
+
+    // CSRF protection
+    const csrfValid = await validateCsrfToken(req);
+    if (!csrfValid) {
+        return badRequest("Invalid CSRF token");
+    }
+
+    // Rate limiting: 20 requests per minute per user
+    const clientId = `user:${authResult.user.uid}`;
+    const rateLimitResult = checkRateLimit(`students:patch:${clientId}`, 20, 60 * 1000);
+    if (!rateLimitResult.success) {
+        return rateLimitResponse(rateLimitResult.resetTime, 20);
     }
 
     try {
@@ -78,6 +93,19 @@ export async function DELETE(
     const authResult = await requireAuth(req);
     if (!authResult.success) {
         return authResult.response;
+    }
+
+    // CSRF protection
+    const csrfValid = await validateCsrfToken(req);
+    if (!csrfValid) {
+        return badRequest("Invalid CSRF token");
+    }
+
+    // Rate limiting: 10 requests per minute per user
+    const clientId = `user:${authResult.user.uid}`;
+    const rateLimitResult = checkRateLimit(`students:delete:${clientId}`, 10, 60 * 1000);
+    if (!rateLimitResult.success) {
+        return rateLimitResponse(rateLimitResult.resetTime, 10);
     }
 
     try {
