@@ -163,7 +163,7 @@ export async function SaveAttendance(groupId: string, students: AttendanceStuden
         return await apiPost(`/api/groups/${groupId}/attendance`, { groupId, students });
     } catch (error) {
         // Возвращаем ошибку
-        return toErrorResult(error, "Неизвестная ошибка сервера");
+        return toErrorResult(error, "Ошибка при сохранении посещаемости");
     }
 }
 
@@ -179,7 +179,7 @@ export async function GetAttendance(groupId: string, periodMonth?: number): Prom
         });
     } catch (error) {
         // Возвращаем ошибку
-        return toErrorResult(error, "Неизвестная ошибка сервера");
+        return toErrorResult(error, "Ошибка при получении посещаемости");
     }
 }
 
@@ -194,7 +194,7 @@ export async function GetAllGroups(): Promise<HandlerResult<Group[]>>{
         return { success: true, message: "Успешно", data }
     } catch (error) {
         // Возвращаем ошибку
-        return toErrorResult(error, "Неизвестная ошибка сервера");
+        return toErrorResult(error, "Ошибка при получении списка групп");
     }
 }
 
@@ -209,7 +209,7 @@ export async function GetGroup(id: string): Promise<HandlerResult<Group>>{
         return { success: true, message: "Успешно", data }
     } catch (error) {
         // Возвращаем ошибку
-        return toErrorResult(error, "Неизвестная ошибка сервера");
+        return toErrorResult(error, "Ошибка при получении группы");
     }
 }
 
@@ -222,7 +222,7 @@ export async function GetUsersList(): Promise<HandlerResult<{ id: number; full_n
         return { success: true, data };
     } catch (error) {
         // Возвращаем ошибку
-        return toErrorResult(error, "Неизвестная ошибка сервера");
+        return toErrorResult(error, "Ошибка при получении списка пользователей");
     }
 }
 
@@ -236,7 +236,7 @@ export async function GetUser(id: number): Promise<HandlerResult<UserProfile>> {
         // Возвращаем успех и данные
         return { success: true, data };
     } catch (error) {
-        return toErrorResult(error, "Неизвестная ошибка сервера");
+        return toErrorResult(error, "Ошибка при получении профиля пользователя");
     }
 }
 
@@ -251,7 +251,7 @@ export async function GetStudents(groupId: string): Promise<HandlerResult<Studen
 
         return { success: true, data };
     } catch (error) {
-        return toErrorResult(error, "Неизвестная ошибка сервера");
+        return toErrorResult(error, "Ошибка при получении списка студентов");
     }
 }
 
@@ -265,7 +265,7 @@ export async function CreateStudents(groupId: string, students: { fullName: stri
         return await apiPost(`/api/groups/${groupId}/students`, { students });
     } catch (error) {
         // Возвращаем ошибку
-        return toErrorResult(error, "Неизвестная ошибка сервера");
+        return toErrorResult(error, "Ошибка при создании студентов");
     }
 }
 
@@ -278,7 +278,7 @@ export async function UpdateStudent(groupId: string, studentId: number, newName:
         return await apiPatch(`/api/groups/${groupId}/students/${studentId}`, { full_name: newName });
     } catch (error) {
         // Возвращаем ошибку
-        return toErrorResult(error, "Неизвестная ошибка сервера");
+        return toErrorResult(error, "Ошибка при обновлении студента");
     }
 }
 
@@ -291,7 +291,7 @@ export async function DeleteStudent(groupId: string, studentId: number): Promise
         return await apiDelete(`/api/groups/${groupId}/students/${studentId}`);
     } catch (error) {
         // Возвращаем ошибку
-        return toErrorResult(error, "Неизвестная ошибка сервера");
+        return toErrorResult(error, "Ошибка при удалении студента");
     }
 }
 
@@ -304,7 +304,7 @@ export async function SaveGrades(groupId: string, students: GradeStudent[]): Pro
         return await apiPost(`/api/groups/${groupId}/grades`, { groupId, students });
     } catch (error) {
         // Возвращаем ошибку
-        return toErrorResult(error, "Неизвестная ошибка сервера");
+        return toErrorResult(error, "Ошибка при сохранении оценок");
     }
 }
 
@@ -317,7 +317,7 @@ export async function DeleteAttendancePeriod(groupId: string, periodMonth: numbe
         return await apiDelete(`/api/groups/${groupId}/attendance`, { query: { periodMonth } });
     } catch (error) {
         // Возвращаем ошибку
-        return toErrorResult(error, "Неизвестная ошибка сервера");
+        return toErrorResult(error, "Ошибка при удалении посещаемости за период");
     }
 }
 
@@ -330,7 +330,7 @@ export async function DeleteGradesPeriod(groupId: string, periodSemester: number
         return await apiDelete(`/api/groups/${groupId}/grades`, { query: { periodSemester } });
     } catch (error) {
         // Возвращаем ошибку
-        return toErrorResult(error, "Неизвестная ошибка сервера");
+        return toErrorResult(error, "Ошибка при удалении оценок за период");
     }
 }
 
@@ -344,7 +344,7 @@ export async function GetGrades(groupId: string, periodSemester?: number): Promi
         return await apiGet(`/api/groups/${groupId}/grades`, { query: { periodSemester } });
     } catch (error) {
         // Возвращаем ошибку
-        return toErrorResult(error, "Неизвестная ошибка сервера");
+        return toErrorResult(error, "Ошибка при получении оценок");
     }
 }
 
@@ -356,7 +356,7 @@ export async function UpdateProfile(data: object): Promise<HandlerResult> {
         // Возвращаем ошибку
     } catch (error) {
         // Возвращаем ошибку
-        return toErrorResult(error, "Неизвестная ошибка сервера");
+        return toErrorResult(error, "Ошибка при обновлении профиля");
     }
 }
 
@@ -366,7 +366,7 @@ export async function GetGroupStats(id: string): Promise<HandlerResult<GroupStat
         const { data } = await apiGet<{ data?: GroupStats }>(`/api/groups/${id}/stats`);
         return { success: true, message: "Успешно", data };
     } catch (error) {
-        return toErrorResult(error, "Неизвестная ошибка сервера");
+        return toErrorResult(error, "Ошибка при получении статистики группы");
     }
 }
 
@@ -380,6 +380,6 @@ export async function GetTeacherStats(): Promise<HandlerResult<TeacherStats>> {
         // Возвращаем ошибку
     } catch (error) {
         // Возвращаем ошибку
-        return toErrorResult(error, "Неизвестная ошибка сервера");
+        return toErrorResult(error, "Ошибка при получении статистики преподавателя");
     }
 }
