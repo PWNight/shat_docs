@@ -31,7 +31,7 @@ function runMigrations(db: Database.Database): void {
     db.exec(`
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            email TEXT NOT NULL UNIQUE,
+            email TEXT NOT NULL UNIQUE CHECK(length(email) <= 254),
             full_name TEXT NOT NULL,
             password_hash TEXT NOT NULL,
             isAdmin INTEGER NOT NULL DEFAULT 0,
@@ -124,7 +124,9 @@ function runMigrations(db: Database.Database): void {
         CREATE INDEX IF NOT EXISTS idx_auth_sessions_user_id ON auth_sessions(user_id);
         CREATE INDEX IF NOT EXISTS idx_auth_sessions_active ON auth_sessions(revoked_at, expires_at);
         CREATE INDEX IF NOT EXISTS idx_groups_fk_user ON "groups"(fk_user);
+        CREATE INDEX IF NOT EXISTS idx_groups_name ON "groups"(name);
         CREATE INDEX IF NOT EXISTS idx_students_fk_group ON students(fk_group);
+        CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     `);
 }
 
@@ -158,7 +160,7 @@ export function getDb(): Database.Database {
 export async function query<T = RowDataPacket>(sql: string, params: unknown[] = []): Promise<T[]> {
     const db = getDb();
     const stmt = db.prepare(sql);
-    return Promise.resolve(stmt.all(...normalizeSqliteParams(params)) as T[]);
+    return stmt.all(...normalizeSqliteParams(params)) as T[];
 }
 
 export async function queryOne<T = RowDataPacket>(
@@ -168,15 +170,21 @@ export async function queryOne<T = RowDataPacket>(
     const db = getDb();
     const stmt = db.prepare(sql);
     const row = stmt.get(...normalizeSqliteParams(params)) as T | undefined;
-    return Promise.resolve(row ?? null);
+    return row ?? null;
 }
 
 export async function execute(sql: string, params: unknown[] = []): Promise<ResultSetHeader> {
     const db = getDb();
     const stmt = db.prepare(sql);
     const result = stmt.run(...normalizeSqliteParams(params));
-    return Promise.resolve({
+    return {
         affectedRows: result.changes,
         insertId: Number(result.lastInsertRowid),
-    });
+    };
+}
+
+export async function transaction<T>(callback: (db: Database.Database) => T): Promise<T> {
+    const db = getDb();
+    const transaction = db.transaction(callback);
+    return transaction(db);
 }
