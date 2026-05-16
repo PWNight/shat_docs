@@ -23,6 +23,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/Dialog";
 import LineWaves from '@/components/ui/animations/LineWaves';
+import DOMPurify from 'dompurify';
 
 // Интерфейс для GitHubRelease
 interface GitHubRelease {
@@ -100,13 +101,18 @@ export default function MainPage() {
         // Проверяем, что тело релиза не пустое
         if (!body) return "Описание изменений отсутствует.";
         // Форматируем тело релиза
-        return body
+        const formatted = body
             .replace(/^### (.*$)/gim, '<h3 class="font-bold text-lg mt-4 mb-2 flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>$1</h3>')
             .replace(/^## (.*$)/gim, '<h2 class="font-bold text-xl mt-4 mb-2 border-l-4 border-blue-500 pl-3">$1</h2>')
             .replace(/^# (.*$)/gim, '<h1 class="font-bold text-2xl mt-4 mb-2">$1</h1>')
             .replace(/^\* (.*$)/gim, '<li class="ml-6 list-none flex items-start gap-2 mb-1"><span class="mt-1.5 text-blue-500"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span><span>$1</span></li>')
             .replace(/^- (.*$)/gim, '<li class="ml-6 list-none flex items-start gap-2 mb-1"><span class="mt-1.5 text-blue-500"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span><span>$1</span></li>')
             .replace(/\*\*(.*)\*\*/gim, '<strong class="text-blue-600 dark:text-blue-400">$1</strong>');
+        // Санитизируем HTML для защиты от XSS
+        return DOMPurify.sanitize(formatted, {
+            ALLOWED_TAGS: ['h1', 'h2', 'h3', 'li', 'span', 'strong', 'svg', 'polyline'],
+            ALLOWED_ATTR: ['class', 'width', 'height', 'viewBox', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin']
+        });
     };
 
     // Используем useEffect для загрузки релизов
