@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { queryOne, execute, type RowDataPacket } from "@/utils/sqlite";
+import { queryOne, transaction, type RowDataPacket } from "@/utils/sqlite";
 import { Student } from "@/utils/interfaces";
 import {
     requireAuth,
@@ -59,23 +59,17 @@ export async function PATCH(
 
         const oldName = oldStudent.full_name;
 
-        // 2. Обновляем имя в основной таблице студентов
-        await execute(
-            'UPDATE students SET full_name = ? WHERE id = ? AND fk_group = ?',
-            [newName, studentId, groupId]
-        );
+        // Use transaction for atomic updates across multiple tables
+        await transaction((db) => {
+            const updateStudents = db.prepare('UPDATE students SET full_name = ? WHERE id = ? AND fk_group = ?');
+            updateStudents.run(newName, studentId, groupId);
 
-        // 3. Синхронизируем имя в таблице посещаемости
-        await execute(
-            'UPDATE attendance SET full_name = ? WHERE fk_group = ? AND full_name = ?',
-            [newName, groupId, oldName]
-        );
+            const updateAttendance = db.prepare('UPDATE attendance SET full_name = ? WHERE fk_group = ? AND full_name = ?');
+            updateAttendance.run(newName, groupId, oldName);
 
-        // 4. Синхронизируем имя в таблице успеваемости (оценки)
-        await execute(
-            'UPDATE grades SET full_name = ? WHERE fk_group = ? AND full_name = ?',
-            [newName, groupId, oldName]
-        );
+            const updateGrades = db.prepare('UPDATE grades SET full_name = ? WHERE fk_group = ? AND full_name = ?');
+            updateGrades.run(newName, groupId, oldName);
+        });
 
         return jsonResponse(successResponse(null, "Данные студента и связанные записи обновлены"));
 
@@ -124,20 +118,17 @@ export async function DELETE(
 
         const studentName = student.full_name;
 
-        // 2. Удаляем из таблицы студентов
-        await execute('DELETE FROM students WHERE id = ? AND fk_group = ?', [studentId, groupId]);
+        // Use transaction for atomic deletes across multiple tables
+        await transaction((db) => {
+            const deleteStudent = db.prepare('DELETE FROM students WHERE id = ? AND fk_group = ?');
+            deleteStudent.run(studentId, groupId);
 
-        // 3. Удаляем всю посещаемость этого студента в этой группе
-        await execute(
-            'DELETE FROM attendance WHERE fk_group = ? AND full_name = ?',
-            [groupId, studentName]
-        );
+            const deleteAttendance = db.prepare('DELETE FROM attendance WHERE fk_group = ? AND full_name = ?');
+            deleteAttendance.run(groupId, studentName);
 
-        // 4. Удаляем всю успеваемость этого студента в этой группе
-        await execute(
-            'DELETE FROM grades WHERE fk_group = ? AND full_name = ?',
-            [groupId, studentName]
-        );
+            const deleteGrades = db.prepare('DELETE FROM grades WHERE fk_group = ? AND full_name = ?');
+            deleteGrades.run(groupId, studentName);
+        });
 
         return jsonResponse(successResponse(null, "Студент и все связанные данные успешно удалены"));
 
