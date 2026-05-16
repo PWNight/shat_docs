@@ -14,6 +14,7 @@ import {
 } from "@/utils/api";
 import { createSession } from '@/utils/session';
 import { ensureRootAccount } from "@/utils/admin";
+import { getClientIdentifier, checkRateLimit, rateLimitResponse } from "@/utils/rate-limit";
 
 export async function POST(request: NextRequest) {
     try {
@@ -22,6 +23,14 @@ export async function POST(request: NextRequest) {
         const { message, code } = handleApiError(error);
         return serverError(message, code);
     }
+
+    // Rate limiting: 5 requests per 15 minutes per IP
+    const clientId = getClientIdentifier(request);
+    const rateLimitResult = checkRateLimit(`login:${clientId}`, 5, 15 * 60 * 1000);
+    if (!rateLimitResult.success) {
+        return rateLimitResponse(rateLimitResult.resetTime, 5);
+    }
+
     // Безопасно парсим JSON
     const parseResult = await safeParseJson(request);
     if (!parseResult.success) {

@@ -6,13 +6,13 @@ import {
     safeParseJson,
     validateData,
     badRequest,
-    unauthorized,
     serverError,
     jsonResponse,
     successResponse,
     handleApiError
 } from "@/utils/api";
 import { ensureRootAccount } from "@/utils/admin";
+import { getClientIdentifier, checkRateLimit, rateLimitResponse } from "@/utils/rate-limit";
 
 export async function POST(request: NextRequest) {
     try {
@@ -21,6 +21,14 @@ export async function POST(request: NextRequest) {
         const { message, code } = handleApiError(error);
         return serverError(message, code);
     }
+
+    // Rate limiting: 3 requests per hour per IP
+    const clientId = getClientIdentifier(request);
+    const rateLimitResult = checkRateLimit(`register:${clientId}`, 3, 60 * 60 * 1000);
+    if (!rateLimitResult.success) {
+        return rateLimitResponse(rateLimitResult.resetTime, 3);
+    }
+
     // Безопасно парсим JSON
     const parseResult = await safeParseJson(request);
     if (!parseResult.success) {
@@ -39,7 +47,7 @@ export async function POST(request: NextRequest) {
         // Проверяем, существует ли пользователь с таким email
         const userWithEmail = await queryOne('SELECT * FROM users WHERE email = ?', [email]);
         if (userWithEmail) {
-            return unauthorized('Пользователь с такой почтой уже существует');
+            return badRequest('Пользователь с такой почтой уже существует');
         }
 
         // Шифруем пароль и добавляем запись в БД
