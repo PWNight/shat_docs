@@ -27,15 +27,31 @@ async function bootstrapRootAccountInternal(): Promise<void> {
     if (existingRoot) return;
 
     // Получаем данные для root-аккаунта
-    const rootEmail = process.env.ROOT_EMAIL || "root@shat.local";
-    const rootName = process.env.ROOT_NAME || "Root Admin";
-    const rootPassword = process.env.ROOT_PASSWORD || "ChangeMe123!";
-    const passwordHash = await bcrypt.hash(rootPassword, 10);
+    const rootEmail = process.env.ROOT_EMAIL;
+    const rootName = process.env.ROOT_NAME;
+    const rootPassword = process.env.ROOT_PASSWORD;
+
+    // В production требуем обязательные переменные окружения
+    if (process.env.NODE_ENV === "production") {
+        if (!rootEmail || !rootName || !rootPassword) {
+            throw new Error("ROOT_EMAIL, ROOT_NAME, and ROOT_PASSWORD must be set in production environment");
+        }
+    } else {
+        // В development используем дефолтные значения с предупреждением
+        if (!rootEmail || !rootName || !rootPassword) {
+            console.warn("⚠️  WARNING: Using default root credentials. Set ROOT_EMAIL, ROOT_NAME, and ROOT_PASSWORD environment variables for production.");
+        }
+    }
+
+    const finalEmail = rootEmail || "root@shat.local";
+    const finalName = rootName || "Root Admin";
+    const finalPassword = rootPassword || "ChangeMe123!";
+    const passwordHash = await bcrypt.hash(finalPassword, 10);
 
     // Создаем root-аккаунт
     await execute(
         "INSERT INTO users (email, full_name, password_hash, isAdmin, isRoot, canAccessAdmin, registration_status, approved_at) VALUES (?, ?, ?, 1, 1, 1, 'approved', datetime('now'))",
-        [rootEmail, rootName, passwordHash]
+        [finalEmail, finalName, passwordHash]
     );
 }
 
