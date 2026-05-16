@@ -4,10 +4,18 @@ import { fetchAllGroupStats } from "@/utils/group-stats";
 import { jsonResponse, serverError, successResponse, handleApiError } from "@/utils/api";
 import { getUsersForAdmin, requireAdmin } from "@/utils/admin";
 import { listAllSessions, getSession, type SessionListItem } from "@/utils/session";
+import { checkRateLimit, rateLimitResponse } from "@/utils/rate-limit";
 
 export async function GET(request: NextRequest) {
     const adminCheck = await requireAdmin(request);
     if (!adminCheck.success) return adminCheck.response;
+
+    // Rate limiting: 30 requests per minute per admin
+    const clientId = `admin:${adminCheck.actor.id}`;
+    const rateLimitResult = checkRateLimit(`admin:overview:get:${clientId}`, 30, 60 * 1000);
+    if (!rateLimitResult.success) {
+        return rateLimitResponse(rateLimitResult.resetTime, 30);
+    }
 
     try {
         const users = await getUsersForAdmin();
