@@ -12,12 +12,21 @@ import {
     successResponse,
     handleApiError,
 } from "@/utils/api";
+import { checkRateLimit, rateLimitResponse } from "@/utils/rate-limit";
+import { validateCsrfToken } from "@/utils/csrf";
 
 // Получение списка пользователей
 export async function GET(request: NextRequest) {
     const authResult = await requireAuth(request);
     if (!authResult.success) {
         return authResult.response;
+    }
+
+    // Rate limiting: 60 requests per minute per user
+    const clientId = `user:${authResult.user.uid}`;
+    const rateLimitResult = checkRateLimit(`users:get:${clientId}`, 60, 60 * 1000);
+    if (!rateLimitResult.success) {
+        return rateLimitResponse(rateLimitResult.resetTime, 60);
     }
 
     try {
@@ -34,6 +43,19 @@ export async function PATCH(req: NextRequest) {
     const authResult = await requireAuth(req);
     if (!authResult.success) {
         return authResult.response;
+    }
+
+    // CSRF protection
+    const csrfValid = await validateCsrfToken(req);
+    if (!csrfValid) {
+        return badRequest("Invalid CSRF token");
+    }
+
+    // Rate limiting: 10 requests per minute per user
+    const clientId = `user:${authResult.user.uid}`;
+    const rateLimitResult = checkRateLimit(`users:patch:${clientId}`, 10, 60 * 1000);
+    if (!rateLimitResult.success) {
+        return rateLimitResponse(rateLimitResult.resetTime, 10);
     }
 
     const parseResult = await safeParseJson<{

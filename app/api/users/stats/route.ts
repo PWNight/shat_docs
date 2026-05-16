@@ -7,12 +7,20 @@ import {
     successResponse,
     handleApiError,
 } from "@/utils/api";
+import { checkRateLimit, rateLimitResponse } from "@/utils/rate-limit";
 
 // Получение статистики о группе пользователя
 export async function GET(request: NextRequest) {
     const authResult = await requireAuth(request);
     if (!authResult.success) {
         return authResult.response;
+    }
+
+    // Rate limiting: 30 requests per minute per user
+    const clientId = `user:${authResult.user.uid}`;
+    const rateLimitResult = checkRateLimit(`users:stats:get:${clientId}`, 30, 60 * 1000);
+    if (!rateLimitResult.success) {
+        return rateLimitResponse(rateLimitResult.resetTime, 30);
     }
 
     try {
