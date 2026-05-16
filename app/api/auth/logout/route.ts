@@ -9,8 +9,23 @@ import {
     handleApiError,
     extractSession,
 } from "@/utils/api";
+import { getClientIdentifier, checkRateLimit, rateLimitResponse } from "@/utils/rate-limit";
+import { validateCsrfToken } from "@/utils/csrf";
 
 export async function GET(request: NextRequest) {
+    // CSRF protection
+    const csrfValid = await validateCsrfToken(request);
+    if (!csrfValid) {
+        return badRequest("Invalid CSRF token");
+    }
+
+    // Rate limiting: 10 requests per minute per IP
+    const clientId = getClientIdentifier(request);
+    const rateLimitResult = checkRateLimit(`logout:${clientId}`, 10, 60 * 1000);
+    if (!rateLimitResult.success) {
+        return rateLimitResponse(rateLimitResult.resetTime, 10);
+    }
+
     try {
         const sessionToken = request.cookies.get("session")?.value
             ?? request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
