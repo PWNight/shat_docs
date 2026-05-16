@@ -1,10 +1,25 @@
 import { NextRequest } from "next/server";
 import { badRequest, handleApiError, jsonResponse, requireAuth, serverError, successResponse } from "@/utils/api";
 import { deleteSession, revokeSessionById } from "@/utils/session";
+import { checkRateLimit, rateLimitResponse } from "@/utils/rate-limit";
+import { validateCsrfToken } from "@/utils/csrf";
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const authResult = await requireAuth(request);
     if (!authResult.success) return authResult.response;
+
+    // CSRF protection
+    const csrfValid = await validateCsrfToken(request);
+    if (!csrfValid) {
+        return badRequest("Invalid CSRF token");
+    }
+
+    // Rate limiting: 10 requests per minute per user
+    const clientId = `user:${authResult.user.uid}`;
+    const rateLimitResult = checkRateLimit(`sessions:delete:${clientId}`, 10, 60 * 1000);
+    if (!rateLimitResult.success) {
+        return rateLimitResponse(rateLimitResult.resetTime, 10);
+    }
 
     try {
         const { id } = await params;
