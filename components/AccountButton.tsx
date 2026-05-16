@@ -1,6 +1,6 @@
 import Anchor from "@/components/ui/Anchor";
 import { LogIn, UserCircle, LogOut, ChevronDown, GraduationCap, ShieldCheck } from "lucide-react";
-import { getSession, deleteSession } from "@/utils/session";
+import { getSession, deleteSession } from "@/utils/session.server";
 import { redirect } from "next/navigation";
 import {
     DropdownMenu,

@@ -4,7 +4,7 @@ import { Loader2, UserPlusIcon } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Login } from "@/utils/handlers";
-import { getSession } from "@/utils/session";
+import { getSession } from "@/utils/session.client";
 
 function LoginForm() {
     // Используем useActionState для авторизации

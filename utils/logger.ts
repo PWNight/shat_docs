@@ -1,5 +1,6 @@
 // Тип для контекста лога
 type LogContext = Record<string, unknown>;
+import { env } from "@/env";
 
 // Функция для форматирования контекста лога
 function formatContext(context?: LogContext) {
@@ -20,7 +21,7 @@ export const logger = {
         console.error(message, formatContext(context));
     },
     debug(message: string, context?: LogContext) {
-        if (process.env.NODE_ENV !== "production") {
+        if (env.NODE_ENV !== "production") {
             console.debug(message, formatContext(context));
         }
     },

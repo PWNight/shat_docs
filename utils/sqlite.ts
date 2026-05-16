@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import Database from "better-sqlite3";
+import { env } from "@/env";
 
 /** Совместимость с типизацией запросов (раньше mysql2 RowDataPacket). */
 export type RowDataPacket = Record<string, unknown>;
@@ -11,8 +12,8 @@ export type ResultSetHeader = {
     info?: string;
 };
 
-const dbPath = process.env.SQLITE_PATH
-    ? path.resolve(process.env.SQLITE_PATH)
+const dbPath = env.SQLITE_PATH
+    ? path.resolve(env.SQLITE_PATH)
     : path.join(process.cwd(), "data", "shat_docs.sqlite");
 
 let dbInstance: Database.Database | null = null;

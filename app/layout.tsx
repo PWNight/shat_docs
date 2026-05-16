@@ -5,6 +5,7 @@ import React from "react";
 import {Navbar} from "@/components/NavMain";
 import {Footer} from "@/components/Footer";
 import {ThemeProvider} from "@/components/theme-provider";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,11 +38,13 @@ export default function RootLayout({
                     enableSystem
                     disableTransitionOnChange
                 >
-                    <Navbar />
-                    <main className='flex-1 flex flex-col relative'>
-                        {children}
-                    </main>
-                    <Footer/>
+                    <ErrorBoundary>
+                        <Navbar />
+                        <main className='flex-1 flex flex-col relative'>
+                            {children}
+                        </main>
+                        <Footer/>
+                    </ErrorBoundary>
                 </ThemeProvider>
             </body>
         </html>

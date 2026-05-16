@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession, verifySessionFromToken } from "@/utils/session";
 import { ApiErrorResponse, ApiSuccessResponse } from "./interfaces";
+import { logger } from "@/utils/logger";
 
 // Функция для создания успешного ответа
 export function successResponse<T = unknown>(data?: T, message?: string): ApiSuccessResponse<T> {
@@ -123,14 +124,17 @@ export function handleApiError(
     error: unknown,
     defaultMessage: string = "Неизвестная ошибка сервера"
 ): { message: string; code: string } {
-    // Логируем ошибку
-    console.error("API Error:", error);
-
-    // Преобразуем ошибку в объект
-    const err = error as { code?: unknown; message?: unknown };
-    // Получаем код ошибки и сообщение
+    // Логируем ошибку с использованием структурированного логгера
+    const err = error as { code?: unknown; message?: unknown; stack?: string };
     const errorCode = typeof err?.code === "string" ? err.code : typeof err?.code === "number" ? String(err.code) : "";
     const errorMessage = typeof err?.message === "string" ? err.message : "";
+
+    logger.error("API Error occurred", {
+        error: errorMessage,
+        code: errorCode,
+        stack: err?.stack,
+        defaultMessage,
+    });
 
     // Проверяем, является ли ошибка ошибкой доступа к базе данных (сеть / файловая БД)
     if (
@@ -144,15 +148,18 @@ export function handleApiError(
         /unable\s+to\s+open\s+database/i.test(errorMessage) ||
         /database\s+is\s+locked/i.test(errorMessage)
     ) {
+        logger.warn("Database connection error detected", { errorCode, errorMessage });
         return { message: "Нет подключения к базе данных", code: "DB_OFFLINE" };
     }
 
     // Для известных ошибок возвращаем сообщение, но логируем стек
     if (error instanceof Error) {
+        logger.debug("Known error type", { message: error.message, name: error.name });
         return { message: error.message, code: "SERVER_ERROR" };
     }
 
     // Для неизвестных ошибок возвращаем общее сообщение
+    logger.warn("Unknown error type encountered", { error });
     return { message: defaultMessage, code: "SERVER_ERROR" };
 }
 

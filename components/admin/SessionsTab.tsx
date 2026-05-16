@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { Clock4, Monitor, ShieldCheck, ShieldX, Ban, ChevronLeft, ChevronRight } from "lucide-react";
 import { ActionButton } from "./AdminUi";
 import type { AdminOverview } from "@/app/admin/types";
-import type { SessionListItem } from "@/utils/session";
+import type { SessionListItem } from "@/utils/session.types";
 import { Button } from "../ui/Button";
 
 type SessionsTabProps = {

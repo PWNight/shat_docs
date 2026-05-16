@@ -1,7 +1,7 @@
 "use client"
 import {useActionState, useCallback, useEffect, useMemo, useState} from "react";
 import {useRouter} from "next/navigation";
-import {getSession} from "@/utils/session";
+import {getSession} from "@/utils/session.client";
 import {CreateGroup, GetAllGroups} from "@/utils/handlers";
 import ErrorMessage from "@/components/NotifyAlert";
 import {Calendar, Loader2, Plus, Search, SearchX, Users, UserStar} from "lucide-react";

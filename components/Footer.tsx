@@ -4,6 +4,7 @@ import { buttonVariants } from "./ui/Button";
 import { useState, useMemo } from "react";
 import Image from "next/image";
 import {Info, Loader2, Calendar, ChevronRight, Sparkles, ChevronLeft, Bug, Boxes} from "lucide-react";
+import { env } from "@/env";
 import {
     Dialog,
     DialogContent,
@@ -47,7 +48,7 @@ export function FooterButtons() {
 
 export function Footer() {
     // Получаем версию приложения
-    const appVersion = process.env.APP_VERSION || "1.0.0";
+    const appVersion = env.APP_VERSION;
 
     const [releases, setReleases] = useState<GitHubRelease[]>([]);
     // Флаг загрузки

@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import NotifyAlert from "@/components/NotifyAlert";
 import PageErrorState from "@/components/ui/PageErrorState";
 import Loader from "@/components/ui/animations/Loader";
-import { getSession } from "@/utils/session";
+import { getSession } from "@/utils/session.client";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/utils/http-client";
 import { ApiResponseError } from "@/utils/functions";
 import { getDbOfflineToastMessage, getErrorKindByMeta, isDbOfflineMeta } from "@/utils/ui-errors";

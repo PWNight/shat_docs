@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import crypto from "crypto";
+import { env } from "@/env";
 
 const CSRF_COOKIE_NAME = "csrf_token";
 const CSRF_HEADER_NAME = "x-csrf-token";
@@ -9,7 +10,7 @@ export async function generateCsrfToken(): Promise<string> {
     const cookieStore = await cookies();
     cookieStore.set(CSRF_COOKIE_NAME, token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: env.NODE_ENV === "production",
         sameSite: "strict",
         path: "/",
         maxAge: 60 * 60 * 24 // 24 hours

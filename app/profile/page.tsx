@@ -4,7 +4,7 @@ import {GetUser, UpdateProfile} from "@/utils/handlers";
 import {useRouter} from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { getSession } from "@/utils/session";
+import { getSession } from "@/utils/session.client";
 import {
     ShieldCheck, Save, Loader2,
     Info, CalendarDays, Fingerprint,

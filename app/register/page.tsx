@@ -4,7 +4,7 @@ import { Loader2, User } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {Register} from "@/utils/handlers";
-import { getSession } from "@/utils/session";
+import { getSession } from "@/utils/session.client";
 
 function RegisterForm() {
     // Используем useActionState для регистрации

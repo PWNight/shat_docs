@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import { NextRequest, NextResponse } from "next/server";
 import { execute, query, queryOne } from "@/utils/sqlite";
 import { handleApiError, requireAuth, forbidden, serverError } from "@/utils/api";
+import { env } from "@/env";
 
 // Тип для строки пользователя администратора
 export interface AdminUserRow {
@@ -27,20 +28,13 @@ async function bootstrapRootAccountInternal(): Promise<void> {
     if (existingRoot) return;
 
     // Получаем данные для root-аккаунта
-    const rootEmail = process.env.ROOT_EMAIL;
-    const rootName = process.env.ROOT_NAME;
-    const rootPassword = process.env.ROOT_PASSWORD;
+    const rootEmail = env.ROOT_EMAIL;
+    const rootName = env.ROOT_NAME;
+    const rootPassword = env.ROOT_PASSWORD;
 
-    // В production требуем обязательные переменные окружения
-    if (process.env.NODE_ENV === "production") {
-        if (!rootEmail || !rootName || !rootPassword) {
-            throw new Error("ROOT_EMAIL, ROOT_NAME, and ROOT_PASSWORD must be set in production environment");
-        }
-    } else {
-        // В development используем дефолтные значения с предупреждением
-        if (!rootEmail || !rootName || !rootPassword) {
-            console.warn("⚠️  WARNING: Using default root credentials. Set ROOT_EMAIL, ROOT_NAME, and ROOT_PASSWORD environment variables for production.");
-        }
+    // В development используем дефолтные значения с предупреждением
+    if (env.NODE_ENV !== "production" && (!rootEmail || !rootName || !rootPassword)) {
+        console.warn("⚠️  WARNING: Using default root credentials. Set ROOT_EMAIL, ROOT_NAME, and ROOT_PASSWORD environment variables for production.");
     }
 
     const finalEmail = rootEmail || "root@shat.local";
