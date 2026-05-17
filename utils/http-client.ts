@@ -2,8 +2,101 @@ import { handleApiResponse } from "@/utils/functions";
 import { ApiResponseError } from "@/utils/functions";
 import { logger } from "@/utils/logger";
 
-// Тип для значения запроса 
 type QueryValue = string | number | boolean | undefined | null;
+
+const CSRF_HEADER_NAME = "x-csrf-token";
+
+const MUTATING_METHODS = new Set(["POST", "PATCH", "PUT", "DELETE"]);
+let clientCsrfTokenCache: string | null = null;
+
+function clearClientCsrfCache(): void {
+    clientCsrfTokenCache = null;
+}
+
+async function fetchCsrfToken(): Promise<string | undefined> {
+    if (typeof window !== "undefined" && clientCsrfTokenCache) {
+        return clientCsrfTokenCache;
+    }
+
+    const url =
+        typeof window !== "undefined" ? "/api/auth/csrf" : await resolveRequestUrl("/api/auth/csrf");
+    const cookieHeader = typeof window === "undefined" ? await getServerCookieHeader() : undefined;
+
+    const response = await fetch(url, {
+        method: "GET",
+        cache: "no-store",
+        credentials: typeof window !== "undefined" ? "include" : undefined,
+        headers: cookieHeader ? { Cookie: cookieHeader } : undefined,
+    });
+
+    if (!response.ok) {
+        return undefined;
+    }
+
+    const data = (await response.json()) as { csrf_token?: string };
+    const token = data.csrf_token;
+    if (typeof window !== "undefined" && token) {
+        clientCsrfTokenCache = token;
+    }
+    return token;
+}
+
+async function getServerOrigin(): Promise<string> {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    if (appUrl) {
+        return appUrl.startsWith("http") ? appUrl.replace(/\/$/, "") : `https://${appUrl}`;
+    }
+
+    try {
+        const { headers } = await import("next/headers");
+        const requestHeaders = await headers();
+        const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
+        if (host) {
+            const proto =
+                requestHeaders.get("x-forwarded-proto") ??
+                (host.startsWith("localhost") || host.startsWith("127.0.0.1") ? "http" : "https");
+            return `${proto}://${host}`;
+        }
+    } catch {
+        // outside a request context (e.g. scripts)
+    }
+
+    if (process.env.VERCEL_URL) {
+        return `https://${process.env.VERCEL_URL}`;
+    }
+
+    const port = process.env.PORT ?? "3000";
+    return `http://localhost:${port}`;
+}
+
+async function resolveRequestUrl(path: string, query?: Record<string, QueryValue>): Promise<string> {
+    const relativeUrl = buildUrl(path, query);
+    if (typeof window !== "undefined" || /^https?:\/\//i.test(relativeUrl)) {
+        return relativeUrl;
+    }
+
+    const origin = await getServerOrigin();
+    return `${origin}${relativeUrl.startsWith("/") ? relativeUrl : `/${relativeUrl}`}`;
+}
+
+async function getServerCookieHeader(csrfToken?: string): Promise<string | undefined> {
+    try {
+        const { cookies } = await import("next/headers");
+        const cookieStore = await cookies();
+        const parts = cookieStore
+            .getAll()
+            .filter((cookie) => cookie.name !== "csrf_token")
+            .map((cookie) => `${cookie.name}=${cookie.value}`);
+
+        if (csrfToken) {
+            parts.push(`csrf_token=${csrfToken}`);
+        }
+
+        return parts.length > 0 ? parts.join("; ") : undefined;
+    } catch {
+        return csrfToken ? `csrf_token=${csrfToken}` : undefined;
+    }
+}
 
 // Тип для опций запроса API
 export type ApiRequestOptions = {
@@ -56,19 +149,24 @@ export async function apiRequest<T = unknown>(
         retries = 1,
     } = options;
 
-    // Строим URL запроса
-    const url = buildUrl(path, query);
-    // Проверяем, является ли тело запроса JSON
+    const url = await resolveRequestUrl(path, query);
     const isJsonBody = body !== undefined;
-    // Создаем объект RequestInit
+    const needsCsrf = MUTATING_METHODS.has(method);
+    const csrfToken = needsCsrf ? await fetchCsrfToken() : undefined;
+    const cookieHeader =
+        typeof window === "undefined" ? await getServerCookieHeader(csrfToken) : undefined;
     const requestInit: RequestInit = {
         method,
         headers: {
             ...(isJsonBody ? { "Content-Type": "application/json" } : {}),
+            ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+            ...(csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {}),
             ...headers,
         },
         body: isJsonBody ? JSON.stringify(body) : undefined,
         signal: withTimeout(timeoutMs),
+        cache: "no-store",
+        ...(typeof window === "undefined" ? {} : { credentials: "include" as RequestCredentials }),
     };
 
     // Инициализируем счетчик попыток
@@ -91,9 +189,31 @@ export async function apiRequest<T = unknown>(
             lastError = error;
             // Проверяем, является ли ошибка ошибкой API
             if (error instanceof ApiResponseError) {
-                // Проверяем, является ли статус ответа 503
                 if (error.status === 503) throw error;
-                // Проверяем, является ли статус ответа меньше 500
+                if (
+                    needsCsrf &&
+                    error.status === 400 &&
+                    error.message.toLowerCase().includes("csrf") &&
+                    attempt === 0
+                ) {
+                    clearClientCsrfCache();
+                    const refreshedCsrf = await fetchCsrfToken();
+                    if (refreshedCsrf) {
+                        const refreshedHeaders: Record<string, string> = {
+                            ...(requestInit.headers as Record<string, string>),
+                            [CSRF_HEADER_NAME]: refreshedCsrf,
+                        };
+                        if (typeof window === "undefined") {
+                            const refreshedCookies = await getServerCookieHeader(refreshedCsrf);
+                            if (refreshedCookies) {
+                                refreshedHeaders.Cookie = refreshedCookies;
+                            }
+                        }
+                        requestInit.headers = refreshedHeaders;
+                    }
+                    attempt += 1;
+                    continue;
+                }
                 if (error.status < 500) throw error;
             }
             // Логируем попытку выполнения запроса
