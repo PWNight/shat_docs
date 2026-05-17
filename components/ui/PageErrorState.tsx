@@ -1,5 +1,6 @@
 "use client";
 
+import React, { Component, ErrorInfo, ReactNode } from "react";
 import { AlertTriangle, DatabaseZap, WifiOff, RefreshCw } from "lucide-react";
 import { cn } from "@/utils/functions";
 
@@ -77,3 +78,80 @@ export default function PageErrorState({
     );
 }
 
+type BoundaryProps = {
+    children: ReactNode;
+    fallback?: ReactNode;
+};
+
+type BoundaryState = {
+    hasError: boolean;
+    error: Error | null;
+    errorInfo: ErrorInfo | null;
+};
+
+export class PageErrorBoundary extends Component<BoundaryProps, BoundaryState> {
+    constructor(props: BoundaryProps) {
+        super(props);
+        this.state = {
+            hasError: false,
+            error: null,
+            errorInfo: null,
+        };
+    }
+
+    static getDerivedStateFromError(error: Error): BoundaryState {
+        return {
+            hasError: true,
+            error,
+            errorInfo: null,
+        };
+    }
+
+    componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+        this.setState({ error, errorInfo });
+
+        if (process.env.NODE_ENV === "development") {
+            console.error("PageErrorBoundary caught an error:", error, errorInfo);
+        }
+    }
+
+    handleReset = () => {
+        this.setState({
+            hasError: false,
+            error: null,
+            errorInfo: null,
+        });
+    };
+
+    render() {
+        if (this.state.hasError) {
+            if (this.props.fallback) {
+                return this.props.fallback;
+            }
+
+            const devDetails =
+                process.env.NODE_ENV === "development" && this.state.error
+                    ? [
+                          this.state.error.toString(),
+                          this.state.errorInfo?.componentStack,
+                      ]
+                          .filter(Boolean)
+                          .join("\n")
+                    : undefined;
+
+            return (
+                <PageErrorState
+                    kind="generic"
+                    className="min-h-screen"
+                    title="Что-то пошло не так"
+                    description="Произошла непредвиденная ошибка. Пожалуйста, попробуйте обновить страницу."
+                    details={devDetails}
+                    actionLabel="Попробовать снова"
+                    onAction={this.handleReset}
+                />
+            );
+        }
+
+        return this.props.children;
+    }
+}
