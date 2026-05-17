@@ -1,5 +1,3 @@
-import { queryOne } from "@/utils/sqlite";
-import bcrypt from 'bcrypt';
 import { NextRequest } from "next/server";
 import { LoginFormSchema } from "@/utils/definitions";
 import {
@@ -10,34 +8,23 @@ import {
     serverError,
     jsonResponse,
     successResponse,
-    handleApiError
+    handleApiError,
 } from "@/utils/api";
-import { createSession } from '@/utils/session';
-import { ensureRootAccount } from "@/utils/admin";
+import { loginUser } from "@/utils/auth-service";
 import { getClientIdentifier, checkRateLimit, rateLimitResponse } from "@/utils/rate-limit";
 
 export async function POST(request: NextRequest) {
-    try {
-        await ensureRootAccount();
-    } catch (error) {
-        const { message, code } = handleApiError(error);
-        return serverError(message, code);
-    }
-
-    // Rate limiting: 5 requests per 15 minutes per IP
     const clientId = getClientIdentifier(request);
     const rateLimitResult = checkRateLimit(`login:${clientId}`, 5, 15 * 60 * 1000);
     if (!rateLimitResult.success) {
         return rateLimitResponse(rateLimitResult.resetTime, 5);
     }
 
-    // Безопасно парсим JSON
     const parseResult = await safeParseJson(request);
     if (!parseResult.success) {
         return badRequest(parseResult.error);
     }
 
-    // Валидируем данные
     const validation = validateData(LoginFormSchema, parseResult.data);
     if (!validation.success) {
         return badRequest("Ошибка валидации", validation.errors);
@@ -46,35 +33,19 @@ export async function POST(request: NextRequest) {
     const { email, password } = validation.data;
 
     try {
-        type LoginUserRow = {
-            id: number;
-            email: string;
-            full_name: string;
-            password_hash: string;
-            registration_status: string;
-        };
+        const result = await loginUser(email, password, request);
+        if (!result.success) {
+            return unauthorized(result.message);
+        }
 
-        // Получаем пользователя из базы данных
-        const user = await queryOne<LoginUserRow>(
-            "SELECT id, email, full_name, password_hash, registration_status FROM users WHERE email = ? LIMIT 1",
-            [email]
+        return jsonResponse(
+            successResponse({
+                uid: result.uid,
+                email: result.email,
+                full_name: result.full_name,
+                token: result.token,
+            })
         );
-        if (!user) {
-            return unauthorized('Пользователь с такой почтой не найден');
-        }
-
-        if (user.registration_status !== "approved") {
-            return unauthorized("Ваша регистрация ожидает подтверждения администратором");
-        }
-
-        // Сравниваем пароли
-        const passwordMatch = await bcrypt.compare(password, user.password_hash);
-        if (!passwordMatch) {
-            return unauthorized("Неправильный пароль");
-        }
-
-        const { token } = await createSession({ uid: user.id, email: user.email, full_name: user.full_name }, request);
-        return jsonResponse(successResponse({ uid: user.id, email, full_name: user.full_name, token }));
     } catch (error) {
         const { message, code } = handleApiError(error);
         return serverError(message, code);

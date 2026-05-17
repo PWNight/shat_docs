@@ -1,10 +1,13 @@
+"use server";
+
 import {
     GroupFormSchema, GroupFormState,
     LoginFormSchema, LoginFormState,
     RegisterFormSchema, RegisterFormState
 } from "@/utils/definitions";
+import { loginUser, registerUser } from "@/utils/auth-service";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/utils/http-client";
-import {z} from "zod";
+import { z } from "zod";
 import {AttendanceStudent, GradeStudent, Group, Student, TeacherStats, UserProfile} from "@/utils/interfaces";
 import type { GroupStats } from "@/utils/group-stats";
 import { ApiResponseError } from "@/utils/functions";
@@ -41,7 +44,7 @@ export async function Login(_prevState: LoginFormState, formData: FormData): Pro
         return {
             success: false,
             message: "Проверьте введённые данные",
-            fieldErrors: z.flattenError(parsed.error).fieldErrors,
+            fieldErrors: parsed.error.flatten().fieldErrors,
             values: {
                 email: formData.get("email") as string || "",
             },
@@ -51,23 +54,16 @@ export async function Login(_prevState: LoginFormState, formData: FormData): Pro
     // Получаем данные из формы
     const { email, password } = parsed.data;
 
-    try {
-        // Отправляем POST запрос в авторизацию
-        await apiPost('/api/auth/login', { email, password });
-
-        // Возвращаем успех
-        return { success: true };
-    } catch (err) {
-        const message = err instanceof Error ? err.message : "Ошибка авторизации";
-
+    const result = await loginUser(email, password);
+    if (!result.success) {
         return {
             success: false,
-            message,
-            values: {
-                email: email || "",
-            },
+            message: result.message,
+            values: { email },
         };
     }
+
+    return { success: true };
 }
 
 // Код авторизации
@@ -78,7 +74,7 @@ export async function Register(_prevState: RegisterFormState, formData: FormData
         return {
             success: false,
             message: "Проверьте введённые данные",
-            fieldErrors: z.flattenError(parsed.error).fieldErrors,
+            fieldErrors: parsed.error.flatten().fieldErrors,
             values: {
                 email: formData.get("email") as string || "",
                 full_name: formData.get("full_name") as string || "",
@@ -89,24 +85,20 @@ export async function Register(_prevState: RegisterFormState, formData: FormData
     // Получаем данные из формы
     const { email, full_name, password } = parsed.data;
 
-    try {
-    // Отправляем POST запрос в регистрацию
-    const response = await apiPost<{ message?: string }>('/api/auth/register', { email, full_name, password });
-
-    // Возвращаем успех
-    return { success: true, requiresApproval: true, message: response.message || "Заявка отправлена" };
-    } catch (err) {
-        const message = err instanceof Error ? err.message : "Ошибка авторизации";
-
+    const result = await registerUser(email, full_name, password);
+    if (!result.success) {
         return {
             success: false,
-            message,
-            values: {
-                email: email || "",
-                full_name: full_name || "",
-            },
+            message: result.message,
+            values: { email, full_name },
         };
     }
+
+    return {
+        success: true,
+        requiresApproval: true,
+        message: result.message,
+    };
 }
 
 // Код создания группы
@@ -115,7 +107,7 @@ export async function CreateGroup(_state: GroupFormState, formData: FormData) {
         // Проверяем полученные поля
         const parsed = GroupFormSchema.safeParse(Object.fromEntries(formData));
         if (!parsed.success) {
-            return { message: "Ошибка валидации", fieldErrors: z.flattenError(parsed.error).fieldErrors }
+            return { message: "Ошибка валидации", fieldErrors: parsed.error.flatten().fieldErrors }
         }
 
         // Получаем данные из формы
