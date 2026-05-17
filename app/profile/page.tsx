@@ -40,7 +40,9 @@ export default function ProfilePage() {
     const [loading, setLoading] = useState(true); // Загрузка
     const [activeTab, setActiveTab] = useState<TabType>("name"); // Выбранная вкладка
     const [notify, setNotify] = useState<Notify>({ message: "", type: "" }); // Уведомления
-    const [pending, setPending] = useState(false); // Загрузка
+    const [pending, setPending] = useState(false);
+    const [resetPasswordPending, setResetPasswordPending] = useState(false);
+    const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null);
     const [pageError, setPageError] = useState<{ message: string; status?: number; code?: string } | null>(null); // Ошибка
     const [sessions, setSessions] = useState<ActiveSession[]>([]);
     const [sessionPage, setSessionPage] = useState(1);
@@ -172,7 +174,7 @@ export default function ProfilePage() {
     };
 
     const revokeSession = async (sessionId: string) => {
-        setPending(true);
+        setRevokingSessionId(sessionId);
         try {
             await apiDelete(`/api/sessions/${sessionId}`);
             const refreshed = await apiGet<{ data?: ActiveSession[] }>("/api/sessions");
@@ -181,14 +183,13 @@ export default function ProfilePage() {
         } catch (error) {
             setNotify({ message: error instanceof Error ? error.message : "Не удалось отозвать сессию", type: "error" });
         } finally {
-            setPending(false);
+            setRevokingSessionId(null);
         }
     };
 
     // Функция для обработки запроса сброса пароля
     const handlePasswordResetRequest = async () => {
-        // Устанавливаем загрузку
-        setPending(true);
+        setResetPasswordPending(true);
         // Пытаемся получить ответ от сервера
         try {
             // Выполняем POST запрос на запрос сброса пароля
@@ -210,8 +211,7 @@ export default function ProfilePage() {
             // Устанавливаем уведомление
             setNotify({ message: error instanceof Error ? error.message : "Ошибка отправки заявки", type: "error" });
         } finally {
-            // Устанавливаем загрузку
-            setPending(false);
+            setResetPasswordPending(false);
         }
     };
 
@@ -272,10 +272,11 @@ export default function ProfilePage() {
                         <div className="flex flex-col sm:flex-row gap-3">
                             <button
                                 onClick={handlePasswordResetRequest}
-                                disabled={pending}
-                                className="rounded-xl bg-red-500 text-white hover:bg-red-600 px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50"
+                                disabled={resetPasswordPending}
+                                className="rounded-xl bg-red-500 text-white hover:bg-red-600 px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50 inline-flex items-center gap-2"
                             >
-                                Сбросить пароль
+                                {resetPasswordPending ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                                {resetPasswordPending ? "Отправка..." : "Сбросить пароль"}
                             </button>
                         </div>
                     </div>
@@ -402,11 +403,14 @@ export default function ProfilePage() {
                                                 </div>
                                                 {!session.isCurrent && (
                                                     <button
-                                                        disabled={pending}
+                                                        disabled={revokingSessionId !== null}
                                                         onClick={() => revokeSession(session.sessionId)}
-                                                        className="w-full sm:w-auto rounded-xl bg-red-500 text-white hover:bg-red-600 px-4 py-2 text-xs font-semibold transition-all disabled:opacity-50"
+                                                        className="w-full sm:w-auto rounded-xl bg-red-500 text-white hover:bg-red-600 px-4 py-2 text-xs font-semibold transition-all disabled:opacity-50 inline-flex items-center justify-center gap-2"
                                                     >
-                                                        Завершить
+                                                        {revokingSessionId === session.sessionId ? (
+                                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                                        ) : null}
+                                                        {revokingSessionId === session.sessionId ? "Завершение..." : "Завершить"}
                                                     </button>
                                                 )}
                                             </div>
