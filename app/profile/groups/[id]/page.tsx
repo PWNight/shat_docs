@@ -45,7 +45,9 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
     const [updateFormData, setUpdateFormData] = useState({ name: '', fk_user: '' }); // Данные формы
     const [students, setStudents] = useState<Student[]>([]); // Список студентов
     const [groupStats, setGroupStats] = useState<GroupStats | null>(null);
-    const [isPending, startTransition] = useTransition(); // Загрузка
+    const [isSavingName, startSaveTransition] = useTransition();
+    const [isTransferring, startTransferTransition] = useTransition();
+    const [isDeletingGroup, startDeleteTransition] = useTransition();
     const [pageError, setPageError] = useState<{ message: string; status?: number; code?: string } | null>(null); // Ошибка
 
     // Функция для загрузки данных
@@ -106,7 +108,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
         if (statsRes.status === "fulfilled" && statsRes.value.success && statsRes.value.data) {
             setGroupStats(statsRes.value.data);
         }
-    }, [router]);
+    }, []);
 
     // Инициализация при монтировании
     useEffect(() => {
@@ -191,7 +193,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                     </div>
                                 </div>
                                 {isOwner && (
-                                    <button onClick={() => startTransition(async () => {
+                                    <button onClick={() => startSaveTransition(async () => {
                                         const result = await UpdateGroup(groupId, updateFormData) as { success: boolean; message?: string };
                                         if (!result.success) {
                                             setNotify({ message: result.message || "Ошибка сохранения", type: "error" });
@@ -199,8 +201,8 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                         }
                                         setNotify({ message: "Сохранено", type: 'success' });
                                         await loadData(groupId);
-                                    })} className="absolute right-0 top-1 text-blue-600 hover:scale-110 transition-all">
-                                        {isPending ? <Loader2 className="animate-spin" size={18} /> : <Save size={20} />}
+                                    })} disabled={isSavingName} className="absolute right-0 top-1 text-blue-600 hover:scale-110 transition-all disabled:opacity-50">
+                                        {isSavingName ? <Loader2 className="animate-spin" size={18} /> : <Save size={20} />}
                                     </button>
                                 )}
                             </div>
@@ -243,8 +245,8 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                     <DialogFooter className="gap-3">
                                         <button
                                             onClick={() => {
-                                                if (!updateFormData.fk_user) return;
-                                                startTransition(async () => {
+                                                if (!updateFormData.fk_user || isTransferring) return;
+                                                startTransferTransition(async () => {
                                                     const result = await UpdateGroup(groupId, updateFormData) as { success: boolean; message?: string };
                                                     if (!result.success) {
                                                         setNotify({ message: result.message || "Ошибка передачи прав", type: "error" });
@@ -253,10 +255,11 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                                     router.push('/profile/groups');
                                                 });
                                             }}
-                                            className="flex-1 bg-amber-600 hover:bg-amber-500 text-white py-3 rounded-lg font-bold"
-                                            disabled={!updateFormData.fk_user}
+                                            className="flex-1 bg-amber-600 hover:bg-amber-500 text-white py-3 rounded-lg font-bold disabled:opacity-50 flex items-center justify-center gap-2"
+                                            disabled={!updateFormData.fk_user || isTransferring}
                                         >
-                                            Подтвердить
+                                            {isTransferring ? <Loader2 size={16} className="animate-spin" /> : null}
+                                            {isTransferring ? "Передача..." : "Подтвердить"}
                                         </button>
                                         <DialogClose className="flex-1 bg-gray-200 dark:bg-zinc-700 py-3 rounded-lg font-medium">
                                             Отмена
@@ -281,17 +284,22 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                     </DialogHeader>
                                     <DialogFooter className="gap-3 sm:gap-4">
                                         <button
-                                            onClick={() => startTransition(async () => {
-                                                const result = await DeleteGroup(groupId) as { success: boolean; message?: string };
-                                                if (!result.success) {
-                                                    setNotify({ message: result.message || "Ошибка удаления", type: "error" });
-                                                    return;
-                                                }
-                                                router.push('/profile/groups');
-                                            })}
-                                            className="flex-1 bg-red-600 hover:bg-red-500 text-white py-3 rounded-lg font-bold"
+                                            onClick={() => {
+                                                if (isDeletingGroup) return;
+                                                startDeleteTransition(async () => {
+                                                    const result = await DeleteGroup(groupId) as { success: boolean; message?: string };
+                                                    if (!result.success) {
+                                                        setNotify({ message: result.message || "Ошибка удаления", type: "error" });
+                                                        return;
+                                                    }
+                                                    router.push('/profile/groups');
+                                                });
+                                            }}
+                                            disabled={isDeletingGroup}
+                                            className="flex-1 bg-red-600 hover:bg-red-500 text-white py-3 rounded-lg font-bold disabled:opacity-50 flex items-center justify-center gap-2"
                                         >
-                                            Да, удалить
+                                            {isDeletingGroup ? <Loader2 size={16} className="animate-spin" /> : null}
+                                            {isDeletingGroup ? "Удаление..." : "Да, удалить"}
                                         </button>
                                         <DialogClose className="flex-1 bg-gray-200 dark:bg-zinc-700 py-3 rounded-lg font-medium">
                                             Отмена
