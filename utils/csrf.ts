@@ -2,8 +2,8 @@ import { cookies } from "next/headers";
 import crypto from "crypto";
 import { env } from "@/env";
 
-const CSRF_COOKIE_NAME = "csrf_token";
-const CSRF_HEADER_NAME = "x-csrf-token";
+export const CSRF_COOKIE_NAME = "csrf_token";
+export const CSRF_HEADER_NAME = "x-csrf-token";
 
 export async function generateCsrfToken(): Promise<string> {
     const token = crypto.randomBytes(32).toString("hex");
@@ -38,11 +38,10 @@ export async function validateCsrfToken(request: Request): Promise<boolean> {
         );
     }
 
-    // Check for token in form data (for form submissions)
     try {
         const contentType = request.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
-            const body = await request.json() as { csrf_token?: string };
+        if (contentType?.includes("application/json")) {
+            const body = (await request.clone().json()) as { csrf_token?: string };
             if (body.csrf_token) {
                 return crypto.timingSafeEqual(
                     Buffer.from(cookieToken, "hex"),
@@ -51,7 +50,6 @@ export async function validateCsrfToken(request: Request): Promise<boolean> {
             }
         }
     } catch {
-        // If we can't parse the body, just return false
         return false;
     }
 
