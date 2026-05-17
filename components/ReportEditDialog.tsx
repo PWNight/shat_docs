@@ -1,6 +1,6 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
-import { X, Save, Download, Edit3, Eye, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, Download, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/Dialog";
 import { Group, Notify } from "@/utils/interfaces";
 
@@ -32,7 +32,6 @@ export default function ReportEditDialog({
 }: ReportEditDialogProps) {
     const [isGenerating, setIsGenerating] = useState(false);
     const [editableFields, setEditableFields] = useState<EditableField[]>([]);
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Initialize editable fields based on report type
     useEffect(() => {
@@ -88,9 +87,6 @@ export default function ReportEditDialog({
                 acc[field.id] = field.value;
                 return acc;
             }, {} as any);
-
-            console.log('Downloading report with data:', updatedData);
-            console.log('Report type:', reportType);
 
             if (reportType === 'grades') {
                 await downloadUpdatedGradesReport(updatedData);
