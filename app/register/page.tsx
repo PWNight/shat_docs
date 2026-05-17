@@ -17,6 +17,7 @@ function RegisterForm() {
 
     // Используем useState для показа пароля
     const [showPassword, setShowPassword] = useState(false);
+    const [isRedirecting, setIsRedirecting] = useState(false);
     // Используем useSearchParams для получения параметров
     const searchParams = useSearchParams();
     // Получаем параметр redirectTo
@@ -30,23 +31,31 @@ function RegisterForm() {
                 return;
             }
             // Перенаправляем пользователя на страницу профиля
+            setIsRedirecting(true);
             window.location.assign(redirectTo);
             return;
         }
-        // Получаем сессию
         getSession().then(data => {
-            // Проверяем, что сессия не пустая
-            if ( data ) {
-                // Перенаправляем пользователя на страницу профиля
+            if (data) {
+                setIsRedirecting(true);
                 window.location.assign(redirectTo);
             }
-        })
+        });
     }, [state, redirectTo]);
 
     // Функция для показа/скрытия пароля
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
     };
+
+    if (isRedirecting) {
+        return (
+            <div className="auth-card flex flex-col items-center justify-center gap-4 py-12">
+                <Loader2 className="h-10 w-10 animate-spin text-blue-400" />
+                <p className="text-muted-foreground text-sm">Перенаправление...</p>
+            </div>
+        );
+    }
 
     return (
         <form
