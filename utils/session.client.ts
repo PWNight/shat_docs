@@ -1,11 +1,8 @@
 import type { SessionPayload } from "./session.types";
 
-// Client-side session utilities that call API endpoints
-// These are safe to use in client components
-
 export async function getSession(): Promise<SessionPayload | null> {
     try {
-        const response = await fetch('/api/auth/session');
+        const response = await fetch('/api/sessions');
         if (!response.ok) return null;
         const data = await response.json();
         return data.session || null;

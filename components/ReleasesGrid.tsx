@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import ReleaseSection from "./ReleaseSection";
 import { Boxes, Bug } from "lucide-react";
 import PageErrorState from "@/components/ui/PageErrorState";
+import { sanitizeHtml } from "@/utils/sanitize-html";
 
 interface GitHubRelease {
     id: number;
@@ -40,8 +41,7 @@ export default function ReleasesGrid() {
             .replace(/^- (.*$)/gim, '<li class="ml-6 list-none flex items-start gap-2 mb-1"><span class="mt-1.5 text-blue-500"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span><span>$1</span></li>')
             .replace(/\*\*(.*)\*\*/gim, '<strong class="text-blue-600 dark:text-blue-400">$1</strong>');
         
-        // DOMPurify will be used in the parent component
-        return formatted;
+        return sanitizeHtml(formatted);
     };
 
     useEffect(() => {

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { sanitizeHtml } from "@/utils/sanitize-html";
 import { Sparkles, Calendar, Info } from "lucide-react";
 import {
     Dialog,
@@ -106,7 +107,10 @@ export default function ReleaseSection({ release, description, badgeText, icon, 
                                                 <span>{isMajor ? `Обновление ${release.name}` : isBeta ? `Бета ${release.name}` : `Патч ${release.name}`}</span>
                                             </DialogTitle>
                                         </DialogHeader>
-                                        <div className="overflow-y-auto px-6 pb-4 max-h-[60vh] custom-scrollbar prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: release.formattedBody || "" }} />
+                                        <div
+                                            className="overflow-y-auto px-6 pb-4 max-h-[60vh] custom-scrollbar prose prose-sm dark:prose-invert max-w-none"
+                                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(release.formattedBody || "") }}
+                                        />
                                     </div>
                                 </DialogContent>
                             </Dialog>

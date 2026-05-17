@@ -4,7 +4,7 @@ import { buttonVariants } from "./ui/Button";
 import { useState, useMemo } from "react";
 import Image from "next/image";
 import {Info, Loader2, Calendar, ChevronRight, Sparkles, ChevronLeft, Bug, Boxes} from "lucide-react";
-import { env } from "@/env";
+import { sanitizeHtml } from "@/utils/sanitize-html";
 import {
     Dialog,
     DialogContent,
@@ -48,7 +48,7 @@ export function FooterButtons() {
 
 export function Footer() {
     // Получаем версию приложения
-    const appVersion = env.APP_VERSION;
+    const appVersion = process.env.APP_VERSION ?? "1.0.0";
 
     const [releases, setReleases] = useState<GitHubRelease[]>([]);
     // Флаг загрузки
@@ -77,9 +77,8 @@ export function Footer() {
             const res = await fetch(`https://api.github.com/repos/PWNight/shat_docs/releases`);
             const data: GitHubRelease[] = await res.json();
             // Форматируем список изменений
-            const formattedReleases = data.map((rel) => ({
-                ...rel,
-                formattedBody: rel.body
+            const formattedReleases = data.map((rel) => {
+                const raw = rel.body
                     ? rel.body
                         .replace(/^### (.*$)/gim, '<h3 class="font-bold text-lg mt-4 mb-2 flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>$1</h3>')
                         .replace(/^## (.*$)/gim, '<h2 class="font-bold text-xl mt-4 mb-2 border-l-4 border-blue-500 pl-3">$1</h2>')
@@ -87,8 +86,9 @@ export function Footer() {
                         .replace(/^\* (.*$)/gim, '<li class="ml-6 list-none flex items-start gap-2 mb-1"><span class="mt-1.5 text-blue-500"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span><span>$1</span></li>')
                         .replace(/^- (.*$)/gim, '<li class="ml-6 list-none flex items-start gap-2 mb-1"><span class="mt-1.5 text-blue-500"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span><span>$1</span></li>')
                         .replace(/\*\*(.*)\*\*/gim, '<strong class="text-blue-600 dark:text-blue-400">$1</strong>')
-                    : "Описание изменений отсутствует.",
-            }));
+                    : "Описание изменений отсутствует.";
+                return { ...rel, formattedBody: sanitizeHtml(raw) };
+            });
             // Устанавливаем список изменений
             setReleases(formattedReleases);
         } catch {
