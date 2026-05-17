@@ -28,6 +28,7 @@ export default function GroupStudents({ groupId, groupName, group, students, set
     const [deleteStudentId, setDeleteStudentId] = useState<number | null>(null);
     // Используем useState для отслеживания удаления студента
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     // Используем useState для отслеживания обновления списка студентов
     const [isRefreshing, setIsRefreshing] = useState(false);
     // Используем useState для отслеживания выбранных студентов
@@ -216,11 +217,12 @@ export default function GroupStudents({ groupId, groupName, group, students, set
 
     // Функция для сохранения изменений в студенте
     const handleSave = async () => {
-        // Проверяем, что студент редактируется
-        if (!editingStudent) return;
+        if (!editingStudent || isSaving) return;
 
-        // Обновляем студента
+        setIsSaving(true);
         const result = await UpdateStudent(groupId, editingStudent, editName);
+        if (!isMountedRef.current) return;
+        setIsSaving(false);
         // Проверяем, что студент успешно обновлен
         if (result.success) {
             // Обновляем список студентов   
@@ -430,9 +432,10 @@ export default function GroupStudents({ groupId, groupName, group, students, set
                                         <>
                                             <button
                                                 onClick={handleSave}
-                                                className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md"
+                                                disabled={isSaving}
+                                                className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md disabled:opacity-50"
                                             >
-                                                <Save size={16} />
+                                                {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                                             </button>
                                             <button
                                                 onClick={() => setEditingStudent(null)}

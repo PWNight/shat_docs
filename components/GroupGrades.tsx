@@ -158,9 +158,6 @@ export default function GroupGrades({ groupId, group, isOwner, setNotify }: Grou
 
     // Функция для обработки подтверждения периода успеваемости
     const handleGradesPeriodConfirm = async (period: number) => {
-        // Закрываем диалог успеваемости
-        setShowGradesPeriodDialog(false);
-        // Устанавливаем выбранный период успеваемости
         setSelectedGradesPeriod(period);
 
         // Проверяем, что режим диалога успеваемости импорт и что данные успеваемости для импорта существуют
@@ -290,16 +287,11 @@ export default function GroupGrades({ groupId, group, isOwner, setNotify }: Grou
     const handleDeleteGradesPeriod = async () => {
         // Проверяем, что пользователь имеет доступ к группе и что выбран период успеваемости
         if (!isOwner || selectedGradesPeriod === null) return;
-        // Закрываем диалог удаления успеваемости
-        setShowDeleteGradesDialog(false);
-        // Устанавливаем флаг загрузки успеваемости
         setIsGradesLoading(true);
-        // Удаляем данные успеваемости из БД
         const result = await DeleteGradesPeriod(groupId, selectedGradesPeriod);
-        // Проверяем, что компонент монтирован
         if (!isMountedRef.current) return;
-        // Устанавливаем флаг загрузки успеваемости
         setIsGradesLoading(false);
+        setShowDeleteGradesDialog(false);
 
         // Проверяем, что данные успеваемости успешно удалены
         if (result.success) {
@@ -612,9 +604,11 @@ export default function GroupGrades({ groupId, group, isOwner, setNotify }: Grou
                     <DialogFooter className="gap-3">
                         <button
                             onClick={handleDeleteGradesPeriod}
-                            className="dialog-danger-btn"
+                            disabled={isGradesLoading}
+                            className="dialog-danger-btn disabled:opacity-50 flex items-center justify-center gap-2"
                         >
-                            Да, удалить
+                            {isGradesLoading ? <Loader2 size={16} className="animate-spin" /> : null}
+                            {isGradesLoading ? "Удаление..." : "Да, удалить"}
                         </button>
                         <DialogClose className="dialog-cancel-btn">
                             Отмена

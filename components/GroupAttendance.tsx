@@ -134,9 +134,6 @@ export default function GroupAttendance({ groupId, group, isOwner, setNotify }: 
 
     // Функция для обработки подтверждения периода посещаемости
     const handleAttendancePeriodConfirm = async (period: number) => {
-        // Закрываем диалог посещаемости
-        setShowAttendancePeriodDialog(false);
-        // Устанавливаем выбранный период посещаемости
         setSelectedAttendancePeriod(period);
 
         // Проверяем, что режим диалога посещаемости импорт и что данные посещаемости для импорта существуют
@@ -265,17 +262,12 @@ export default function GroupAttendance({ groupId, group, isOwner, setNotify }: 
         // Проверяем, что пользователь имеет доступ к группе и что выбран период посещаемости
         if (!isOwner || selectedAttendancePeriod === null) return;
 
-        // Закрываем диалог удаления посещаемости
-        setShowDeleteAttendanceDialog(false);
-        // Устанавливаем флаг загрузки посещаемости
         setIsAttendanceLoading(true);
 
-        // Удаляем данные посещаемости из БД
         const result = await DeleteAttendancePeriod(groupId, selectedAttendancePeriod);
-        // Проверяем, что компонент монтирован
         if (!isMountedRef.current) return;
-        // Устанавливаем флаг загрузки посещаемости
         setIsAttendanceLoading(false);
+        setShowDeleteAttendanceDialog(false);
 
         // Проверяем, что данные посещаемости успешно удалены
         if (result.success) {
@@ -527,9 +519,11 @@ export default function GroupAttendance({ groupId, group, isOwner, setNotify }: 
                     <DialogFooter className="gap-3">
                         <button
                             onClick={handleDeleteAttendancePeriod}
-                            className="dialog-danger-btn"
+                            disabled={isAttendanceLoading}
+                            className="dialog-danger-btn disabled:opacity-50 flex items-center justify-center gap-2"
                         >
-                            Да, удалить
+                            {isAttendanceLoading ? <Loader2 size={16} className="animate-spin" /> : null}
+                            {isAttendanceLoading ? "Удаление..." : "Да, удалить"}
                         </button>
                         <DialogClose className="dialog-cancel-btn">
                             Отмена
