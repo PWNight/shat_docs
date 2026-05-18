@@ -27,8 +27,12 @@ export const ROUTES : EachRoute[] = [
     href: "/admin-guide",
   },
   {
-    title: "API Reference",
+    title: "API Reference (v3)",
     href: "/api-reference",
+  },
+  {
+    title: "API v2 vs v3",
+    href: "/api-v2-v3",
   },
   {
     title: "API v1 vs v2",
@@ -37,5 +41,9 @@ export const ROUTES : EachRoute[] = [
   {
     title: "Версии v0.X vs v1.X",
     href: "/versions-v0-v1",
+  },
+  {
+    title: "Версии v1.X vs v2.X",
+    href: "/versions-v1-v2",
   },
 ];
