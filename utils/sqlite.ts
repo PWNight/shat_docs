@@ -30,6 +30,18 @@ function runMigrations(db: Database.Database): void {
     db.pragma("foreign_keys = ON");
 
     db.exec(`
+        CREATE TABLE IF NOT EXISTS schema_migrations (
+            id INTEGER PRIMARY KEY,
+            name TEXT NOT NULL UNIQUE,
+            applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+    `);
+
+    const migrations: Array<{ id: number; name: string; sql: string }> = [
+        {
+            id: 1,
+            name: "initial_schema",
+            sql: `
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT NOT NULL UNIQUE CHECK(length(email) <= 254),
@@ -128,7 +140,58 @@ function runMigrations(db: Database.Database): void {
         CREATE INDEX IF NOT EXISTS idx_groups_name ON "groups"(name);
         CREATE INDEX IF NOT EXISTS idx_students_fk_group ON students(fk_group);
         CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-    `);
+            `,
+        },
+        {
+            id: 2,
+            name: "composite_indexes",
+            sql: `
+        CREATE INDEX IF NOT EXISTS idx_attendance_group_period ON attendance(fk_group, period_month);
+        CREATE INDEX IF NOT EXISTS idx_grades_group_period ON grades(fk_group, period_semester);
+            `,
+        },
+        {
+            id: 3,
+            name: "fk_student_columns",
+            sql: `
+        ALTER TABLE attendance ADD COLUMN fk_student INTEGER REFERENCES students(id) ON DELETE SET NULL;
+        ALTER TABLE grades ADD COLUMN fk_student INTEGER REFERENCES students(id) ON DELETE SET NULL;
+        CREATE INDEX IF NOT EXISTS idx_attendance_fk_student ON attendance(fk_student);
+        CREATE INDEX IF NOT EXISTS idx_grades_fk_student ON grades(fk_student);
+            `,
+        },
+        {
+            id: 4,
+            name: "backfill_fk_student",
+            sql: `
+        UPDATE attendance
+        SET fk_student = (
+            SELECT s.id FROM students s
+            WHERE s.fk_group = attendance.fk_group AND s.full_name = attendance.full_name
+            LIMIT 1
+        )
+        WHERE fk_student IS NULL;
+
+        UPDATE grades
+        SET fk_student = (
+            SELECT s.id FROM students s
+            WHERE s.fk_group = grades.fk_group AND s.full_name = grades.full_name
+            LIMIT 1
+        )
+        WHERE fk_student IS NULL;
+            `,
+        },
+    ];
+
+    const applied = new Set(
+        (db.prepare("SELECT name FROM schema_migrations").all() as Array<{ name: string }>).map((row) => row.name)
+    );
+
+    for (const migration of migrations) {
+        if (applied.has(migration.name)) continue;
+        db.exec(migration.sql);
+        db.prepare("INSERT INTO schema_migrations (id, name) VALUES (?, ?)").run(migration.id, migration.name);
+    }
 }
 
 function normalizeSqliteParam(value: unknown): unknown {
