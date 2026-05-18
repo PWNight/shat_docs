@@ -3,7 +3,8 @@ import { query } from "@/utils/sqlite";
 import { fetchAllGroupStats } from "@/utils/group-stats";
 import { jsonResponse, serverError, successResponse, handleApiError } from "@/utils/api";
 import { getUsersForAdmin, requireAdmin } from "@/utils/admin";
-import { listAllSessions, getSession, type SessionListItem } from "@/utils/session";
+import { listAllSessions, getSession } from "@/utils/session.server";
+import type { SessionListItem } from "@/utils/session.types";
 import { checkRateLimit, rateLimitResponse } from "@/utils/rate-limit";
 
 export async function GET(request: NextRequest) {

@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { execute, query, queryOne } from "@/utils/sqlite";
-import { GroupFormSchema } from "@/utils/definitions";
+import { GroupFormSchema } from "@/utils/validation";
 import {
     requireAuth,
     requireAuthSimple,

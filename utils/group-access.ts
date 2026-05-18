@@ -32,7 +32,7 @@ export async function requireGroupAccess(
     groupId: number | string,
     options?: { allowAdmin?: boolean }
 ): Promise<
-    | { success: true; user: NonNullable<Awaited<ReturnType<typeof import("@/utils/session").getSession>>>; group: GroupRow }
+    | { success: true; user: NonNullable<Awaited<ReturnType<typeof import("@/utils/session.server").getSession>>>; group: GroupRow }
     | { success: false; response: NextResponse }
 > {
     const authResult = await requireAuth(request);

@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import { execute, queryOne } from "@/utils/sqlite";
 import { badRequest, handleApiError, jsonResponse, notFound, safeParseJson, serverError, successResponse } from "@/utils/api";
 import { requireAdmin, writeAdminLog } from "@/utils/admin";
-import { revokeAllUserSessions } from "@/utils/session";
+import { revokeAllUserSessions } from "@/utils/session.server";
 import { checkRateLimit, rateLimitResponse } from "@/utils/rate-limit";
 import { validateCsrfToken } from "@/utils/csrf";
 

@@ -5,14 +5,14 @@ import {
     GroupFormSchema, GroupFormState,
     LoginFormSchema, LoginFormState,
     RegisterFormSchema, RegisterFormState
-} from "@/utils/definitions";
+} from "@/utils/validation";
 import { loginUser, registerUser } from "@/utils/auth-service";
 import { apiPatch } from "@/utils/http-client";
 import { AttendanceStudent, GradeStudent, Group, Student, TeacherStats, UserProfile } from "@/utils/interfaces";
 import type { GroupStats } from "@/utils/group-stats";
 import { ApiResponseError } from "@/utils/functions";
 import { logger } from "@/utils/logger";
-import { isValidEntityId, isValidMonth, isValidSemester } from "@/utils/validators";
+import { isValidEntityId, isValidMonth, isValidSemester } from "@/utils/validation";
 import { checkRateLimit, getClientIdentifierFromHeaders } from "@/utils/rate-limit";
 import {
     createGroupForCurrentUser,

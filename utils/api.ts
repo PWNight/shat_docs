@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getSession, verifySessionFromToken } from "@/utils/session";
+import { getSession, verifySessionFromToken } from "@/utils/session.server";
 import { ApiErrorResponse, ApiSuccessResponse } from "./interfaces";
 import { logger } from "@/utils/logger";
 
