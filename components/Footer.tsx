@@ -74,7 +74,7 @@ export function Footer() {
         setIsLoading(true);
         try {
             // Получаем список изменений с GitHub
-            const res = await fetch(`https://api.github.com/repos/PWNight/shat_docs/releases`);
+            const res = await fetch(`https://api.github.com/repos/PWNight/shat_docs/releases?per_page=100`);
             const data: GitHubRelease[] = await res.json();
             // Форматируем список изменений
             const formattedReleases = data.map((rel) => {

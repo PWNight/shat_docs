@@ -48,7 +48,7 @@ export default function ReleasesGrid() {
         const fetchReleases = async () => {
             try {
                 setReleasesError(null);
-                const res = await fetch(`https://api.github.com/repos/PWNight/shat_docs/releases`);
+                const res = await fetch(`https://api.github.com/repos/PWNight/shat_docs/releases?per_page=100`);
                 const data: GitHubRelease[] = await res.json();
 
                 const major = data.find(rel => isMajorRelease(rel.name) && !isBetaRelease(rel.name));
