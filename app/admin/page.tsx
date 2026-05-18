@@ -20,17 +20,7 @@ import LogsTab from "@/components/admin/LogsTab";
 import AdminDialogs from "@/components/admin/AdminDialogs";
 import type { AdminOverview, AdminUser, GroupItem, TabType } from "@/app/admin/types";
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-const normalizeWhitespace = (value: string) => value.trim().replace(/\s+/g, " ");
-
-const isStrongPassword = (value: string) => {
-    const normalized = value.trim();
-    return normalized.length >= 8
-        && normalized.length <= 72
-        && /[A-Za-zА-Яа-я]/.test(normalized)
-        && /\d/.test(normalized);
-};
+import { isValidEmail, isAdminPassword, normalizeWhitespace } from "@/utils/validation";
 
 export default function AdminPage() {
     const [data, setData] = useState<AdminOverview | null>(null);
@@ -130,7 +120,7 @@ export default function AdminPage() {
 
     const resolveReset = async (requestId: number) => {
         const nextPassword = (newPasswords[requestId] || "").trim();
-        if (!isStrongPassword(nextPassword)) {
+        if (!isAdminPassword(nextPassword)) {
             setNotify({ message: "Пароль должен быть 8-72 символа и содержать буквы и цифры", type: "warning" });
             return;
         }
@@ -203,7 +193,7 @@ export default function AdminPage() {
             setNotify({ message: "ФИО должно быть от 2 до 120 символов", type: "warning" });
             return;
         }
-        if (!EMAIL_RE.test(normalizedEmail) || normalizedEmail.length > 254) {
+        if (!isValidEmail(normalizedEmail)) {
             setNotify({ message: "Укажите корректный email", type: "warning" });
             return;
         }
@@ -220,7 +210,7 @@ export default function AdminPage() {
 
     const resetUserPasswordDirect = async (userId: number) => {
         const newPassword = resetPasswordDraft.trim();
-        if (!isStrongPassword(newPassword)) {
+        if (!isAdminPassword(newPassword)) {
             setNotify({ message: "Пароль должен быть 8-72 символа и содержать буквы и цифры", type: "warning" });
             return;
         }
