@@ -1,5 +1,5 @@
 import { jsonResponse, successResponse } from "@/utils/api";
-import { getSession } from "@/utils/session";
+import { getSession } from "@/utils/session.server";
 
 export async function GET() {
     const session = await getSession();

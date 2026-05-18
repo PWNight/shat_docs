@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { badRequest, handleApiError, jsonResponse, requireAuth, serverError, successResponse } from "@/utils/api";
-import { deleteSession, revokeSessionById } from "@/utils/session";
+import { deleteSession, revokeSessionById } from "@/utils/session.server";
 import { checkRateLimit, rateLimitResponse } from "@/utils/rate-limit";
 import { validateCsrfToken } from "@/utils/csrf";
 

@@ -14,7 +14,7 @@ import {
     DialogTrigger
 } from "@/components/ui/Dialog";
 import Link from "next/link";
-import {GroupFormState} from "@/utils/definitions";
+import {GroupFormState} from "@/utils/validation";
 import {CreateFormProps, Group, Notify} from "@/utils/interfaces";
 import PageErrorState from "@/components/ui/PageErrorState";
 import { getErrorKindByMeta } from "@/utils/ui-errors";

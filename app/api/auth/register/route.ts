@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { RegisterFormSchema } from "@/utils/definitions";
+import { RegisterFormSchema } from "@/utils/validation";
 import {
     safeParseJson,
     validateData,

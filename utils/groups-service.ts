@@ -1,7 +1,7 @@
 import "server-only";
 
 import { execute, query, queryOne, transaction } from "@/utils/sqlite";
-import { getSession } from "@/utils/session";
+import { getSession } from "@/utils/session.server";
 import { getActorBySessionUid } from "@/utils/admin";
 import { canAccessGroup, getGroupById, teacherHasGroup } from "@/utils/group-access";
 import { fetchGroupStatsById, type GroupStats } from "@/utils/group-stats";

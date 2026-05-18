@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { handleApiError, jsonResponse, serverError, successResponse } from "@/utils/api";
 import { requireAdmin } from "@/utils/admin";
-import { listAllActiveSessions } from "@/utils/session";
+import { listAllActiveSessions } from "@/utils/session.server";
 import { checkRateLimit, rateLimitResponse } from "@/utils/rate-limit";
 
 export async function GET(request: NextRequest) {

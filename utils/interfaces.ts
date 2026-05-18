@@ -1,4 +1,4 @@
-import {GroupFormState} from "@/utils/definitions";
+import {GroupFormState} from "@/utils/validation";
 import React from "react";
 
 // Period Constants

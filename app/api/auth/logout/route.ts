@@ -1,4 +1,4 @@
-import { deleteSession, revokeSessionById } from "@/utils/session";
+import { deleteSession, revokeSessionById } from "@/utils/session.server";
 import { NextRequest } from "next/server";
 import {
     unauthorized,
