@@ -5,6 +5,11 @@ import type { NextRequest } from "next/server";
 import { execute, queryOne } from "@/utils/sqlite";
 import { createSession } from "@/utils/session.server";
 import { ensureRootAccount } from "@/utils/admin";
+import {
+    INVALID_CREDENTIALS_MESSAGE,
+    REGISTRATION_PENDING_MESSAGE,
+    REGISTRATION_SUCCESS_MESSAGE,
+} from "@/utils/auth-messages";
 
 type LoginUserRow = {
     id: number;
@@ -29,16 +34,16 @@ export async function loginUser(
         [email]
     );
     if (!user) {
-        return { success: false, message: "Пользователь с такой почтой не найден" };
-    }
-
-    if (user.registration_status !== "approved") {
-        return { success: false, message: "Ваша регистрация ожидает подтверждения администратором" };
+        return { success: false, message: INVALID_CREDENTIALS_MESSAGE };
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password_hash);
     if (!passwordMatch) {
-        return { success: false, message: "Неправильный пароль" };
+        return { success: false, message: INVALID_CREDENTIALS_MESSAGE };
+    }
+
+    if (user.registration_status !== "approved") {
+        return { success: false, message: REGISTRATION_PENDING_MESSAGE };
     }
 
     const { token } = await createSession(
@@ -68,7 +73,10 @@ export async function registerUser(
 
     const userWithEmail = await queryOne("SELECT id FROM users WHERE email = ? LIMIT 1", [email]);
     if (userWithEmail) {
-        return { success: false, message: "Пользователь с такой почтой уже существует" };
+        return {
+            success: true,
+            message: REGISTRATION_SUCCESS_MESSAGE,
+        };
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
@@ -79,6 +87,6 @@ export async function registerUser(
 
     return {
         success: true,
-        message: "Заявка на регистрацию отправлена. Ожидайте подтверждения администратором.",
+        message: REGISTRATION_SUCCESS_MESSAGE,
     };
 }
