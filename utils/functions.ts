@@ -138,7 +138,7 @@ export const exportGradesToWord = async (
     if (!students.length) return;
 
     // Используем пользовательские данные или вычисляем по умолчанию
-    const data = customData || createGradesReportData(students, group);
+    const data = customData || createGradesReportData(students);
     if (!data) return;
 
     const semesterText = data.semesterText || '';

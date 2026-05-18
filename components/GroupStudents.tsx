@@ -182,13 +182,7 @@ export default function GroupStudents({ groupId, groupName, group, students, set
                 }
 
                 // Создаем данные для редактирования
-                const reportData = createGradesReportData(reportStudents, {
-                    id: 0,
-                    name: groupName,
-                    fk_user: 0,
-                    leader: '',
-                    created_by: '',
-                } as Group);
+                const reportData = createGradesReportData(reportStudents);
 
                 if (reportData) {
                     setGradesReportData(reportData);
