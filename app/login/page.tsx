@@ -72,7 +72,7 @@ function LoginForm() {
                     name="email"
                     defaultValue={state.values?.email ?? ""}
                     className="auth-input"
-                    placeholder="test@test.com"
+                    placeholder="name@example.com"
                 />
                 {state?.fieldErrors?.email && (
                     <p className="text-red-400 text-sm mt-2">{state.fieldErrors.email}</p>
