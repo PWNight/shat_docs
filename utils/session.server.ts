@@ -263,7 +263,8 @@ export async function listAllActiveSessions(limit: number = 200): Promise<Sessio
          JOIN users u ON u.id = s.user_id
          WHERE s.revoked_at IS NULL AND julianday(s.expires_at) > julianday('now')
          ORDER BY s.last_seen_at DESC
-         LIMIT ${safeLimit}`
+         LIMIT ?`,
+        [safeLimit]
     );
     return rows.map((row) => ({
         sessionId: row.session_id,
@@ -292,7 +293,8 @@ export async function listAllSessions(limit: number = 200, offset: number = 0): 
          FROM auth_sessions s
          JOIN users u ON u.id = s.user_id
          ORDER BY s.created_at DESC
-         LIMIT ${safeLimit} OFFSET ${safeOffset}`
+         LIMIT ? OFFSET ?`,
+        [safeLimit, safeOffset]
     );
 
     const now = Date.now();
