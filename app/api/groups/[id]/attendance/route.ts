@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { execute, query } from "@/utils/sqlite";
+import { execute, query, queryOne } from "@/utils/sqlite";
 import {
     requireAuth,
     safeParseJson,
@@ -11,6 +11,7 @@ import {
 } from "@/utils/api";
 import { checkRateLimit, rateLimitResponse } from "@/utils/rate-limit";
 import { validateCsrfToken } from "@/utils/csrf";
+import { requireGroupAccess } from "@/utils/group-access";
 
 // Получение посещаемости за конкретный период
 export async function GET(request: NextRequest, {params}: { params: Promise<{ id: string }> }) {
@@ -27,7 +28,12 @@ export async function GET(request: NextRequest, {params}: { params: Promise<{ id
     }
 
     try {
-        const {id} = await params;
+        const { id } = await params;
+        const access = await requireGroupAccess(request, id);
+        if (!access.success) {
+            return access.response;
+        }
+
         const { searchParams } = new URL(request.url);
         const periodMonth = searchParams.get('periodMonth');
 
@@ -42,7 +48,7 @@ export async function GET(request: NextRequest, {params}: { params: Promise<{ id
                 period_month as periodMonth
             FROM attendance WHERE fk_group = ?`;
 
-        const params_arr: (string | number)[] = [id];
+        const params_arr: (string | number)[] = [access.group.id];
 
         if (periodMonth) {
             const parsedMonth = Number.parseInt(periodMonth, 10);
@@ -102,13 +108,24 @@ export async function POST(request: NextRequest) {
         return badRequest("Неверный формат данных");
     }
 
+    const access = await requireGroupAccess(request, groupId);
+    if (!access.success) {
+        return access.response;
+    }
+
     try {
         for (const student of students) {
+            const studentRow = await queryOne<{ id: number }>(
+                "SELECT id FROM students WHERE fk_group = ? AND full_name = ? LIMIT 1",
+                [access.group.id, student.fullName]
+            );
+
             await execute(
                 `INSERT INTO attendance
-                (fk_group, full_name, full_days_total, full_days_sick, lessons_total, lessons_sick, late, period_month)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                (fk_group, full_name, fk_student, full_days_total, full_days_sick, lessons_total, lessons_sick, late, period_month)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(fk_group, full_name, period_month) DO UPDATE SET
+                fk_student = excluded.fk_student,
                 full_days_total = excluded.full_days_total,
                 full_days_sick = excluded.full_days_sick,
                 lessons_total = excluded.lessons_total,
@@ -117,8 +134,9 @@ export async function POST(request: NextRequest) {
                 period_month = excluded.period_month,
                 updated_at = datetime('now')`,
                 [
-                    groupId,
+                    access.group.id,
                     student.fullName,
+                    studentRow?.id ?? null,
                     student.fullDaysTotal,
                     student.fullDaysSick,
                     student.lessonsTotal,
@@ -157,7 +175,12 @@ export async function DELETE(request: NextRequest, {params}: { params: Promise<{
     }
 
     try {
-        const {id} = await params;
+        const { id } = await params;
+        const access = await requireGroupAccess(request, id);
+        if (!access.success) {
+            return access.response;
+        }
+
         const { searchParams } = new URL(request.url);
         const periodMonth = searchParams.get('periodMonth');
 
@@ -170,7 +193,7 @@ export async function DELETE(request: NextRequest, {params}: { params: Promise<{
             return badRequest("periodMonth должен быть числом");
         }
 
-        await execute(`DELETE FROM attendance WHERE fk_group = ? AND period_month = ?`, [id, parsedMonth]);
+        await execute(`DELETE FROM attendance WHERE fk_group = ? AND period_month = ?`, [access.group.id, parsedMonth]);
 
         return jsonResponse(successResponse(null, "Записи удалены"));
     } catch (error) {

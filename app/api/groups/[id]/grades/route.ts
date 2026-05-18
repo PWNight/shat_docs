@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { execute, query } from "@/utils/sqlite";
+import { execute, query, queryOne } from "@/utils/sqlite";
 import {
     requireAuth,
     safeParseJson,
@@ -11,6 +11,7 @@ import {
 } from "@/utils/api";
 import { checkRateLimit, rateLimitResponse } from "@/utils/rate-limit";
 import { validateCsrfToken } from "@/utils/csrf";
+import { requireGroupAccess } from "@/utils/group-access";
 
 // Получение успеваемости за конкретный период
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -28,13 +29,18 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     try {
         const { id } = await params;
+        const access = await requireGroupAccess(request, id);
+        if (!access.success) {
+            return access.response;
+        }
+
         const { searchParams } = new URL(request.url);
         const periodSemester = searchParams.get('periodSemester');
 
         let sqlQuery = `SELECT full_name as fullName, subjects_json as subjects, average_score as averageScore, period_semester as periodSemester
              FROM grades WHERE fk_group = ?`;
 
-        const queryParams: (string | number)[] = [id];
+        const queryParams: (string | number)[] = [access.group.id];
 
         if (periodSemester) {
             const parsedSemester = Number.parseInt(periodSemester, 10);
@@ -97,17 +103,28 @@ export async function POST(request: NextRequest) {
         return badRequest("Неверный формат данных");
     }
 
+    const access = await requireGroupAccess(request, groupId);
+    if (!access.success) {
+        return access.response;
+    }
+
     try {
         for (const student of students) {
+            const studentRow = await queryOne<{ id: number }>(
+                "SELECT id FROM students WHERE fk_group = ? AND full_name = ? LIMIT 1",
+                [access.group.id, student.fullName]
+            );
+
             await execute(
-                `INSERT INTO grades (fk_group, full_name, subjects_json, average_score, period_semester)
-                 VALUES (?, ?, ?, ?, ?)
+                `INSERT INTO grades (fk_group, full_name, fk_student, subjects_json, average_score, period_semester)
+                 VALUES (?, ?, ?, ?, ?, ?)
                  ON CONFLICT(fk_group, full_name, period_semester) DO UPDATE SET
+                        fk_student = excluded.fk_student,
                         subjects_json = excluded.subjects_json,
                         average_score = excluded.average_score,
                         period_semester = excluded.period_semester,
                         updated_at = datetime('now')`,
-                [groupId, student.fullName, JSON.stringify(student.subjects), student.averageScore, student.periodSemester || null]
+                [access.group.id, student.fullName, studentRow?.id ?? null, JSON.stringify(student.subjects), student.averageScore, student.periodSemester || null]
             );
         }
         return jsonResponse(successResponse(null, "Успеваемость обновлена"));
@@ -139,6 +156,11 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     try {
         const { id } = await params;
+        const access = await requireGroupAccess(request, id);
+        if (!access.success) {
+            return access.response;
+        }
+
         const { searchParams } = new URL(request.url);
         const periodSemester = searchParams.get('periodSemester');
 
@@ -151,7 +173,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
             return badRequest("periodSemester должен быть числом");
         }
 
-        await execute(`DELETE FROM grades WHERE fk_group = ? AND period_semester = ?`, [id, parsedSemester]);
+        await execute(`DELETE FROM grades WHERE fk_group = ? AND period_semester = ?`, [access.group.id, parsedSemester]);
         return jsonResponse(successResponse(null, "Записи удалены"));
     } catch (error) {
         const { message, code } = handleApiError(error);

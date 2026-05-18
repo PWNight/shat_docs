@@ -11,6 +11,7 @@ import {
 } from "@/utils/api";
 import { checkRateLimit, rateLimitResponse } from "@/utils/rate-limit";
 import { validateCsrfToken } from "@/utils/csrf";
+import { requireGroupAccess } from "@/utils/group-access";
 
 
 // Получение списка студентов
@@ -29,8 +30,13 @@ export async function GET(_request: NextRequest, {params}: { params: Promise<{ i
 
     try{
         const {id} = await params;
+        const access = await requireGroupAccess(_request, id);
+        if (!access.success) {
+            return access.response;
+        }
+
         const students = await query(
-            'SELECT * FROM students WHERE fk_group = ?', [id]
+            'SELECT * FROM students WHERE fk_group = ?', [access.group.id]
         );
         return jsonResponse(successResponse(students));
     } catch (error) {
@@ -71,11 +77,15 @@ export async function POST(request: NextRequest, {params}: { params: Promise<{ i
 
     try {
         const {id} = await params;
+        const access = await requireGroupAccess(request, id);
+        if (!access.success) {
+            return access.response;
+        }
 
         for (const student of students) {
             await execute(
                 'INSERT INTO students (full_name, fk_group) VALUES (?, ?) ON CONFLICT(full_name, fk_group) DO UPDATE SET full_name = excluded.full_name',
-                [student.fullName, id]
+                [student.fullName, access.group.id]
             );
         }
 

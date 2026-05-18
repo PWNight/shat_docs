@@ -12,6 +12,7 @@ import {
 } from "@/utils/api";
 import { checkRateLimit, rateLimitResponse } from "@/utils/rate-limit";
 import { validateCsrfToken } from "@/utils/csrf";
+import { requireGroupAccess } from "@/utils/group-access";
 
 type StudentRow = Student & RowDataPacket;
 
@@ -41,7 +42,13 @@ export async function PATCH(
     try {
         const { full_name: newName } = await req.json();
         const { id, studentId } = await params;
-        const groupId = id;
+
+        const access = await requireGroupAccess(req, id);
+        if (!access.success) {
+            return access.response;
+        }
+
+        const groupId = access.group.id;
 
         if (!newName) {
             return badRequest("Новое ФИО не указано");
@@ -104,7 +111,13 @@ export async function DELETE(
 
     try {
         const { id, studentId } = await params;
-        const groupId = id;
+
+        const access = await requireGroupAccess(req, id);
+        if (!access.success) {
+            return access.response;
+        }
+
+        const groupId = access.group.id;
 
         // 1. Сначала узнаем ФИО студента перед удалением
         const student = await queryOne<StudentRow>(

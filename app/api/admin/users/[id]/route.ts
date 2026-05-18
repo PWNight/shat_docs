@@ -6,6 +6,7 @@ import { requireAdmin, writeAdminLog } from "@/utils/admin";
 import { revokeAllUserSessions } from "@/utils/session";
 import { checkRateLimit, rateLimitResponse } from "@/utils/rate-limit";
 import { validateCsrfToken } from "@/utils/csrf";
+import { isValidEmail, isAdminPassword, normalizeWhitespace } from "@/utils/validation";
 
 type UserPatchPayload = {
     full_name?: string;
@@ -14,10 +15,8 @@ type UserPatchPayload = {
     newPassword?: string;
 };
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 function normalizeName(value: string): string {
-    return value.trim().replace(/\s+/g, " ");
+    return normalizeWhitespace(value);
 }
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -73,10 +72,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             if (!newPassword || newPassword.length < 8) {
                 return badRequest("Новый пароль должен быть длиной не менее 8 символов");
             }
-            if (newPassword.length > 72) {
-                return badRequest("Новый пароль слишком длинный");
-            }
-            if (!/[A-Za-zА-Яа-я]/.test(newPassword) || !/\d/.test(newPassword)) {
+            if (!isAdminPassword(newPassword)) {
                 return badRequest("Пароль должен содержать хотя бы одну букву и одну цифру");
             }
 
@@ -102,7 +98,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
         if (typeof parseResult.data.email === "string" && parseResult.data.email.trim()) {
             const email = parseResult.data.email.trim().toLowerCase();
-            if (email.length > 254 || !EMAIL_RE.test(email)) return badRequest("Некорректный email");
+            if (!isValidEmail(email)) return badRequest("Некорректный email");
             const exists = await queryOne<{ id: number }>(
                 "SELECT id FROM users WHERE email = ? AND id <> ? LIMIT 1",
                 [email, userId]

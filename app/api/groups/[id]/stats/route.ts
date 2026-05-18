@@ -6,10 +6,10 @@ import {
     jsonResponse,
     successResponse,
     handleApiError,
-    badRequest,
 } from "@/utils/api";
 import { fetchGroupStatsById } from "@/utils/group-stats";
 import { checkRateLimit, rateLimitResponse } from "@/utils/rate-limit";
+import { requireGroupAccess } from "@/utils/group-access";
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const authResult = await requireAuth(_request);
@@ -25,10 +25,12 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     }
 
     const { id } = await params;
-    const groupId = Number(id);
-    if (!Number.isFinite(groupId) || groupId <= 0) {
-        return badRequest("Некорректный id группы");
+    const access = await requireGroupAccess(_request, id);
+    if (!access.success) {
+        return access.response;
     }
+
+    const groupId = access.group.id;
 
     try {
         const stats = await fetchGroupStatsById(groupId);

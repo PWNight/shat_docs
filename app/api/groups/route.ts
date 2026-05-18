@@ -15,6 +15,7 @@ import {
 } from "@/utils/api";
 import { checkRateLimit, rateLimitResponse } from "@/utils/rate-limit";
 import { validateCsrfToken } from "@/utils/csrf";
+import { teacherHasGroup } from "@/utils/group-access";
 
 // Получение списка групп
 export async function GET() {
@@ -41,7 +42,7 @@ export async function GET() {
     }
 }
 
-// Создание новой группы
+// Создание новой группыW
 export async function POST(request: NextRequest) {
     // Проверяем авторизацию
     const authResult = await requireAuth(request);
@@ -95,7 +96,14 @@ export async function POST(request: NextRequest) {
             return badRequest(`Группа с названием ${name} уже существует`);
         }
 
-        // TODO: Проверка наличия закреплённой за преподавателем группы
+        const teacherId = Number(fk_user);
+        if (!Number.isFinite(teacherId) || teacherId <= 0) {
+            return badRequest("Некорректный id преподавателя");
+        }
+
+        if (await teacherHasGroup(teacherId)) {
+            return badRequest("У преподавателя уже есть закреплённая группа");
+        }
 
         await execute(
             'INSERT INTO "groups" (name, fk_user) VALUES (?, ?)',

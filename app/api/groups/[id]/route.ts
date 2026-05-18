@@ -15,6 +15,7 @@ import {
 } from "@/utils/api";
 import { checkRateLimit, rateLimitResponse } from "@/utils/rate-limit";
 import { validateCsrfToken } from "@/utils/csrf";
+import { requireGroupAccess } from "@/utils/group-access";
 
 // Получение группы
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -33,14 +34,16 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
     const { id } = await params;
 
+    const access = await requireGroupAccess(_request, id);
+    if (!access.success) {
+        return access.response;
+    }
+
     try {
         const group = await queryOne(
             'SELECT "groups".id, name, "groups".created_by, fk_user, users.full_name AS leader FROM "groups" JOIN users ON fk_user = users.id WHERE "groups".id = ?',
             [id]
         );
-        if (!group) {
-            return notFound(`Группа с айди ${id} не найдена`);
-        }
         return jsonResponse(successResponse(group));
     } catch (error) {
         const { message, code } = handleApiError(error);
