@@ -87,6 +87,67 @@ export interface Student {
     fk_group: number;
 }
 
+export interface GradesReportData {
+    semesterText: string;
+    totalStudents: number;
+    excellentStudents: number;
+    goodStudents: number;
+    failingStudents: number;
+    groupLeader: string;
+    performance1: number;
+    quality1: number;
+    unrespectful: string;
+    events: string;
+    achievements: string;
+    groupWins: string;
+    clubs: string;
+    classHours: string;
+    violations: string;
+    classTeacher?: string;
+}
+
+export interface AttendanceReportData {
+    monthText: string;
+    currentYear: number;
+    totalStudents: number;
+    sickStudents: string;
+    respectfulAbsences: string;
+    unrespectfulAbsences: string;
+    preventiveWork: string;
+    classTeacher: string;
+}
+
+export type ReportEditData = GradesReportData | AttendanceReportData;
+
+export type GradesReportFieldId =
+    | "title"
+    | "subtitle"
+    | "groupNumber"
+    | "studentCount"
+    | "groupLeader"
+    | "classTeacher"
+    | "performance1"
+    | "quality1"
+    | "excellent"
+    | "unrespectful"
+    | "events"
+    | "achievements"
+    | "groupWins"
+    | "clubs"
+    | "classHours"
+    | "violations";
+
+export type AttendanceReportFieldId =
+    | "title"
+    | "classTeacher"
+    | "totalStudents"
+    | "sickStudents"
+    | "respectfulAbsences"
+    | "unrespectfulAbsences"
+    | "preventiveWork";
+
+export type ReportFieldId = GradesReportFieldId | AttendanceReportFieldId;
+
 export interface TeacherStats {
     students: number;
     avgGrade: number | string;
@@ -146,6 +207,10 @@ export interface TabButtonProps {
     active: boolean;
     onClick: () => void;
     label: string;
+    id?: string;
+    controls?: string;
+    tabIndex?: number;
+    onKeyDown?: React.KeyboardEventHandler<HTMLButtonElement>;
 }
 
 export interface ProfileInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
