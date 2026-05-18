@@ -1,7 +1,8 @@
 "use client"
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition, use, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion"; // Импорт для анимаций
+import { motion, AnimatePresence } from "framer-motion";
 import {
     Loader2, Trash2,
     ShieldAlert, Save,
@@ -12,9 +13,6 @@ import {
     DialogHeader, DialogTitle, DialogFooter,
     DialogDescription, DialogClose
 } from "@/components/ui/Dialog";
-import GroupAttendance from "@/components/GroupAttendance";
-import GroupGrades from "@/components/GroupGrades";
-import GroupStudents from "@/components/GroupStudents";
 import ErrorMessage from "@/components/NotifyAlert";
 import PageErrorState from "@/components/ui/PageErrorState";
 import { getErrorKindByMeta } from "@/utils/ui-errors";
@@ -25,8 +23,28 @@ import { Group, Notify, Student } from "@/utils/interfaces";
 import type { GroupStats } from "@/utils/group-stats";
 import GroupStatsPanel from "@/components/GroupStatsPanel";
 import Loader from "@/components/ui/animations/Loader";
+import { useAccessibleTabs } from "@/hooks/useAccessibleTabs";
+
+const GroupAttendance = dynamic(() => import("@/components/GroupAttendance"), {
+    loading: () => <Loader />,
+});
+const GroupGrades = dynamic(() => import("@/components/GroupGrades"), {
+    loading: () => <Loader />,
+});
+const GroupStudents = dynamic(() => import("@/components/GroupStudents"), {
+    loading: () => <Loader />,
+});
 
 interface UserListItem { id: number; full_name: string; }
+
+const GROUP_TABS = ["attendance", "grades", "students"] as const;
+type GroupTab = (typeof GROUP_TABS)[number];
+
+const TAB_LABELS: Record<GroupTab, string> = {
+    attendance: "Посещаемость",
+    grades: "Успеваемость",
+    students: "Студенты",
+};
 
 export default function MyGroup({ params }: { params: Promise<{ id: string }> }) {
     // Получаем параметры
@@ -39,11 +57,15 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
     // Состояния
     const [userData, setUserData] = useState<SessionPayload | null>(null); // Данные пользователя
     const [group, setGroup] = useState<Group | null>(null); // Данные группы
-    const [users, setUsers] = useState<UserListItem[]>([]); // Список преподавателей
-    const [activeTab, setActiveTab] = useState<'attendance' | 'grades' | 'students'>('attendance'); // Выбранная вкладка
-    const [notify, setNotify] = useState<Notify>({ message: '', type: '' }); // Уведомления
-    const [updateFormData, setUpdateFormData] = useState({ name: '', fk_user: '' }); // Данные формы
-    const [students, setStudents] = useState<Student[]>([]); // Список студентов
+    const [users, setUsers] = useState<UserListItem[]>([]);
+    const { activeTab, visitedTabs, selectTab, handleTabKeyDown } = useAccessibleTabs(GROUP_TABS, "attendance", "group");
+    const [notify, setNotify] = useState<Notify>({ message: '', type: '' });
+    const [updateFormData, setUpdateFormData] = useState({ name: '', fk_user: '' });
+    const [students, setStudents] = useState<Student[]>([]);
+    const [studentsLoaded, setStudentsLoaded] = useState(false);
+    const [studentsLoading, setStudentsLoading] = useState(false);
+    const [usersLoaded, setUsersLoaded] = useState(false);
+    const [usersLoading, setUsersLoading] = useState(false);
     const [groupStats, setGroupStats] = useState<GroupStats | null>(null);
     const [isSavingName, startSaveTransition] = useTransition();
     const [isTransferring, startTransferTransition] = useTransition();
@@ -81,34 +103,37 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
         // Устанавливаем данные формы
         setUpdateFormData({ name: groupData.name, fk_user: String(groupData.fk_user) });
 
-        // Получаем данные преподавателей и студентов
-        const [usersRes, studentsRes, statsRes] = await Promise.allSettled([
-            GetUsersList(),
-            GetStudents(id),
-            GetGroupStats(id),
-        ]);
-        // Проверяем, что запрос успешен
-        if (usersRes.status === "fulfilled" && usersRes.value.success && "data" in usersRes.value) {
-            // Устанавливаем данные преподавателей
-            setUsers((usersRes.value.data as UserListItem[]) ?? []);
-        } else {
-            // Устанавливаем уведомление
-            setNotify({ message: "Не удалось загрузить список преподавателей", type: "warning" });
-        }
-
-        // Проверяем, что запрос успешен
-        if (studentsRes.status === "fulfilled" && studentsRes.value.success && "data" in studentsRes.value) {
-            // Устанавливаем данные студентов
-            setStudents((studentsRes.value.data as Student[]) ?? []);
-        } else {
-            // Устанавливаем уведомление
-            setNotify({ message: "Не удалось загрузить список студентов", type: "warning" });
-        }
-
-        if (statsRes.status === "fulfilled" && statsRes.value.success && statsRes.value.data) {
-            setGroupStats(statsRes.value.data);
+        const statsRes = await GetGroupStats(id);
+        if (statsRes.success && statsRes.data) {
+            setGroupStats(statsRes.data);
         }
     }, []);
+
+    const loadStudents = useCallback(async (id: string) => {
+        if (studentsLoaded || studentsLoading) return;
+        setStudentsLoading(true);
+        const studentsRes = await GetStudents(id);
+        if (studentsRes.success && studentsRes.data) {
+            setStudents(studentsRes.data);
+            setStudentsLoaded(true);
+        } else {
+            setNotify({ message: "Не удалось загрузить список студентов", type: "warning" });
+        }
+        setStudentsLoading(false);
+    }, [studentsLoaded, studentsLoading]);
+
+    const loadUsers = useCallback(async () => {
+        if (usersLoaded || usersLoading) return;
+        setUsersLoading(true);
+        const usersRes = await GetUsersList();
+        if (usersRes.success && usersRes.data) {
+            setUsers(usersRes.data);
+            setUsersLoaded(true);
+        } else {
+            setNotify({ message: "Не удалось загрузить список преподавателей", type: "warning" });
+        }
+        setUsersLoading(false);
+    }, [usersLoaded, usersLoading]);
 
     // Инициализация при монтировании
     useEffect(() => {
@@ -123,7 +148,12 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
         });
     }, [groupId, loadData, router]);
 
-    // Проверяем, что пользователь является владельцем группы
+    useEffect(() => {
+        if (activeTab === "students" && group) {
+            void loadStudents(groupId);
+        }
+    }, [activeTab, group, groupId, loadStudents]);
+
     const isOwner = userData?.uid === group?.fk_user;
 
     // Проверяем, что ошибка не пустая
@@ -211,7 +241,7 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
 
                     {isOwner && (
                         <div className="flex items-center gap-3 w-full md:w-auto pt-4 md:pt-0 border-gray-100">
-                            <Dialog>
+                            <Dialog onOpenChange={(open) => { if (open) void loadUsers(); }}>
                                 <DialogTrigger asChild>
                                     <button className="flex-1 md:flex-none flex items-center gap-2 px-4 py-2.5 bg-amber-50 shadow-sm dark:bg-zinc-700/50 text-amber-600 rounded-lg font-semibold text-sm hover:bg-amber-500/80! hover:text-white! transition-colors">
                                         <ShieldAlert size={18} /> Передать
@@ -231,8 +261,10 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                                         className="w-full p-3 mt-4 rounded-lg border dark:bg-zinc-900 outline-none"
                                         value={updateFormData.fk_user}
                                         onChange={e => setUpdateFormData({ ...updateFormData, fk_user: e.target.value })}
+                                        aria-label="Новый классный руководитель"
+                                        disabled={usersLoading}
                                     >
-                                        <option value="" disabled>Выберите нового владельца</option>
+                                        <option value="" disabled>{usersLoading ? "Загрузка..." : "Выберите нового владельца"}</option>
                                         {users
                                             .filter(u => u.id !== userData?.uid)
                                             .map(u => (
@@ -314,34 +346,43 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
 
             {groupStats ? <GroupStatsPanel stats={groupStats} /> : null}
 
-            <div className="flex gap-4 lg:justify-start justify-between border-b dark:border-zinc-700 relative">
-                <button
-                    onClick={() => setActiveTab('attendance')}
-                    className={`relative pb-3 sm:px-4 flex items-center gap-2 font-bold text-sm transition-all ${activeTab === 'attendance' ? 'text-blue-600 dark:text-blue-400' : 'text-neutral-500'}`}
-                >
-                    <ClipboardCheck size={18} /> Посещаемость
-                    {activeTab === 'attendance' && (
-                        <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />
-                    )}
-                </button>
-                <button
-                    onClick={() => setActiveTab('grades')}
-                    className={`relative pb-3 sm:px-4 flex items-center gap-2 font-bold text-sm transition-all ${activeTab === 'grades' ? 'text-purple-600 dark:text-purple-400' : 'text-neutral-500'}`}
-                >
-                    <GraduationCap size={18} /> Успеваемость
-                    {activeTab === 'grades' && (
-                        <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-500" />
-                    )}
-                </button>
-                <button
-                    onClick={() => setActiveTab('students')}
-                    className={`relative pb-3 sm:px-4 flex items-center gap-2 font-bold text-sm transition-all ${activeTab === 'students' ? 'text-green-600 dark:text-green-400' : 'text-neutral-500'}`}
-                >
-                    <UserStar size={18} /> Студенты
-                    {activeTab === 'students' && (
-                        <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-500" />
-                    )}
-                </button>
+            <div
+                role="tablist"
+                aria-label="Разделы группы"
+                className="flex gap-4 lg:justify-start justify-between border-b dark:border-zinc-700 relative"
+            >
+                {GROUP_TABS.map((tab) => {
+                    const isActive = activeTab === tab;
+                    const TabIcon = tab === "attendance" ? ClipboardCheck : tab === "grades" ? GraduationCap : UserStar;
+                    const activeClass =
+                        tab === "attendance"
+                            ? "text-blue-600 dark:text-blue-400"
+                            : tab === "grades"
+                              ? "text-purple-600 dark:text-purple-400"
+                              : "text-green-600 dark:text-green-400";
+                    const underlineClass =
+                        tab === "attendance" ? "bg-blue-500" : tab === "grades" ? "bg-purple-500" : "bg-green-500";
+
+                    return (
+                        <button
+                            key={tab}
+                            type="button"
+                            role="tab"
+                            id={`group-tab-${tab}`}
+                            aria-selected={isActive}
+                            aria-controls={`group-panel-${tab}`}
+                            tabIndex={isActive ? 0 : -1}
+                            onClick={() => selectTab(tab)}
+                            onKeyDown={(event) => handleTabKeyDown(event, tab)}
+                            className={`relative pb-3 sm:px-4 flex items-center gap-2 font-bold text-sm transition-all ${isActive ? activeClass : "text-neutral-500"}`}
+                        >
+                            <TabIcon size={18} aria-hidden="true" /> {TAB_LABELS[tab]}
+                            {isActive ? (
+                                <motion.div layoutId="tab-underline" className={`absolute bottom-0 left-0 right-0 h-0.5 ${underlineClass}`} />
+                            ) : null}
+                        </button>
+                    );
+                })}
             </div>
 
             <AnimatePresence mode="wait">
@@ -352,15 +393,48 @@ export default function MyGroup({ params }: { params: Promise<{ id: string }> })
                     exit={{ opacity: 0, x: -10 }}
                     transition={{ duration: 0.2 }}
                 >
-                    <div className={activeTab === "attendance" ? "block" : "hidden"}>
-                        <GroupAttendance groupId={groupId} group={group} isOwner={isOwner} setNotify={setNotify} />
-                    </div>
-                    <div className={activeTab === "grades" ? "block" : "hidden"}>
-                        <GroupGrades groupId={groupId} group={group} isOwner={isOwner} setNotify={setNotify} />
-                    </div>
-                    <div className={activeTab === "students" ? "block" : "hidden"}>
-                        <GroupStudents groupId={groupId} groupName={group.name} group={group} students={students} setStudents={setStudents} isOwner={isOwner} setNotify={setNotify} />
-                    </div>
+                    {visitedTabs.has("attendance") ? (
+                        <div
+                            role="tabpanel"
+                            id="group-panel-attendance"
+                            aria-labelledby="group-tab-attendance"
+                            hidden={activeTab !== "attendance"}
+                        >
+                            <GroupAttendance groupId={groupId} group={group} isOwner={isOwner} setNotify={setNotify} />
+                        </div>
+                    ) : null}
+                    {visitedTabs.has("grades") ? (
+                        <div
+                            role="tabpanel"
+                            id="group-panel-grades"
+                            aria-labelledby="group-tab-grades"
+                            hidden={activeTab !== "grades"}
+                        >
+                            <GroupGrades groupId={groupId} group={group} isOwner={isOwner} setNotify={setNotify} />
+                        </div>
+                    ) : null}
+                    {visitedTabs.has("students") ? (
+                        <div
+                            role="tabpanel"
+                            id="group-panel-students"
+                            aria-labelledby="group-tab-students"
+                            hidden={activeTab !== "students"}
+                        >
+                            {studentsLoading && !studentsLoaded ? (
+                                <Loader />
+                            ) : (
+                                <GroupStudents
+                                    groupId={groupId}
+                                    groupName={group.name}
+                                    group={group}
+                                    students={students}
+                                    setStudents={setStudents}
+                                    isOwner={isOwner}
+                                    setNotify={setNotify}
+                                />
+                            )}
+                        </div>
+                    ) : null}
                 </motion.div>
             </AnimatePresence>
         </div>

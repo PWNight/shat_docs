@@ -27,9 +27,16 @@ import { apiDelete, apiGet, apiPost } from "@/utils/http-client";
 import Loader from "@/components/ui/animations/Loader";
 import PaginationControls from "@/components/ui/PaginationControls";
 import { ScrollArea } from "@/components/ui/ScrollArea";
+import { useAccessibleTabs } from "@/hooks/useAccessibleTabs";
 
 // Типы вкладок
 type TabType = 'name' | 'email' | 'password';
+const PROFILE_TABS: TabType[] = ["name", "email", "password"];
+const PROFILE_TAB_LABELS: Record<TabType, string> = {
+    name: "Имя",
+    email: "Почта",
+    password: "Пароль",
+};
 
 export default function ProfilePage() {
     // Получаем router
@@ -37,9 +44,9 @@ export default function ProfilePage() {
 
     // Состояния
     const [user, setUser] = useState<UserProfile | null>(null); // Данные пользователя
-    const [loading, setLoading] = useState(true); // Загрузка
-    const [activeTab, setActiveTab] = useState<TabType>("name"); // Выбранная вкладка
-    const [notify, setNotify] = useState<Notify>({ message: "", type: "" }); // Уведомления
+    const [loading, setLoading] = useState(true);
+    const { activeTab, selectTab, handleTabKeyDown } = useAccessibleTabs(PROFILE_TABS, "name", "profile");
+    const [notify, setNotify] = useState<Notify>({ message: "", type: "" });
     const [pending, setPending] = useState(false);
     const [resetPasswordPending, setResetPasswordPending] = useState(false);
     const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null);
@@ -287,13 +294,21 @@ export default function ProfilePage() {
                 <main className="lg:col-span-7 space-y-6">
                     <section className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
                         <div className="p-2 sm:p-3 border-b border-border bg-muted/20">
-                            <div className="flex p-1.5 bg-background rounded-2xl border border-border w-fit">
-                                {(['name', 'email', 'password'] as TabType[]).map((tab) => (
+                            <div
+                                role="tablist"
+                                aria-label="Настройки профиля"
+                                className="flex p-1.5 bg-background rounded-2xl border border-border w-fit"
+                            >
+                                {PROFILE_TABS.map((tab) => (
                                     <TabButton
                                         key={tab}
+                                        id={`profile-tab-${tab}`}
+                                        controls={`profile-panel-${tab}`}
                                         active={activeTab === tab}
-                                        onClick={() => setActiveTab(tab)}
-                                        label={tab === 'name' ? 'Имя' : tab === 'email' ? 'Почта' : 'Пароль'}
+                                        tabIndex={activeTab === tab ? 0 : -1}
+                                        onClick={() => selectTab(tab)}
+                                        onKeyDown={(event) => handleTabKeyDown(event, tab)}
+                                        label={PROFILE_TAB_LABELS[tab]}
                                     />
                                 ))}
                             </div>
@@ -303,6 +318,9 @@ export default function ProfilePage() {
                             <AnimatePresence mode="wait">
                                 <motion.div
                                     key={activeTab}
+                                    role="tabpanel"
+                                    id={`profile-panel-${activeTab}`}
+                                    aria-labelledby={`profile-tab-${activeTab}`}
                                     initial={{ opacity: 0, x: 10 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -10 }}
@@ -447,10 +465,16 @@ const InfoItem = ({ label, value, icon, iconColor, bgColor }: InfoItemProps) => 
     </div>
 );
 
-const TabButton = ({ active, onClick, label }: TabButtonProps) => (
+const TabButton = ({ active, onClick, label, id, controls, tabIndex = 0, onKeyDown }: TabButtonProps) => (
     <button
         type="button"
+        role="tab"
+        id={id}
+        aria-selected={active}
+        aria-controls={controls}
+        tabIndex={tabIndex}
         onClick={onClick}
+        onKeyDown={onKeyDown}
         className={`relative px-4 sm:px-6 py-2 rounded-xl text-sm font-bold transition-all duration-300 flex-1 sm:flex-none sm:w-32 z-10 ${
             active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
         }`}

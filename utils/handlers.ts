@@ -1,44 +1,67 @@
 "use server";
 
+import { headers } from "next/headers";
 import {
     GroupFormSchema, GroupFormState,
     LoginFormSchema, LoginFormState,
     RegisterFormSchema, RegisterFormState
 } from "@/utils/definitions";
 import { loginUser, registerUser } from "@/utils/auth-service";
-import { apiDelete, apiGet, apiPatch, apiPost } from "@/utils/http-client";
-import { z } from "zod";
-import {AttendanceStudent, GradeStudent, Group, Student, TeacherStats, UserProfile} from "@/utils/interfaces";
+import { apiPatch } from "@/utils/http-client";
+import { AttendanceStudent, GradeStudent, Group, Student, TeacherStats, UserProfile } from "@/utils/interfaces";
 import type { GroupStats } from "@/utils/group-stats";
 import { ApiResponseError } from "@/utils/functions";
 import { logger } from "@/utils/logger";
 import { isValidEntityId, isValidMonth, isValidSemester } from "@/utils/validators";
+import { checkRateLimit, getClientIdentifierFromHeaders } from "@/utils/rate-limit";
+import {
+    createGroupForCurrentUser,
+    createStudentsForCurrentUser,
+    deleteAttendancePeriodForCurrentUser,
+    deleteGradesPeriodForCurrentUser,
+    deleteGroupForCurrentUser,
+    deleteStudentForCurrentUser,
+    getAttendanceForCurrentUser,
+    getGradesForCurrentUser,
+    getGroupForCurrentUser,
+    getGroupStatsForCurrentUser,
+    getTeacherStatsForCurrentUser,
+    getUserProfileForCurrentUser,
+    listGroupsForCurrentUser,
+    listStudentsForCurrentUser,
+    listUsersForCurrentUser,
+    saveAttendanceForCurrentUser,
+    saveGradesForCurrentUser,
+    updateGroupForCurrentUser,
+    updateStudentForCurrentUser,
+    type ServiceResult,
+} from "@/utils/groups-service";
 
-// Функция для обработки ошибок
 function toErrorResult(error: unknown, fallback: string) {
-    // Проверяем, является ли ошибка ошибкой API
     if (error instanceof ApiResponseError) {
         return { success: false, message: error.message, code: error.code, status: error.status };
     }
 
-    // Проверяем, является ли ошибка ошибкой
     if (error instanceof Error) {
         logger.error("Handler request failed", { message: error.message });
         return { success: false, message: error.message };
     }
 
-    // Возвращаем ошибку
     return { success: false, message: fallback };
 }
 
-// Тип для результата обработки
 type HandlerResult<T = unknown> =
     | { success: true; data?: T; message?: string }
     | { success: false; message: string; code?: string; status?: number };
 
-// Код авторизации
+function fromService<T>(result: ServiceResult<T>): HandlerResult<T> {
+    if (!result.success) {
+        return { success: false, message: result.message, code: result.code, status: result.status };
+    }
+    return { success: true, data: result.data, message: result.message };
+}
+
 export async function Login(_prevState: LoginFormState, formData: FormData): Promise<LoginFormState> {
-    // Проверяем полученные поля
     const parsed = LoginFormSchema.safeParse(Object.fromEntries(formData));
     if (!parsed.success) {
         return {
@@ -51,8 +74,18 @@ export async function Login(_prevState: LoginFormState, formData: FormData): Pro
         };
     }
 
-    // Получаем данные из формы
     const { email, password } = parsed.data;
+
+    const headerStore = await headers();
+    const clientId = getClientIdentifierFromHeaders(headerStore);
+    const rateLimitResult = checkRateLimit(`login:${clientId}`, 5, 15 * 60 * 1000);
+    if (!rateLimitResult.success) {
+        return {
+            success: false,
+            message: "Слишком много попыток входа. Попробуйте позже.",
+            values: { email },
+        };
+    }
 
     const result = await loginUser(email, password);
     if (!result.success) {
@@ -66,9 +99,7 @@ export async function Login(_prevState: LoginFormState, formData: FormData): Pro
     return { success: true };
 }
 
-// Код авторизации
 export async function Register(_prevState: RegisterFormState, formData: FormData): Promise<RegisterFormState> {
-    // Проверяем полученные поля
     const parsed = RegisterFormSchema.safeParse(Object.fromEntries(formData));
     if (!parsed.success) {
         return {
@@ -82,7 +113,6 @@ export async function Register(_prevState: RegisterFormState, formData: FormData
         };
     }
 
-    // Получаем данные из формы
     const { email, full_name, password } = parsed.data;
 
     const result = await registerUser(email, full_name, password);
@@ -101,253 +131,183 @@ export async function Register(_prevState: RegisterFormState, formData: FormData
     };
 }
 
-// Код создания группы
-export async function CreateGroup(_state: GroupFormState, formData: FormData) {
+export async function CreateGroup(_state: GroupFormState, formData: FormData): Promise<GroupFormState> {
     try {
-        // Проверяем полученные поля
         const parsed = GroupFormSchema.safeParse(Object.fromEntries(formData));
         if (!parsed.success) {
-            return { message: "Ошибка валидации", fieldErrors: parsed.error.flatten().fieldErrors }
+            return { success: false, message: "Ошибка валидации", fieldErrors: parsed.error.flatten().fieldErrors };
         }
 
-        // Получаем данные из формы
         const { name, fk_user } = parsed.data;
-
-        // Отправляем POST запрос в авторизацию
-        await apiPost('/api/groups', { name, fk_user });
-
-        // Возвращаем успех и redirectTo
-        return { success: true };
+        const result = await createGroupForCurrentUser(name, fk_user);
+        if (!result.success) {
+            return { success: false, message: result.message };
+        }
+        return { success: true, message: result.message };
     } catch (error) {
-        return toErrorResult(error, "Произошла ошибка");
+        const err = toErrorResult(error, "Произошла ошибка");
+        return { success: false, message: err.message };
     }
 }
 
-// Код обновления группы
 export async function UpdateGroup(id: string, data: object): Promise<HandlerResult> {
-    // Проверяем, является ли id группы корректным
     if (!isValidEntityId(id)) return { success: false, message: "Некорректный id группы" };
     try {
-        // Отправляем PATCH запрос в обновление группы
-        return await apiPatch(`/api/groups/${id}`, data);
+        return fromService(await updateGroupForCurrentUser(id, data as { name?: string; fk_user?: string }));
     } catch (error) {
-        // Возвращаем ошибку
         return toErrorResult(error, "Ошибка обновления");
     }
 }
 
-// Код удаления группы
 export async function DeleteGroup(id: string): Promise<HandlerResult> {
     if (!isValidEntityId(id)) return { success: false, message: "Некорректный id группы" };
     try {
-        return await apiDelete(`/api/groups/${id}`);
+        return fromService(await deleteGroupForCurrentUser(id));
     } catch (error) {
         return toErrorResult(error, "Ошибка обновления");
     }
 }
 
-// Код сохранения посещаемости
 export async function SaveAttendance(groupId: string, students: AttendanceStudent[]): Promise<HandlerResult> {
-    // Проверяем, является ли id группы корректным
     if (!isValidEntityId(groupId)) return { success: false, message: "Некорректный id группы" };
     try {
-        // Отправляем POST запрос в сохранение посещаемости
-        return await apiPost(`/api/groups/${groupId}/attendance`, { groupId, students });
+        return fromService(await saveAttendanceForCurrentUser(groupId, students));
     } catch (error) {
-        // Возвращаем ошибку
         return toErrorResult(error, "Ошибка при сохранении посещаемости");
     }
 }
 
-// Код получения посещаемости
 export async function GetAttendance(groupId: string, periodMonth?: number): Promise<HandlerResult<AttendanceStudent[]>> {
-    // Проверяем, является ли id группы корректным
     if (!isValidEntityId(groupId)) return { success: false, message: "Некорректный id группы" };
     if (periodMonth !== undefined && !isValidMonth(periodMonth)) return { success: false, message: "Некорректный месяц" };
     try {
-        // Отправляем GET запрос в получение посещаемости
-        return await apiGet(`/api/groups/${groupId}/attendance`, {
-            query: { periodMonth },
-        });
+        return fromService(await getAttendanceForCurrentUser(groupId, periodMonth));
     } catch (error) {
-        // Возвращаем ошибку
         return toErrorResult(error, "Ошибка при получении посещаемости");
     }
 }
 
-// Код получения всех групп
-export async function GetAllGroups(): Promise<HandlerResult<Group[]>>{
-    // Отправляем GET запрос в получение всех групп
+export async function GetAllGroups(): Promise<HandlerResult<Group[]>> {
     try {
-        // Отправляем GET запрос в получение всех групп
-        const { data } = await apiGet<{ data?: Group[] }>("/api/groups/");
-
-        // Возвращаем успех и данные
-        return { success: true, message: "Успешно", data }
+        return fromService(await listGroupsForCurrentUser());
     } catch (error) {
-        // Возвращаем ошибку
         return toErrorResult(error, "Ошибка при получении списка групп");
     }
 }
 
-export async function GetGroup(id: string): Promise<HandlerResult<Group>>{
-    // Проверяем, является ли id группы корректным
+export async function GetGroup(id: string): Promise<HandlerResult<Group>> {
     if (!isValidEntityId(id)) return { success: false, message: "Некорректный id группы" };
     try {
-        // Отправляем GET запрос в получение группы
-        const { data } = await apiGet<{ data?: Group }>(`/api/groups/${id}`);
-
-        // Возвращаем успех и данные
-        return { success: true, message: "Успешно", data }
+        return fromService(await getGroupForCurrentUser(id));
     } catch (error) {
-        // Возвращаем ошибку
         return toErrorResult(error, "Ошибка при получении группы");
     }
 }
 
 export async function GetUsersList(): Promise<HandlerResult<{ id: number; full_name: string }[]>> {
-    // Отправляем GET запрос в получение списка пользователей
     try {
-        const { data } = await apiGet<{ data?: { id: number; full_name: string }[] }>('/api/users');
-
-        // Возвращаем успех и данные
-        return { success: true, data };
+        return fromService(await listUsersForCurrentUser());
     } catch (error) {
-        // Возвращаем ошибку
         return toErrorResult(error, "Ошибка при получении списка пользователей");
     }
 }
 
 export async function GetUser(id: number): Promise<HandlerResult<UserProfile>> {
-    // Проверяем, является ли id пользователя корректным
     if (!isValidEntityId(id)) return { success: false, message: "Некорректный id пользователя" };
     try {
-        // Отправляем GET запрос в получение пользователя
-        const { data } = await apiGet<{ data?: UserProfile }>(`/api/users/${id}`);
-
-        // Возвращаем успех и данные
-        return { success: true, data };
+        return fromService(await getUserProfileForCurrentUser(id));
     } catch (error) {
         return toErrorResult(error, "Ошибка при получении профиля пользователя");
     }
 }
 
-// Код получения студентов     
 export async function GetStudents(groupId: string): Promise<HandlerResult<Student[]>> {
-    // Проверяем, является ли id группы корректным
     if (!isValidEntityId(groupId)) return { success: false, message: "Некорректный id группы" };
     try {
-        // Отправляем GET запрос в получение студентов
-        const { data } = await apiGet<{ data?: Student[] }>(`/api/groups/${groupId}/students`);
-        // Возвращаем успех и данные
-
-        return { success: true, data };
+        return fromService(await listStudentsForCurrentUser(groupId));
     } catch (error) {
         return toErrorResult(error, "Ошибка при получении списка студентов");
     }
 }
 
-// Код создания студентов
 export async function CreateStudents(groupId: string, students: { fullName: string }[]): Promise<HandlerResult> {
-    // Проверяем, является ли id группы корректным
     if (!isValidEntityId(groupId)) return { success: false, message: "Некорректный id группы" };
-    // Отправляем POST запрос в создание студентов
     try {
-        // Отправляем POST запрос в создание студентов
-        return await apiPost(`/api/groups/${groupId}/students`, { students });
+        return fromService(await createStudentsForCurrentUser(groupId, students));
     } catch (error) {
-        // Возвращаем ошибку
         return toErrorResult(error, "Ошибка при создании студентов");
     }
 }
 
-// Код обновления студента
 export async function UpdateStudent(groupId: string, studentId: number, newName: string): Promise<HandlerResult> {
-    // Проверяем, является ли id группы и id студента корректными
-    if (!isValidEntityId(groupId) || !isValidEntityId(studentId)) return { success: false, message: "Некорректный id студента или группы" };
+    if (!isValidEntityId(groupId) || !isValidEntityId(studentId)) {
+        return { success: false, message: "Некорректный id студента или группы" };
+    }
     try {
-        // Отправляем PATCH запрос в обновление студента
-        return await apiPatch(`/api/groups/${groupId}/students/${studentId}`, { full_name: newName });
+        return fromService(await updateStudentForCurrentUser(groupId, studentId, newName));
     } catch (error) {
-        // Возвращаем ошибку
         return toErrorResult(error, "Ошибка при обновлении студента");
     }
 }
 
-// Код удаления студента
 export async function DeleteStudent(groupId: string, studentId: number): Promise<HandlerResult> {
-    // Проверяем, является ли id группы и id студента корректными
-    if (!isValidEntityId(groupId) || !isValidEntityId(studentId)) return { success: false, message: "Некорректный id студента или группы" };
+    if (!isValidEntityId(groupId) || !isValidEntityId(studentId)) {
+        return { success: false, message: "Некорректный id студента или группы" };
+    }
     try {
-        // Отправляем DELETE запрос в удаление студента
-        return await apiDelete(`/api/groups/${groupId}/students/${studentId}`);
+        return fromService(await deleteStudentForCurrentUser(groupId, studentId));
     } catch (error) {
-        // Возвращаем ошибку
         return toErrorResult(error, "Ошибка при удалении студента");
     }
 }
 
-// Код сохранения оценок
 export async function SaveGrades(groupId: string, students: GradeStudent[]): Promise<HandlerResult> {
-    // Проверяем, является ли id группы корректным
     if (!isValidEntityId(groupId)) return { success: false, message: "Некорректный id группы" };
     try {
-        // Отправляем POST запрос в сохранение оценок
-        return await apiPost(`/api/groups/${groupId}/grades`, { groupId, students });
+        return fromService(await saveGradesForCurrentUser(groupId, students));
     } catch (error) {
-        // Возвращаем ошибку
         return toErrorResult(error, "Ошибка при сохранении оценок");
     }
 }
 
-// Код удаления посещаемости за конкретный период
 export async function DeleteAttendancePeriod(groupId: string, periodMonth: number): Promise<HandlerResult> {
-    // Проверяем, является ли id группы и период корректными
-    if (!isValidEntityId(groupId) || !isValidMonth(periodMonth)) return { success: false, message: "Некорректный период или id группы" };
+    if (!isValidEntityId(groupId) || !isValidMonth(periodMonth)) {
+        return { success: false, message: "Некорректный период или id группы" };
+    }
     try {
-        // Отправляем DELETE запрос в удаление посещаемости за конкретный период
-        return await apiDelete(`/api/groups/${groupId}/attendance`, { query: { periodMonth } });
+        return fromService(await deleteAttendancePeriodForCurrentUser(groupId, periodMonth));
     } catch (error) {
-        // Возвращаем ошибку
         return toErrorResult(error, "Ошибка при удалении посещаемости за период");
     }
 }
 
-// Код удаления оценок за конкретный период
 export async function DeleteGradesPeriod(groupId: string, periodSemester: number): Promise<HandlerResult> {
-    // Проверяем, является ли id группы и период корректными
-    if (!isValidEntityId(groupId) || !isValidSemester(periodSemester)) return { success: false, message: "Некорректный период или id группы" };
+    if (!isValidEntityId(groupId) || !isValidSemester(periodSemester)) {
+        return { success: false, message: "Некорректный период или id группы" };
+    }
     try {
-        // Отправляем DELETE запрос в удаление оценок за конкретный период
-        return await apiDelete(`/api/groups/${groupId}/grades`, { query: { periodSemester } });
+        return fromService(await deleteGradesPeriodForCurrentUser(groupId, periodSemester));
     } catch (error) {
-        // Возвращаем ошибку
         return toErrorResult(error, "Ошибка при удалении оценок за период");
     }
 }
 
-// Код получения оценок
 export async function GetGrades(groupId: string, periodSemester?: number): Promise<HandlerResult<GradeStudent[]>> {
-    // Проверяем, является ли id группы корректным
     if (!isValidEntityId(groupId)) return { success: false, message: "Некорректный id группы" };
-    if (periodSemester !== undefined && !isValidSemester(periodSemester)) return { success: false, message: "Некорректный семестр" };
+    if (periodSemester !== undefined && !isValidSemester(periodSemester)) {
+        return { success: false, message: "Некорректный семестр" };
+    }
     try {
-        // Отправляем GET запрос в получение оценок
-        return await apiGet(`/api/groups/${groupId}/grades`, { query: { periodSemester } });
+        return fromService(await getGradesForCurrentUser(groupId, periodSemester));
     } catch (error) {
-        // Возвращаем ошибку
         return toErrorResult(error, "Ошибка при получении оценок");
     }
 }
 
-// Код обновления профиля
 export async function UpdateProfile(data: object): Promise<HandlerResult> {
     try {
-        // Отправляем PATCH запрос в обновление профиля
-        return await apiPatch('/api/users', data);
-        // Возвращаем ошибку
+        return await apiPatch("/api/users", data);
     } catch (error) {
-        // Возвращаем ошибку
         return toErrorResult(error, "Ошибка при обновлении профиля");
     }
 }
@@ -355,23 +315,16 @@ export async function UpdateProfile(data: object): Promise<HandlerResult> {
 export async function GetGroupStats(id: string): Promise<HandlerResult<GroupStats>> {
     if (!isValidEntityId(id)) return { success: false, message: "Некорректный id группы" };
     try {
-        const { data } = await apiGet<{ data?: GroupStats }>(`/api/groups/${id}/stats`);
-        return { success: true, message: "Успешно", data };
+        return fromService(await getGroupStatsForCurrentUser(id));
     } catch (error) {
         return toErrorResult(error, "Ошибка при получении статистики группы");
     }
 }
 
-// Код получения статистики преподавателя
 export async function GetTeacherStats(): Promise<HandlerResult<TeacherStats>> {
     try {
-        // Отправляем GET запрос в получение статистики преподавателя
-        const { data, message } = await apiGet<{ data?: TeacherStats; message?: string }>('/api/users/stats');
-        // Возвращаем успех и данные
-        return { success: true, data, message };
-        // Возвращаем ошибку
+        return fromService(await getTeacherStatsForCurrentUser());
     } catch (error) {
-        // Возвращаем ошибку
         return toErrorResult(error, "Ошибка при получении статистики преподавателя");
     }
 }

@@ -21,7 +21,9 @@ import { saveAs } from "file-saver";
 import {
     AttendanceStudent,
     AttendanceTotal,
+    AttendanceReportData,
     GradeStudent,
+    GradesReportData,
     Group,
     MONTH_NAMES,
     SEMESTER_NAMES,
@@ -95,7 +97,7 @@ const createCell = (text: string, options: CellOptions = {}): TableCell => {
 export const createGradesReportData = (
     students: GradeStudent[],
     group: Group
-) => {
+): GradesReportData | null => {
     // Проверяем, есть ли студенты
     if (!students.length) return null;
 
@@ -138,7 +140,7 @@ export const createGradesReportData = (
 export const exportGradesToWord = async (
     students: GradeStudent[],
     group: Group,
-    customData?: any
+    customData?: Partial<GradesReportData>
 ): Promise<void> => {
     // Проверяем, есть ли студенты
     if (!students.length) return;
@@ -367,7 +369,7 @@ export const createAttendanceReportData = (
     students: AttendanceStudent[],
     total: AttendanceTotal,
     group: Group
-) => {
+): AttendanceReportData | null => {
     if (!students.length) return null;
 
     // Получаем месяц
@@ -429,7 +431,7 @@ export const exportToWord = async (
     students: AttendanceStudent[],
     total: AttendanceTotal,
     group: Group,
-    customData?: any
+    customData?: Partial<AttendanceReportData>
 ): Promise<void> => {
     if (!students.length) return;
 

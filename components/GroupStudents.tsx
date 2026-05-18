@@ -4,7 +4,7 @@ import { Edit, Trash2, Save, X, User, Loader2, RefreshCw } from "lucide-react";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogClose } from "@/components/ui/Dialog";
 import { GetAttendance, GetGrades, GetStudents, UpdateStudent, DeleteStudent } from "@/utils/handlers";
 import { exportGradesToWord, exportToWord, createGradesReportData, createAttendanceReportData } from "@/utils/functions";
-import { Group, Notify, Student, MONTH_NAMES, SEMESTER_NAMES, AttendanceStudent, AttendanceTotal, GradeStudent } from "@/utils/interfaces";
+import { Group, Notify, Student, MONTH_NAMES, SEMESTER_NAMES, AttendanceStudent, AttendanceTotal, GradeStudent, GradesReportData, AttendanceReportData } from "@/utils/interfaces";
 import { getDbOfflineToastMessage, isDbOfflineMeta } from "@/utils/ui-errors";
 import ReportEditDialog from "@/components/ReportEditDialog";
 
@@ -41,8 +41,8 @@ export default function GroupStudents({ groupId, groupName, group, students, set
     const [isGenerating, setIsGenerating] = useState(false);
     // Используем useState для отслеживания диалога редактирования отчёта
     const [showReportEditDialog, setShowReportEditDialog] = useState(false);
-    // Используем useState для хранения данных отчёта для редактирования
-    const [reportDataForEdit, setReportDataForEdit] = useState<any>(null);
+    const [gradesReportData, setGradesReportData] = useState<GradesReportData | null>(null);
+    const [attendanceReportData, setAttendanceReportData] = useState<AttendanceReportData | null>(null);
 
     // Используем useEffect для отслеживания монтирования компонента
     useEffect(() => {
@@ -144,7 +144,7 @@ export default function GroupStudents({ groupId, groupName, group, students, set
                 } as Group);
 
                 if (reportData) {
-                    setReportDataForEdit(reportData);
+                    setAttendanceReportData(reportData);
                     setShowReportEditDialog(true);
                 }
 
@@ -191,11 +191,10 @@ export default function GroupStudents({ groupId, groupName, group, students, set
                 } as Group);
 
                 if (reportData) {
-                    setReportDataForEdit(reportData);
+                    setGradesReportData(reportData);
                     setShowReportEditDialog(true);
                 }
 
-                // Устанавливаем уведомление о подготовке отчёта к редактированию
                 setNotify({ message: 'Отчёт подготовлен к редактированию', type: 'success' });
             }
         } catch (error) {
@@ -493,15 +492,26 @@ export default function GroupStudents({ groupId, groupName, group, students, set
                 </div>
             )}
             
-            {/* Report Edit Dialog */}
-            <ReportEditDialog
-                open={showReportEditDialog}
-                onClose={() => setShowReportEditDialog(false)}
-                reportType={reportType}
-                reportData={reportDataForEdit}
-                group={group}
-                setNotify={setNotify}
-            />
+            {showReportEditDialog && gradesReportData ? (
+                <ReportEditDialog
+                    open={showReportEditDialog}
+                    onClose={() => setShowReportEditDialog(false)}
+                    reportType="grades"
+                    reportData={gradesReportData}
+                    group={group}
+                    setNotify={setNotify}
+                />
+            ) : null}
+            {showReportEditDialog && attendanceReportData ? (
+                <ReportEditDialog
+                    open={showReportEditDialog}
+                    onClose={() => setShowReportEditDialog(false)}
+                    reportType="attendance"
+                    reportData={attendanceReportData}
+                    group={group}
+                    setNotify={setNotify}
+                />
+            ) : null}
         </div>
     );
 }
