@@ -2,7 +2,7 @@
 
 Система создания и управления документацией для техникума: посещаемость, успеваемость, отчёты и справки для студентов.
 
-**Текущая версия:** `2.0.0-beta1` (ветка v2.X).  
+**Текущая версия:** `2.0.0` (ветка v2.X).  
 Исходный код основан на [FoxWorldWeb](https://github.com/PWNight/FoxWorldWeb).
 
 Документация в приложении: `/wiki` · Сравнение v1 и v2: `/wiki/versions-v1-v2`
@@ -74,7 +74,3 @@ GitHub Actions (`.github/workflows/ci.yml`): typecheck → lint → test → bui
 | Быстрый старт | `/wiki/quick-start` |
 | API Reference (v3) | `/wiki/api-reference` |
 | API v2 vs v3 | `/wiki/api-v2-v3` |
-
-## Лицензия
-
-Private project.
