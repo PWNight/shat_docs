@@ -1,6 +1,6 @@
 {
   "name": "shat_docs",
-  "version": "2.0.0",
+  "version": "2.0.0-beta2",
   "private": true,
   "type": "module",
   "scripts": {
