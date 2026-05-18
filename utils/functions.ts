@@ -4,7 +4,6 @@ import { logger } from "@/utils/logger";
 import {
     AlignmentType,
     Document,
-    HeadingLevel,
     Packer,
     Paragraph,
     Table,
@@ -38,12 +37,6 @@ const COLORS = {
     late: "DC2626",
     grade5: "DCFCE7",
     grade2: "FEE2E2",
-};
-
-// Функция для форматирования названия предмета
-const formatSubject = (name: string): string => {
-    const clean = name.replace(/\s+/g, " ");
-    return clean.length > 12 ? clean.slice(0, 12) + "…" : clean;
 };
 
 // Опции для ячейки таблицы
@@ -96,7 +89,6 @@ const createCell = (text: string, options: CellOptions = {}): TableCell => {
 // Функция для создания данных отчёта по успеваемости для редактирования
 export const createGradesReportData = (
     students: GradeStudent[],
-    group: Group
 ): GradesReportData | null => {
     // Проверяем, есть ли студенты
     if (!students.length) return null;

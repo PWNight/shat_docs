@@ -4,7 +4,6 @@ import { X, Download, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/Dialog";
 import {
     AttendanceReportData,
-    AttendanceReportFieldId,
     AttendanceStudent,
     AttendanceTotal,
     GradesReportData,

@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Edit, Trash2, Save, X, User, Loader2, RefreshCw } from "lucide-react";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogClose } from "@/components/ui/Dialog";
 import { GetAttendance, GetGrades, GetStudents, UpdateStudent, DeleteStudent } from "@/utils/handlers";
-import { exportGradesToWord, exportToWord, createGradesReportData, createAttendanceReportData } from "@/utils/functions";
+import { createGradesReportData, createAttendanceReportData } from "@/utils/functions";
 import { Group, Notify, Student, MONTH_NAMES, SEMESTER_NAMES, AttendanceStudent, AttendanceTotal, GradeStudent, GradesReportData, AttendanceReportData } from "@/utils/interfaces";
 import { getDbOfflineToastMessage, isDbOfflineMeta } from "@/utils/ui-errors";
 import ReportEditDialog from "@/components/ReportEditDialog";
