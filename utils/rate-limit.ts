@@ -24,6 +24,21 @@ export function getClientIdentifier(request: NextRequest): string {
     return ip;
 }
 
+export function getClientIdentifierFromHeaders(headerStore: Headers): string {
+    const forwarded = headerStore.get("x-forwarded-for");
+    const realIp = headerStore.get("x-real-ip");
+    const cfConnectingIp = headerStore.get("cf-connecting-ip");
+
+    const ip = forwarded?.split(",")[0]?.trim() || realIp || cfConnectingIp || "unknown";
+
+    if (ip === "unknown") {
+        const userAgent = headerStore.get("user-agent") || "unknown";
+        return `unknown-${userAgent}`;
+    }
+
+    return ip;
+}
+
 export function checkRateLimit(
     identifier: string,
     maxRequests: number,
