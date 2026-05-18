@@ -80,6 +80,39 @@ export function isValidSemester(value: unknown): boolean {
     return semesterSchema.safeParse(value).success;
 }
 
+export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function isValidEmail(value: string): boolean {
+    const normalized = value.trim();
+    return normalized.length <= 254 && EMAIL_RE.test(normalized);
+}
+
+export function normalizeWhitespace(value: string): string {
+    return value.trim().replace(/\s+/g, " ");
+}
+
+export function isStrongPassword(value: string): boolean {
+    const normalized = value.trim();
+    return (
+        normalized.length >= 8 &&
+        normalized.length <= 72 &&
+        /[A-Z]/.test(normalized) &&
+        /[a-z]/.test(normalized) &&
+        /[0-9]/.test(normalized) &&
+        /[^A-Za-z0-9]/.test(normalized)
+    );
+}
+
+export function isAdminPassword(value: string): boolean {
+    const normalized = value.trim();
+    return (
+        normalized.length >= 8 &&
+        normalized.length <= 72 &&
+        /[A-Za-zА-Яа-я]/.test(normalized) &&
+        /\d/.test(normalized)
+    );
+}
+
 // ============================================================================
 // Form State Types
 // ============================================================================
@@ -106,13 +139,11 @@ export type RegisterFormState = {
     };
 };
 
-export type GroupFormState =
-    | {
+export type GroupFormState = {
     fieldErrors?: {
-        name?: string[]
-        fk_user?: string[]
-    }
-    message?: string
-    success?: boolean
-}
-    | undefined;
+        name?: string[];
+        fk_user?: string[];
+    };
+    message?: string;
+    success?: boolean;
+};
