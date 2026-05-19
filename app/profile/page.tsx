@@ -13,7 +13,7 @@ import {
 import ErrorMessage from "@/components/NotifyAlert";
 import PageErrorState from "@/components/ui/PageErrorState";
 import { getDbOfflineToastMessage, getErrorKindByMeta, isDbOfflineMeta } from "@/utils/ui-errors";
-import { ApiResponseError } from "@/utils/functions";
+import { ApiResponseError } from "@/utils/api-errors";
 import {
     InfoItemProps,
     Notify,
@@ -132,33 +132,30 @@ export default function ProfilePage() {
         if (sessionPage > totalPages) setSessionPage(totalPages);
     }, [sessionPage, sessions.length]);
 
-    // Функция для обработки действия
     const handleAction = async (e: React.ChangeEvent<HTMLFormElement>) => {
-        // Предотвращаем стандартное поведение формы
         e.preventDefault();
-        // Устанавливаем загрузку
         setPending(true);
 
-        // Получаем данные формы
         const formData = new FormData(e.currentTarget);
-        // Преобразуем данные формы в объект
-        const data = Object.fromEntries(formData) as UpdateProfileFormData;
+        const raw = Object.fromEntries(formData) as Record<string, string>;
+        const data: UpdateProfileFormData = {
+            full_name: raw.full_name || undefined,
+            email: raw.email || undefined,
+            currentPassword: raw.currentPassword || undefined,
+            newPassword: raw.newPassword || undefined,
+            confirmPassword: raw.confirmPassword || undefined,
+        };
 
-        // Выполняем запрос на обновление профиля
         const res = await UpdateProfile(data) as { success: boolean; message?: string };
 
-        // Устанавливаем уведомление
         setNotify({
             message: res.message || (res.success ? "Сохранено" : "Ошибка сохранения"),
             type: res.success ? 'success' : 'error'
         });
 
-        // Проверяем, что запрос успешен
         if (res.success) {
             if (data.full_name || data.email) {
-                // Устанавливаем данные пользователя
                 setUser((prev) => {
-                    // Проверяем, что данные не пустые
                     if (!prev) return null;
 
                     return {
@@ -169,14 +166,11 @@ export default function ProfilePage() {
                 });
             }
 
-            // Проверяем, что выбрана вкладка пароля
             if (activeTab === "password") {
-                // Сбрасываем форму
                 (e.target as HTMLFormElement).reset();
             }
         }
 
-        // Устанавливаем загрузку
         setPending(false);
     };
 
@@ -194,44 +188,33 @@ export default function ProfilePage() {
         }
     };
 
-    // Функция для обработки запроса сброса пароля
     const handlePasswordResetRequest = async () => {
         setResetPasswordPending(true);
-        // Пытаемся получить ответ от сервера
         try {
-            // Выполняем POST запрос на запрос сброса пароля
             const response = await apiPost<{ message?: string }>("/api/password-resets");
-            // Устанавливаем уведомление
             setNotify({ message: response.message || "Заявка отправлена", type: "success" });
         } catch (error) {
-            // Проверяем, что ошибка является ApiResponseError
             if (error instanceof ApiResponseError) {
-                // Проверяем, что ошибка является ошибкой базы данных
                 const dbOffline = isDbOfflineMeta(error.status, error.code);
-                // Устанавливаем уведомление
                 setNotify({
                     message: dbOffline ? getDbOfflineToastMessage() : error.message,
                     type: dbOffline ? "warning" : "error",
                 });
                 return;
             }
-            // Устанавливаем уведомление
             setNotify({ message: error instanceof Error ? error.message : "Ошибка отправки заявки", type: "error" });
         } finally {
             setResetPasswordPending(false);
         }
     };
 
-    // Возвращаем заглушку загрузки, пока данные не готовы
     if (loading) {
         return (
             <Loader/>
         );
     }
 
-    // Проверяем, что ошибка не пустая
     if (pageError) {
-        // Получаем тип ошибки
         const kind = getErrorKindByMeta(pageError.status, pageError.code);
         return (
             <PageErrorState

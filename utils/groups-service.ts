@@ -43,12 +43,16 @@ async function requireGroupForUser(groupId: string | number): Promise<
     return { success: true, uid: auth.uid, group };
 }
 
-async function resolveStudentId(groupId: number, fullName: string): Promise<number | null> {
-    const row = await queryOne<{ id: number }>(
-        "SELECT id FROM students WHERE fk_group = ? AND full_name = ? LIMIT 1",
-        [groupId, fullName]
+function buildStudentIdMap(groupId: number): Map<string, number> {
+    const rows = query<{ id: number; full_name: string }>(
+        "SELECT id, full_name FROM students WHERE fk_group = ?",
+        [groupId]
     );
-    return row?.id ?? null;
+    const map = new Map<string, number>();
+    for (const row of rows) {
+        map.set(row.full_name, row.id);
+    }
+    return map;
 }
 
 export async function listGroupsForCurrentUser(): Promise<ServiceResult<Group[]>> {
@@ -113,6 +117,8 @@ export async function createGroupForCurrentUser(name: string, fk_user: string): 
     return { success: true, message: `Группа ${name} успешно создана` };
 }
 
+const ALLOWED_GROUP_COLUMNS = new Set(["name", "fk_user"]);
+
 export async function updateGroupForCurrentUser(id: string, data: { name?: string; fk_user?: string }): Promise<ServiceResult> {
     const access = await requireGroupForUser(id);
     if (!access.success) return access;
@@ -127,7 +133,7 @@ export async function updateGroupForCurrentUser(id: string, data: { name?: strin
     const updates: string[] = [];
     const values: unknown[] = [];
     for (const [key, value] of Object.entries(data)) {
-        if (value !== undefined) {
+        if (value !== undefined && ALLOWED_GROUP_COLUMNS.has(key)) {
             updates.push(`${key} = ?`);
             values.push(value);
         }
@@ -181,12 +187,14 @@ export async function createStudentsForCurrentUser(
     const access = await requireGroupForUser(groupId);
     if (!access.success) return access;
 
-    for (const student of students) {
-        await execute(
-            "INSERT INTO students (full_name, fk_group) VALUES (?, ?) ON CONFLICT(full_name, fk_group) DO UPDATE SET full_name = excluded.full_name",
-            [student.fullName, access.group.id]
+    transaction((db) => {
+        const stmt = db.prepare(
+            "INSERT INTO students (full_name, fk_group) VALUES (?, ?) ON CONFLICT(full_name, fk_group) DO UPDATE SET full_name = excluded.full_name"
         );
-    }
+        for (const student of students) {
+            stmt.run(student.fullName, access.group.id);
+        }
+    });
 
     return { success: true, message: "Студенты добавлены" };
 }
@@ -277,9 +285,10 @@ export async function saveAttendanceForCurrentUser(
     const access = await requireGroupForUser(groupId);
     if (!access.success) return access;
 
-    for (const student of students) {
-        const fkStudent = await resolveStudentId(access.group.id, student.fullName);
-        await execute(
+    const studentIdMap = buildStudentIdMap(access.group.id);
+
+    transaction((db) => {
+        const stmt = db.prepare(
             `INSERT INTO attendance
             (fk_group, full_name, fk_student, full_days_total, full_days_sick, lessons_total, lessons_sick, late, period_month)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -291,20 +300,22 @@ export async function saveAttendanceForCurrentUser(
             lessons_sick = excluded.lessons_sick,
             late = excluded.late,
             period_month = excluded.period_month,
-            updated_at = datetime('now')`,
-            [
+            updated_at = datetime('now')`
+        );
+        for (const student of students) {
+            stmt.run(
                 access.group.id,
                 student.fullName,
-                fkStudent,
+                studentIdMap.get(student.fullName) ?? null,
                 student.fullDaysTotal,
                 student.fullDaysSick,
                 student.lessonsTotal,
                 student.lessonsSick,
                 student.late,
                 student.periodMonth ?? null,
-            ]
-        );
-    }
+            );
+        }
+    });
 
     return { success: true, message: "Посещаемость обновлена" };
 }
@@ -353,9 +364,10 @@ export async function saveGradesForCurrentUser(groupId: string, students: GradeS
     const access = await requireGroupForUser(groupId);
     if (!access.success) return access;
 
-    for (const student of students) {
-        const fkStudent = await resolveStudentId(access.group.id, student.fullName);
-        await execute(
+    const studentIdMap = buildStudentIdMap(access.group.id);
+
+    transaction((db) => {
+        const stmt = db.prepare(
             `INSERT INTO grades (fk_group, full_name, fk_student, subjects_json, average_score, period_semester)
              VALUES (?, ?, ?, ?, ?, ?)
              ON CONFLICT(fk_group, full_name, period_semester) DO UPDATE SET
@@ -363,17 +375,19 @@ export async function saveGradesForCurrentUser(groupId: string, students: GradeS
                     subjects_json = excluded.subjects_json,
                     average_score = excluded.average_score,
                     period_semester = excluded.period_semester,
-                    updated_at = datetime('now')`,
-            [
+                    updated_at = datetime('now')`
+        );
+        for (const student of students) {
+            stmt.run(
                 access.group.id,
                 student.fullName,
-                fkStudent,
+                studentIdMap.get(student.fullName) ?? null,
                 JSON.stringify(student.subjects),
                 student.averageScore,
                 student.periodSemester ?? null,
-            ]
-        );
-    }
+            );
+        }
+    });
 
     return { success: true, message: "Успеваемость обновлена" };
 }

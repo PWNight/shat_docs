@@ -158,7 +158,11 @@ async function validateSessionToken(sessionToken: string, request?: NextRequest)
     if (new Date(sessionRow.expires_at).getTime() <= Date.now()) return null;
     if (sessionRow.user_id !== payload.uid) return null;
 
-    await execute("UPDATE auth_sessions SET last_seen_at = datetime('now') WHERE session_id = ?", [payload.sid]);
+    const lastSeen = new Date(sessionRow.last_seen_at).getTime();
+    const FIVE_MINUTES = 5 * 60 * 1000;
+    if (Date.now() - lastSeen > FIVE_MINUTES) {
+        execute("UPDATE auth_sessions SET last_seen_at = datetime('now') WHERE session_id = ?", [payload.sid]);
+    }
 
     if (request) {
         const userAgent = request.headers.get("user-agent");

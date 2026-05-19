@@ -163,7 +163,6 @@ export interface UpdateProfileFormData {
     currentPassword?: string;
     newPassword?: string;
     confirmPassword?: string;
-    [key: string]: string | undefined;
 }
 
 export interface ActiveSession {

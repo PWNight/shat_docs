@@ -40,6 +40,9 @@ yarn-error.log*
 # local sqlite database
 /data/
 
+# application logs
+/logs/
+
 *.tsbuildinfo
 next-env.d.ts
 storage.json

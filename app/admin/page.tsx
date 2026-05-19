@@ -9,7 +9,7 @@ import PageErrorState from "@/components/ui/PageErrorState";
 import Loader from "@/components/ui/animations/Loader";
 import { getSession } from "@/utils/session.client";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/utils/http-client";
-import { ApiResponseError } from "@/utils/functions";
+import { ApiResponseError } from "@/utils/api-errors";
 import { getDbOfflineToastMessage, getErrorKindByMeta, isDbOfflineMeta } from "@/utils/ui-errors";
 import { StatCard, TabButton } from "@/components/admin/AdminUi";
 import GroupsTab from "@/components/admin/GroupsTab";

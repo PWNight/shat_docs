@@ -1,6 +1,6 @@
-import { twMerge } from "tailwind-merge";
-import clsx, { ClassValue } from "clsx";
-import { logger } from "@/utils/logger";
+export { cn } from "@/utils/classnames";
+export { ApiResponseError, handleApiResponse } from "@/utils/api-errors";
+
 import {
     AlignmentType,
     Document,
@@ -550,72 +550,4 @@ export const exportToWord = async (
     saveAs(blob, `Отчет_по_посещаемости_${group.name}.docx`);
 };
 
-// Функция для объединения классов Tailwind
-export function cn(...inputs: ClassValue[]) {
-    return twMerge(clsx(inputs));
-}
 
-// Тип для тела ответа API
-type ApiResponseBody = {
-    success?: boolean;
-    message?: string;
-    code?: string;
-    error?: string;
-    data?: unknown;
-};
-
-// Класс для ошибки API
-export class ApiResponseError extends Error {
-    status: number;
-    code?: string;
-    // Конструктор ошибки API
-    constructor(message: string, status: number, code?: string) {
-        super(message);
-        this.name = "ApiResponseError";
-        this.status = status;
-        this.code = code;
-    }
-}
-
-// Функция для парсинга тела ответа API
-function parseResponseBody(response: Response): Promise<ApiResponseBody | null> {
-    return response
-        .text()
-        .then((raw) => {
-            if (!raw) return null;
-            try {
-                return JSON.parse(raw) as ApiResponseBody;
-            } catch {
-                return null;
-            }
-        });
-}
-
-// Функция для обработки ответа API
-export async function handleApiResponse(response: Response): Promise<ApiResponseBody> {
-    const body = await parseResponseBody(response);
-
-    // Проверяем, является ли ответ успешным
-    if (!response.ok) {
-        // Получаем сообщение из тела ответа
-        const messageFromBody = body?.message ?? body?.error;
-        // Создаем сообщение об ошибке
-        const message = messageFromBody
-            ? `${messageFromBody} (err ${response.status})`
-            : `Ошибка запроса (err ${response.status})`;
-
-        // Получаем код ошибки из тела ответа
-        const apiCode = body?.code ?? body?.error;
-        // Логируем ошибку
-        logger.warn("API request failed", { status: response.status, code: apiCode, message: messageFromBody });
-        throw new ApiResponseError(message, response.status, apiCode);
-    }
-
-    // Проверяем, есть ли тело ответа
-    if (!body) {
-        return { success: true };
-    }
-
-    // Возвращаем тело ответа
-    return body;
-}

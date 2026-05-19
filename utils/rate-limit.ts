@@ -1,26 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getDb } from "@/utils/sqlite";
 
-interface RateLimitEntry {
-    count: number;
-    resetTime: number;
+let tableEnsured = false;
+
+function ensureRateLimitTable(): void {
+    if (tableEnsured) return;
+    const db = getDb();
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS rate_limit_entries (
+            identifier TEXT NOT NULL,
+            count INTEGER NOT NULL DEFAULT 1,
+            reset_time INTEGER NOT NULL,
+            PRIMARY KEY (identifier)
+        );
+    `);
+    tableEnsured = true;
 }
 
-const rateLimitStore = new Map<string, RateLimitEntry>();
-
 export function getClientIdentifier(request: NextRequest): string {
-    // Try to get real IP from headers
     const forwarded = request.headers.get("x-forwarded-for");
     const realIp = request.headers.get("x-real-ip");
     const cfConnectingIp = request.headers.get("cf-connecting-ip");
-    
+
     const ip = forwarded?.split(",")[0]?.trim() || realIp || cfConnectingIp || "unknown";
-    
-    // Fallback to a combination of IP and User-Agent if IP is unknown
+
     if (ip === "unknown") {
         const userAgent = request.headers.get("user-agent") || "unknown";
         return `unknown-${userAgent}`;
     }
-    
+
     return ip;
 }
 
@@ -44,41 +52,29 @@ export function checkRateLimit(
     maxRequests: number,
     windowMs: number
 ): { success: boolean; remaining: number; resetTime: number } {
+    ensureRateLimitTable();
+    const db = getDb();
     const now = Date.now();
-    const entry = rateLimitStore.get(identifier);
-    
-    // Clean up expired entries
-    if (entry && now > entry.resetTime) {
-        rateLimitStore.delete(identifier);
+
+    db.prepare("DELETE FROM rate_limit_entries WHERE reset_time <= ?").run(now);
+
+    const row = db.prepare("SELECT count, reset_time FROM rate_limit_entries WHERE identifier = ?").get(identifier) as
+        | { count: number; reset_time: number }
+        | undefined;
+
+    if (!row) {
+        const resetTime = now + windowMs;
+        db.prepare("INSERT INTO rate_limit_entries (identifier, count, reset_time) VALUES (?, 1, ?)").run(identifier, resetTime);
+        return { success: true, remaining: maxRequests - 1, resetTime };
     }
-    
-    const currentEntry = rateLimitStore.get(identifier);
-    
-    if (!currentEntry) {
-        // First request
-        rateLimitStore.set(identifier, {
-            count: 1,
-            resetTime: now + windowMs
-        });
-        return { success: true, remaining: maxRequests - 1, resetTime: now + windowMs };
+
+    if (row.count >= maxRequests) {
+        return { success: false, remaining: 0, resetTime: row.reset_time };
     }
-    
-    if (currentEntry.count >= maxRequests) {
-        // Rate limit exceeded
-        return { 
-            success: false, 
-            remaining: 0, 
-            resetTime: currentEntry.resetTime 
-        };
-    }
-    
-    // Increment count
-    currentEntry.count++;
-    return { 
-        success: true, 
-        remaining: maxRequests - currentEntry.count, 
-        resetTime: currentEntry.resetTime 
-    };
+
+    const newCount = row.count + 1;
+    db.prepare("UPDATE rate_limit_entries SET count = ? WHERE identifier = ?").run(newCount, identifier);
+    return { success: true, remaining: maxRequests - newCount, resetTime: row.reset_time };
 }
 
 export function rateLimitResponse(
@@ -87,13 +83,13 @@ export function rateLimitResponse(
 ): NextResponse {
     const retryAfter = Math.ceil((resetTime - Date.now()) / 1000);
     return NextResponse.json(
-        { 
-            success: false, 
+        {
+            success: false,
             message: "Слишком много запросов. Попробуйте позже.",
             code: "RATE_LIMIT_EXCEEDED",
-            retryAfter 
+            retryAfter
         },
-        { 
+        {
             status: 429,
             headers: {
                 "Retry-After": retryAfter.toString(),
@@ -103,16 +99,4 @@ export function rateLimitResponse(
             }
         }
     );
-}
-
-// Clean up expired entries periodically (every 5 minutes)
-if (typeof setInterval !== "undefined") {
-    setInterval(() => {
-        const now = Date.now();
-        for (const [key, entry] of rateLimitStore.entries()) {
-            if (now > entry.resetTime) {
-                rateLimitStore.delete(key);
-            }
-        }
-    }, 5 * 60 * 1000);
 }

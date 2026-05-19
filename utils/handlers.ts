@@ -10,7 +10,7 @@ import { loginUser, registerUser } from "@/utils/auth-service";
 import { apiPatch } from "@/utils/http-client";
 import { AttendanceStudent, GradeStudent, Group, Student, TeacherStats, UserProfile } from "@/utils/interfaces";
 import type { GroupStats } from "@/utils/group-stats";
-import { ApiResponseError } from "@/utils/functions";
+import { ApiResponseError } from "@/utils/api-errors";
 import { logger } from "@/utils/logger";
 import { isValidEntityId, isValidMonth, isValidSemester } from "@/utils/validation";
 import { checkRateLimit, getClientIdentifierFromHeaders } from "@/utils/rate-limit";
@@ -115,6 +115,17 @@ export async function Register(_prevState: RegisterFormState, formData: FormData
 
     const { email, full_name, password } = parsed.data;
 
+    const headerStore = await headers();
+    const clientId = getClientIdentifierFromHeaders(headerStore);
+    const rateLimitResult = checkRateLimit(`register:${clientId}`, 3, 15 * 60 * 1000);
+    if (!rateLimitResult.success) {
+        return {
+            success: false,
+            message: "Слишком много попыток регистрации. Попробуйте позже.",
+            values: { email, full_name },
+        };
+    }
+
     const result = await registerUser(email, full_name, password);
     if (!result.success) {
         return {
@@ -150,10 +161,10 @@ export async function CreateGroup(_state: GroupFormState, formData: FormData): P
     }
 }
 
-export async function UpdateGroup(id: string, data: object): Promise<HandlerResult> {
+export async function UpdateGroup(id: string, data: { name?: string; fk_user?: string }): Promise<HandlerResult> {
     if (!isValidEntityId(id)) return { success: false, message: "Некорректный id группы" };
     try {
-        return fromService(await updateGroupForCurrentUser(id, data as { name?: string; fk_user?: string }));
+        return fromService(await updateGroupForCurrentUser(id, data));
     } catch (error) {
         return toErrorResult(error, "Ошибка обновления");
     }
@@ -304,7 +315,7 @@ export async function GetGrades(groupId: string, periodSemester?: number): Promi
     }
 }
 
-export async function UpdateProfile(data: object): Promise<HandlerResult> {
+export async function UpdateProfile(data: { full_name?: string; email?: string; currentPassword?: string; newPassword?: string; confirmPassword?: string }): Promise<HandlerResult> {
     try {
         return await apiPatch("/api/users", data);
     } catch (error) {
