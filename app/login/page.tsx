@@ -6,26 +6,30 @@ import { useSearchParams } from "next/navigation";
 import { Login } from "@/utils/handlers";
 import { getSession } from "@/utils/session.client";
 
+function isSafeRedirect(url: string): boolean {
+    try {
+        const parsed = new URL(url, window.location.origin);
+        return parsed.origin === window.location.origin && parsed.pathname.startsWith("/");
+    } catch {
+        return url.startsWith("/") && !url.startsWith("//");
+    }
+}
+
 function LoginForm() {
-    // Используем useActionState для авторизации
     const [state, action, pending] = useActionState(Login, {
         success: false,
         message: "",
         fieldErrors: {},
         values: { email: "" }
     });
-    // Используем useState для показа пароля
     const [showPassword, setShowPassword] = useState(false);
     const [isRedirecting, setIsRedirecting] = useState(false);
-    // Используем useSearchParams для получения параметров
     const searchParams = useSearchParams();
 
-    // Получаем параметр redirectTo
-    const redirectTo = searchParams.get("to") || "/profile";
+    const rawRedirect = searchParams.get("to") || "/profile";
+    const redirectTo = isSafeRedirect(rawRedirect) ? rawRedirect : "/profile";
 
-    // Используем useEffect для перенаправления после авторизации
     useEffect(() => {
-        // Проверяем, что пользователь успешно авторизован
         if (state?.success) {
             setIsRedirecting(true);
             window.location.assign(redirectTo);
@@ -39,7 +43,6 @@ function LoginForm() {
         });
     }, [state, redirectTo]);
 
-    // Функция для показа/скрытия пароля
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
     };

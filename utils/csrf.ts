@@ -13,7 +13,7 @@ export async function generateCsrfToken(): Promise<string> {
         secure: env.NODE_ENV === "production",
         sameSite: "strict",
         path: "/",
-        maxAge: 60 * 60 * 24 // 24 hours
+        maxAge: 60 * 60 // 1 hour
     });
     return token;
 }

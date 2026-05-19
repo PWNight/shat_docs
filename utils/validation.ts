@@ -104,13 +104,7 @@ export function isStrongPassword(value: string): boolean {
 }
 
 export function isAdminPassword(value: string): boolean {
-    const normalized = value.trim();
-    return (
-        normalized.length >= 8 &&
-        normalized.length <= 72 &&
-        /[A-Za-zА-Яа-я]/.test(normalized) &&
-        /\d/.test(normalized)
-    );
+    return isStrongPassword(value);
 }
 
 // ============================================================================

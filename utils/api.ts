@@ -163,36 +163,4 @@ export function handleApiError(
     return { message: defaultMessage, code: "SERVER_ERROR" };
 }
 
-// Функция для обработки fetch-ответов
-export async function handleApiResponse(response: Response): Promise<unknown> {
-    // Проверяем, является ли ответ успешным
-    if (!response.ok) {
-        // Создаем сообщение об ошибке
-        let errorMessage = `Ошибка ${response.status}`;
-        try {
-            // Получаем тип контента
-            const contentType = response.headers.get("content-type");
-            // Проверяем, является ли контент JSON
-            if (contentType && contentType.includes("application/json")) {
-                // Получаем данные из ответа
-                const errorData = await response.json();
-                // Получаем сообщение из данных
-                errorMessage = (errorData as { message?: string }).message || errorMessage;
-            } else {
-                // Если не JSON, используем текст
-                const text = await response.text();
-                if (text) errorMessage = text;
-            }
-        } catch {
-            // Если не удается прочитать тело, используем статус
-            throw new Error(errorMessage);
-        }
-    }
-    try {
-        // Получаем данные из ответа
-        return await response.json();
-    } catch {
-        // Если не JSON, возвращаем пустой объект
-        return {};
-    }
-}
+export { handleApiResponse } from "@/utils/api-errors";

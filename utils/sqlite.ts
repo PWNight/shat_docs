@@ -221,23 +221,23 @@ export function getDb(): Database.Database {
     return dbInstance;
 }
 
-export async function query<T = RowDataPacket>(sql: string, params: unknown[] = []): Promise<T[]> {
+export function query<T = RowDataPacket>(sql: string, params: unknown[] = []): T[] {
     const db = getDb();
     const stmt = db.prepare(sql);
     return stmt.all(...normalizeSqliteParams(params)) as T[];
 }
 
-export async function queryOne<T = RowDataPacket>(
+export function queryOne<T = RowDataPacket>(
     sql: string,
     params: unknown[] = []
-): Promise<T | null> {
+): T | null {
     const db = getDb();
     const stmt = db.prepare(sql);
     const row = stmt.get(...normalizeSqliteParams(params)) as T | undefined;
     return row ?? null;
 }
 
-export async function execute(sql: string, params: unknown[] = []): Promise<ResultSetHeader> {
+export function execute(sql: string, params: unknown[] = []): ResultSetHeader {
     const db = getDb();
     const stmt = db.prepare(sql);
     const result = stmt.run(...normalizeSqliteParams(params));
@@ -247,8 +247,8 @@ export async function execute(sql: string, params: unknown[] = []): Promise<Resu
     };
 }
 
-export async function transaction<T>(callback: (db: Database.Database) => T): Promise<T> {
+export function transaction<T>(callback: (db: Database.Database) => T): T {
     const db = getDb();
-    const transaction = db.transaction(callback);
-    return transaction(db);
+    const tx = db.transaction(callback);
+    return tx(db);
 }
