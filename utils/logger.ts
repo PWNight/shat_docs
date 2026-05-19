@@ -1,22 +1,37 @@
-import fs from "fs";
-import path from "path";
-
 type LogContext = Record<string, unknown>;
 
-const LOG_DIR = path.join(process.cwd(), "logs");
-const LOG_FILE = path.join(LOG_DIR, "app.log");
+const isServer = typeof window === "undefined";
 
-let logFileReady = false;
+let writeToFile: (line: string) => void = () => {};
 
-function ensureLogDir(): void {
-    if (logFileReady) return;
+if (isServer) {
     try {
-        if (!fs.existsSync(LOG_DIR)) {
-            fs.mkdirSync(LOG_DIR, { recursive: true });
-        }
-        logFileReady = true;
+        const fs = require("fs") as typeof import("fs");
+        const path = require("path") as typeof import("path");
+
+        const LOG_DIR = path.join(process.cwd(), "logs");
+        const LOG_FILE = path.join(LOG_DIR, "app.log");
+        let logFileReady = false;
+
+        writeToFile = (line: string) => {
+            if (!logFileReady) {
+                try {
+                    if (!fs.existsSync(LOG_DIR)) {
+                        fs.mkdirSync(LOG_DIR, { recursive: true });
+                    }
+                    logFileReady = true;
+                } catch {
+                    return;
+                }
+            }
+            try {
+                fs.appendFileSync(LOG_FILE, line, "utf-8");
+            } catch {
+                // Silently fail file writes
+            }
+        };
     } catch {
-        // If we can't create the log dir, we'll just log to console
+        // fs/path not available
     }
 }
 
@@ -24,16 +39,6 @@ function formatLogLine(level: string, message: string, context?: LogContext): st
     const timestamp = new Date().toISOString();
     const ctx = context ? ` ${JSON.stringify(context)}` : "";
     return `[${timestamp}] [${level}] ${message}${ctx}\n`;
-}
-
-function writeToFile(line: string): void {
-    ensureLogDir();
-    if (!logFileReady) return;
-    try {
-        fs.appendFileSync(LOG_FILE, line, "utf-8");
-    } catch {
-        // Silently fail file writes to avoid cascading errors
-    }
 }
 
 function formatContext(context?: LogContext) {
